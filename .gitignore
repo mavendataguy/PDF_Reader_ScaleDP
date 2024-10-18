@@ -1,0 +1,20 @@
+# Python
+*.pyc
+*.pyo
+
+
+/build
+/dist
+
+
+# OS-specific patterns - add your own here
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+.idea/
+
+Pipfile
+Pipfile.lock
+*.egg-info
