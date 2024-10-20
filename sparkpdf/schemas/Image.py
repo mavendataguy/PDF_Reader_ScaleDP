@@ -10,8 +10,8 @@ class Image(object):
     """
     Image object for represent image data in Spark Dataframe
     """
-    def __init__(self, origin, imageType=ImageType.FILE.value, data=bytes(), height=0, width=0, resolution=0, exception = ""):
-        self.origin = origin
+    def __init__(self, path, imageType=ImageType.FILE.value, data=bytes(), height=0, width=0, resolution=0, exception = ""):
+        self.path = path
         self.height = height
         self.width = width
         self.resolution = resolution
@@ -39,8 +39,8 @@ class Image(object):
         return self
 
     @staticmethod
-    def from_binary(data, origin, imageType, resolution=None, width=None, height=None):
-        img = Image(origin=origin, data=data, imageType=ImageType.FILE.value, resolution=resolution)
+    def from_binary(data, path, imageType, resolution=None, width=None, height=None):
+        img = Image(path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution)
         try:
             if data is None or len(data) == 0:
                 raise Exception("Empty image data.")
@@ -65,13 +65,13 @@ class Image(object):
             return img
 
     @staticmethod
-    def from_pil(data, origin, imageType, resolution):
+    def from_pil(data, path, imageType, resolution):
         buff = io.BytesIO()
         if imageType == ImageType.WEBP.value:
             data.save(buff, "webp")
         else:
             data.save(buff, "png")
-        img = Image(origin=origin, data=buff.getvalue(), imageType=ImageType.FILE.value, width=data.width, height=data.height, resolution=resolution)
+        img = Image(path=path, data=buff.getvalue(), imageType=ImageType.FILE.value, width=data.width, height=data.height, resolution=resolution)
         if imageType == ImageType.PIL.value:
             return img.toPIL()
         elif imageType == ImageType.OPENCV.value:
@@ -81,7 +81,7 @@ class Image(object):
 
     @staticmethod
     def get_schema():
-        image_fields = ["origin", "imageType", "height", "width", "resolution", "data", "exception"]
+        image_fields = ["path", "imageType", "height", "width", "resolution", "data", "exception"]
         return StructType([
             StructField(image_fields[0], StringType(), True),
             StructField(image_fields[1], StringType(), True),
