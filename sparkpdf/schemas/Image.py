@@ -1,23 +1,25 @@
 from pyspark.sql.types import *
-from ..enums import ImageType
+import imagesize
 import io
 import logging
 from PIL import Image as pImage
 import traceback
+from dataclasses import dataclass
+from ..enums import ImageType
+from pyspark_types.dataclass import map_dataclass_to_struct, register_type, BinaryT
 
-
+@dataclass(order=True)
 class Image(object):
     """
     Image object for represent image data in Spark Dataframe
     """
-    def __init__(self, path, imageType=ImageType.FILE.value, data=bytes(), height=0, width=0, resolution=0, exception = ""):
-        self.path = path
-        self.height = height
-        self.width = width
-        self.resolution = resolution
-        self.data = data
-        self.imageType = imageType
-        self.exception = exception
+    path: str
+    resolution: int
+    data: BinaryT
+    imageType: str
+    exception: str = ""
+    height: int = 0
+    width: int = 0
 
     def to_pil(self):
         if self.imageType == ImageType.FILE.value or self.imageType == ImageType.WEBP.value:
@@ -32,9 +34,9 @@ class Image(object):
 
     def to_webp(self):
         if self.imageType == ImageType.FILE.value:
-            i = pImage.open(io.BytesIO(self.data))
+            image = pImage.open(io.BytesIO(self.data))
             buff = io.BytesIO()
-            i.save(buff, "webp")
+            image.save(buff, "webp")
             self.data = buff.getvalue()
         return self
 
@@ -54,13 +56,15 @@ class Image(object):
                 if width is not None:
                     img.width = width
                 if width is None and height is None:
-                    import imagesize
                     img.width, img.height = imagesize.get(io.BytesIO(img.data))
+                    if img.width is -1:
+                        raise Exception("Unable to read image.")
+                    logging.info(f"Image size: {img.width}x{img.height}")
                 return img
-        except Exception as e:
+        except Exception:
             exception = traceback.format_exc()
-            exception = f"ToImage: {exception}"
-            logging.error(f"ToImage: Error in image extraction. {exception}")
+            exception = f"Error during image extraction: Image from binary data: {exception}"
+            logging.error(f"ImageFromBinaryData: {exception}")
             img.exception = exception
             return img
 
@@ -81,12 +85,12 @@ class Image(object):
 
     @staticmethod
     def get_schema():
-        image_fields = ["path", "imageType", "height", "width", "resolution", "data", "exception"]
-        return StructType([
-            StructField(image_fields[0], StringType(), True),
-            StructField(image_fields[1], StringType(), True),
-            StructField(image_fields[2], IntegerType(), False),
-            StructField(image_fields[3], IntegerType(), False),
-            StructField(image_fields[4], IntegerType(), False),
-            StructField(image_fields[5], BinaryType(), True),
-            StructField(image_fields[6], StringType(), True)])
+        return map_dataclass_to_struct(Image)
+
+    def __str__(self):
+        return f"Image(path={self.path}, resolution={self.resolution}, imageType={self.imageType}, exception={self.exception}, height={self.height}, width={self.width})"
+
+    def __repr__(self):
+        return self.__str__()
+
+register_type(Image, Image.get_schema)

@@ -22,24 +22,21 @@ class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasI
         self._setDefault(keepInputData=False)
         self._setDefault(imageType=ImageType.FILE.value)
 
-    def transform_udf(self, input, origin, resolution):
-        return Image.from_binary(input, origin, self.getImageType(), resolution=resolution)
+    def transform_udf(self, input, path, resolution):
+        return Image.from_binary(input, path, self.getImageType(), resolution=resolution)
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
         if self.getInputCol() not in dataset.columns:
-            uid_ = self.uid
-            inpcol = self.getInputCol()
-            raise ValueError(f"""Missing input column in {uid_}: Column '{inpcol}' is not present.
-                                 Make sure such transformer exist in your pipeline,
-                                 with the right output names.""")
-        in_col = dataset[self.getInputCol()]
-        origin_col = dataset[self.getPathCol()]
+            input_col = self.getInputCol()
+            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{input_col}' is not present.")
+        input_col = dataset[self.getInputCol()]
+        path_col = dataset[self.getPathCol()]
         if "resolution" in dataset.columns:
             resolution = dataset["resolution"]
         else:
             resolution = lit(0)
-        result = dataset.withColumn(out_col, udf(self.transform_udf, Image.get_schema())(in_col, origin_col, resolution))
+        result = dataset.withColumn(out_col, udf(self.transform_udf, Image.get_schema())(input_col, path_col, resolution))
         if not self.getKeepInputData():
-            result = result.drop(in_col)
+            result = result.drop(input_col)
         return result

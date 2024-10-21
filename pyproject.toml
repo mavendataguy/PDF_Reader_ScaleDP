@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "spark-pdf"
+version = "0.1.0"
+description = ""
+authors = ["Mykola Melnyk <kolia1985@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyspark = "3.5.3"
+pillow = "11.0.0"
+imagesize = "1.4.1"
+tesserocr = "2.7.1"
+pytest = "8.3.3"
+pyspark-types = { git = "https://github.com/kolia1985/pyspark_types" }
+
+[project]
+dependencies = [
+    "pyspark",
+    "numpy",
+    "pytest"
+]
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.3"
+pytest-spark = "0.6.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

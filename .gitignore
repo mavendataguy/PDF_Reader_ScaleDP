@@ -18,3 +18,5 @@
 Pipfile
 Pipfile.lock
 *.egg-info
+*.log
+*.lock
