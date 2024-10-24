@@ -14,9 +14,9 @@ class Image(object):
     Image object for represent image data in Spark Dataframe
     """
     path: str
-    resolution: int
-    data: BinaryT
-    imageType: str
+    resolution: int = 0
+    data: BinaryT = bytes()
+    imageType: str = ImageType.FILE.value
     exception: str = ""
     height: int = 0
     width: int = 0

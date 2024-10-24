@@ -138,3 +138,43 @@ class HasOutputCol(Params):
         Sets the value of :py:attr:`outputCol`.
         """
         return self._set(outputCol=value)
+
+
+class HasResolution(Params):
+    resolution = Param(Params._dummy(), "resolution",
+                          "Resolution of image.",
+                          typeConverter=TypeConverters.toInt)
+
+    POINTS_PER_INCH = 72
+
+    def setResolution(self, value):
+        """
+        Sets the value of :py:attr:`resolution`.
+        """
+        return self._set(resolution=value)
+
+    def getResolution(self):
+        """
+        Gets the value of :py:attr:`resolution`.
+        """
+        return self.getOrDefault(self.resolution)
+
+class HasPageCol(Params):
+    """
+    Mixin for param pageCol: path column name.
+    """
+    pageCol = Param(Params._dummy(), "pageCol",
+                      "Page column name.",
+                      typeConverter=TypeConverters.toString)
+
+    def setPageCol(self, value):
+        """
+        Sets the value of :py:attr:`pageCol`.
+        """
+        return self._set(pageCol=value)
+
+    def getPageCol(self) -> str:
+        """
+        Gets the value of pageCol or its default value.
+        """
+        return self.getOrDefault(self.pageCol)
