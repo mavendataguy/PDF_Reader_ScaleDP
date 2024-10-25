@@ -3,18 +3,34 @@ import sys
 import pyspark
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
+from pyspark.ml.pipeline import PipelineModel
 from importlib.resources import files
 from sparkpdf.image.DataToImage import DataToImage
 from sparkpdf.pdf.PdfDataToImage import PdfDataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
+from sparkpdf.models.ner.Ner import Ner
+from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
 
 from sparkpdf import enums
 from sparkpdf.enums import *
 
+from pyspark.sql import DataFrame
+
+
+from sparkpdf.utils.display_utils import show_image, show_pdf, show_ner, visualize_ner
+
+DataFrame.show_image = lambda self, column="image", limit=5, width=800, show_meta=True, : show_image(self, column, limit, width, show_meta)
+DataFrame.show_pdf = lambda self, column="content", limit=5, width=800, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
+DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ner(self, column, limit, truncate)
+DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, labels_list=None : visualize_ner(self, column, text_column, limit, labels_list)
+
 __all__ = ['start',
            'DataToImage',
+           'ImageDrawBoxes',
            'PdfDataToImage',
-           'TesseractOcr'
+           'TesseractOcr',
+           'Ner',
+           'PipelineModel',
            ] + dir(enums)
 
 
