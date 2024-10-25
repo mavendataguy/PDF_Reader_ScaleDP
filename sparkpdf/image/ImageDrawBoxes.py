@@ -29,6 +29,10 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                       "Line width.",
                       typeConverter=TypeConverters.toInt)
 
+    textSize = Param(Params._dummy(),"textSize",
+                     "Text size.",
+                     typeConverter=TypeConverters.toInt)
+
     @keyword_only
     def __init__(self,
                  inputCols=['image', 'boxes'],
@@ -38,6 +42,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                  filled=False,
                  color="red",
                  lineWidth=1,
+                 textSize=12,
                  numPartitions=0,
                  pageCol="page"):
         super(ImageDrawBoxes, self).__init__()
@@ -47,6 +52,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                          imageType=imageType,
                          filled=filled,
                          lineWidth=lineWidth,
+                         textSize=textSize,
                          color=color,
                          numPartitions=numPartitions,
                          pageCol=pageCol)
@@ -70,12 +76,12 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
                         img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
-                        img1.text((box.x, box.y - box.height), ner.entity_group, fill=self.getColor())
+                        img1.text((box.x, box.y - 2 - self.getTextSize()), ner.entity_group, fill=self.getColor(), font_size=self.getTextSize())
             else:
                 for box in data.bboxes:
                     box = Box(**box.asDict())
                     img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
-                    img1.text((box.x, box.y - 14), str(f"{box.score:0.2f}"), fill=self.getColor(), font_size=12)
+                    img1.text((box.x, box.y - 2 - self.getTextSize()), str(f"{box.score:0.2f}"), fill=self.getColor(), font_size=self.getTextSize())
 
         except Exception as e:
             exception = traceback.format_exc()
@@ -110,7 +116,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         """
         Gets the value of :py:attr:`filled`.
 
-        :meta private:
+        meta private:
         """
         return self.getOrDefault(self.filled)
 
@@ -125,3 +131,14 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         Gets the value of :py:attr:`lineWidth`.
         """
         return self.getOrDefault(self.lineWidth)
+
+    def setTextSize(self, value):
+        """
+        Sets the value of :py:attr:`textSize`.
+        """
+        return self._set(textSize=value)
+    def getTextSize(self):
+        """
+        Gets the value of :py:attr:`textSize`.
+        """
+        return self.getOrDefault(self.textSize)
