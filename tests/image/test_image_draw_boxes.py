@@ -12,7 +12,7 @@ def test_image_draw_boxes_ocr(image_df):
 
     pipeline = PipelineModel(stages=[
         TesseractOcr(keepInputData=True),
-        ImageDrawBoxes(inputCols=["image", "text"])
+        ImageDrawBoxes(inputCols=["image", "text"], lineWidth=2)
     ])
 
     result = pipeline.transform(image_df).collect()

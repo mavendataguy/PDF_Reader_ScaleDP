@@ -30,7 +30,6 @@ class Box:
 
     def shape(self):
         return [(self.x, self.y), (self.x + self.width, self.y + self.height)]
-        #return [(self.y, self.x), (self.y + self.width, self.x + self.height)]
 
     def bbox(self):
         return [self.x, self.y, self.x + self.width, self.y + self.height]

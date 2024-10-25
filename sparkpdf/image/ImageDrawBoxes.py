@@ -25,6 +25,10 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                       "Fill rectangle.",
                       typeConverter=TypeConverters.toBoolean)
 
+    lineWidth = Param(Params._dummy(), "lineWidth",
+                      "Line width.",
+                      typeConverter=TypeConverters.toInt)
+
     @keyword_only
     def __init__(self,
                  inputCols=['image', 'boxes'],
@@ -33,6 +37,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                  imageType=ImageType.FILE.value,
                  filled=False,
                  color="red",
+                 lineWidth=1,
                  numPartitions=0,
                  pageCol="page"):
         super(ImageDrawBoxes, self).__init__()
@@ -41,6 +46,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                          keepInputData=keepInputData,
                          imageType=imageType,
                          filled=filled,
+                         lineWidth=lineWidth,
                          color=color,
                          numPartitions=numPartitions,
                          pageCol=pageCol)
@@ -63,13 +69,13 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                     for box in ner.boxes:
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
-                        img1.rectangle(box.shape(), outline=self.getColor(), fill=fill)
+                        img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
                         img1.text((box.x, box.y - box.height), ner.entity_group, fill=self.getColor())
             else:
                 for box in data.bboxes:
                     box = Box(**box.asDict())
-                    img1.rectangle(box.shape(), outline=self.getColor(), fill=fill)
-                    img1.text((box.x, box.y - 14), str(f"{box.score:02f}"), fill=self.getColor(), font_size=12)
+                    img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
+                    img1.text((box.x, box.y - 14), str(f"{box.score:0.2f}"), fill=self.getColor(), font_size=12)
 
         except Exception as e:
             exception = traceback.format_exc()
@@ -107,3 +113,15 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         :meta private:
         """
         return self.getOrDefault(self.filled)
+
+    def setLineWidth(self, value):
+        """
+        Sets the value of :py:attr:`lineWidth`.
+        """
+        return self._set(lineWidth=value)
+
+    def getLineWidth(self):
+        """
+        Gets the value of :py:attr:`lineWidth`.
+        """
+        return self.getOrDefault(self.lineWidth)

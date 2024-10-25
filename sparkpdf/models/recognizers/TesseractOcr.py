@@ -131,10 +131,9 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
     def call_pytesseract(self, image, scale_factor, image_path):
         import pytesseract
         res = pytesseract.image_to_data(image, output_type=pytesseract.Output.DATAFRAME, config=self.getConfig())
-        res = res[res["conf"] > self.getScoreThreshold()][['text', 'conf', 'top', 'left', 'width', 'height']]\
-            .rename(columns={"conf": "score", "top": "y", "left": "x"})
+        res = res[res["conf"] > self.getScoreThreshold()][['text', 'conf', 'left', 'top', 'width', 'height']]\
+            .rename(columns={"conf": "score", "left": "x", "top": "y"})
         boxes = res.apply(lambda x: Box(*x).toString().scale(1 / scale_factor), axis=1).values.tolist()
-
         if self.getKeepFormatting():
             text = self.box_to_formatted_text(boxes)
         else:
