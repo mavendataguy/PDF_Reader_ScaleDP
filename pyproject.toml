@@ -10,7 +10,8 @@ python = "^3.11"
 pyspark = "3.5.3"
 pillow = "11.0.0"
 imagesize = "1.4.1"
-tesserocr = "2.7.1"
+
+pytesseract = "0.3.13"
 pytest = "8.3.3"
 pyspark-types = { git = "https://github.com/kolia1985/pyspark_types" }
 PyMuPDF = "1.24.11"
@@ -24,6 +25,7 @@ dependencies = [
 pytest = "^8.3.3"
 pytest-spark = "0.6.0"
 jupyter = "^1.1.1"
+tesserocr = "2.7.1"
 
 [build-system]
 requires = ["poetry-core"]

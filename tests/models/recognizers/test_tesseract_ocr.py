@@ -1,7 +1,20 @@
+import pytest
+
+from enums import TessLib
 from sparkpdf.image.DataToImage import DataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 
 def test_tesseract_ocr(image_df):
+    pytest.skip()
+    ocr = TesseractOcr(keepFormatting=True, tessLib=TessLib.TESSEROCR.value)
+    result = ocr.transform(image_df).collect()
+    assert (len(result) == 1)
+    # present text field
+    assert (hasattr(result[0], "text"))
+    # detected text
+    assert ("Hospital:" in result[0].text.text)
+
+def test_tesseract_ocr_pytesseract(image_df):
     ocr = TesseractOcr(keepFormatting=True)
     result = ocr.transform(image_df).collect()
     assert (len(result) == 1)

@@ -1,7 +1,6 @@
 import traceback
 import logging
 
-from tesserocr import PyTessBaseAPI, PSM, OEM, RIL, iterate_level
 from pyspark import keyword_only
 from pyspark.sql.functions import udf
 from pyspark.ml import Transformer
@@ -11,6 +10,7 @@ from sparkpdf.schemas.Box import Box
 from sparkpdf.schemas.Image import Image
 from sparkpdf.schemas.OcrOutput import OcrOutput
 from sparkpdf.params import *
+from enums import PSM, OEM, TessLib
 from utils import get_size, cluster
 
 
@@ -45,21 +45,25 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
     keepFormatting = Param(Params._dummy(), "keepFormatting",
                            "Whether to keep the original formatting.",
                            typeConverter=TypeConverters.toBoolean)
+    
+    tessLib = Param(Params._dummy(), "tessLib",
+                            "The desired Tesseract library to use. Defaults to :attr:`TESSEROCR`",
+                            typeConverter=TypeConverters.toInt)
 
     @keyword_only
-
     def __init__(self,
                  inputCol="image",
                  outputCol="text",
                  keepInputData=False,
                  scaleFactor=1.0,
                  scoreThreshold=0.5,
-                 psm=PSM.AUTO,
-                 oem=OEM.DEFAULT,
+                 psm=PSM.AUTO.value,
+                 oem=OEM.DEFAULT.value,
                  lang="eng",
                  lineTolerance=0,
                  keepFormatting=False,
-                 tessDataPath="/usr/share/tesseract-ocr/5/tessdata/"):
+                 tessDataPath="/usr/share/tesseract-ocr/5/tessdata/",
+                 tessLib=TessLib.PYTESSERACT.value):
         super(TesseractOcr, self).__init__()
         self._setDefault(inputCol=inputCol,
                          outputCol=outputCol,
@@ -71,7 +75,8 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
                          lang=lang,
                          lineTolerance=lineTolerance,
                          keepFormatting=keepFormatting,
-                         tessDataPath=tessDataPath)
+                         tessDataPath=tessDataPath,
+                         tessLib=tessLib)
     @staticmethod
     def to_formatted_text(lines, character_height):
         output_lines = []
@@ -120,45 +125,81 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         ]
         return self.to_formatted_text(lines, character_height)
 
+    def getConfig(self):
+        return f"--psm {self.getPsm()} --oem {self.getOem()} -l {self.getLang()}"
+
+    def call_pytesseract(self, image, scale_factor, image_path):
+        import pytesseract
+        res = pytesseract.image_to_data(image, output_type=pytesseract.Output.DATAFRAME, config=self.getConfig())
+        res = res[res["conf"] > self.getScoreThreshold()][['text', 'conf', 'top', 'left', 'width', 'height']]\
+            .rename(columns={"conf": "score", "top": "y", "left": "x"})
+        boxes = res.apply(lambda x: Box(*x).toString().scale(1 / scale_factor), axis=1).values.tolist()
+
+        if self.getKeepFormatting():
+            text = self.box_to_formatted_text(boxes)
+        else:
+            text = " ".join([str(w) for w in res["text"].values.tolist()])
+        return OcrOutput(path=image_path,
+                         text=text,
+                         type="text",
+                         bboxes=boxes)
+
+    def call_tesserocr(self, image, scale_factor, image_path):
+        from tesserocr import PyTessBaseAPI, RIL, iterate_level
+        
+        with PyTessBaseAPI(path=self.getTessDataPath(), psm=self.getPsm(), oem=self.getOem(),
+                           lang=self.getLang()) as api:
+            api.SetVariable("debug_file", "ocr.log")
+            api.SetImage(image)
+            api.SetVariable("save_blob_choices", "T")
+            api.Recognize()
+            iterator = api.GetIterator()
+            boxes = []
+            texts = []
+
+            level = RIL.WORD
+            for r in iterate_level(iterator, level):
+                conf = r.Confidence(level) / 100
+                text = r.GetUTF8Text(level)
+                box = r.BoundingBox(level)
+                if conf > self.getScoreThreshold():
+                    boxes.append(
+                        Box(text, conf, box[0], box[1], abs(box[2] - box[0]), abs(box[3] - box[1])).scale(1 / scale_factor))
+                    texts.append(text)
+            if self.getKeepFormatting():
+                text = self.box_to_formatted_text(boxes)
+            else:
+                text = " ".join(texts)
+
+        return OcrOutput(path=image_path,
+                         text=text,
+                         bboxes=boxes,
+                         type="text",
+                         exception="")
+
     def transform_udf(self, image):
         logging.info("Run Tesseract OCR")
-        try:
-            if not isinstance(image, Image):
-                image = Image(**image.asDict())
-            if image.exception != "":
-                return OcrOutput(path=image.path,
+        if image.exception != "":
+            return OcrOutput(path=image.path,
                              text="",
                              bboxes=[],
                              type="text",
                              exception=image.exception)
+        try:
+            if not isinstance(image, Image):
+                image = Image(**image.asDict())
             image_pil = image.to_pil()
-            factor = self.getScaleFactor()
-            if factor != 1.0:
-                tn_image = image_pil.resize((int(image_pil.width * factor), int(image_pil.height * factor)))
+            scale_factor = self.getScaleFactor()
+            if scale_factor != 1.0:
+                resized_image = image_pil.resize((int(image_pil.width * scale_factor), int(image_pil.height * scale_factor)))
             else:
-                tn_image = image_pil
-            with PyTessBaseAPI(path=self.getTessDataPath(), psm=self.getPsm(), oem=self.getOem(),
-                               lang=self.getLang()) as api:
-                api.SetVariable("debug_file", "ocr.log")
-                api.SetImage(tn_image)
-                api.SetVariable("save_blob_choices", "T")
-                api.Recognize()
-                iterator = api.GetIterator()
-                boxes = []
-                texts = []
-
-                level = RIL.WORD
-                for r in iterate_level(iterator, level):
-                    conf = r.Confidence(level) / 100
-                    text = r.GetUTF8Text(level)
-                    box = r.BoundingBox(level)
-                    if conf > self.getScoreThreshold():
-                        boxes.append(Box(text, conf, box[0], box[1], abs(box[2] - box[0]), abs(box[3] - box[1])).scale(1 / factor))
-                        texts.append(text)
-                if self.getKeepFormatting():
-                    text = self.box_to_formatted_text(boxes)
-                else:
-                    text = " ".join(texts)
+                resized_image = image_pil
+            if self.getTessLib() == TessLib.TESSEROCR.value:
+                result = self.call_tesserocr(resized_image, scale_factor, image.path)
+            elif self.getTessLib() == TessLib.PYTESSERACT.value:
+                result = self.call_pytesseract(resized_image, scale_factor, image.path)
+            else:
+                raise ValueError(f"Unknown Tesseract library: {self.getTessLib()}")
         except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
@@ -168,12 +209,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
                              bboxes=[],
                              type="text",
                              exception=exception)
-
-        return OcrOutput(path=image.path,
-                             text=text,
-                             bboxes=boxes,
-                             type="text",
-                             exception="")
+        return result
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
@@ -269,4 +305,16 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         Gets the value of :py:attr:`keepFormatting`.
         """
         return self.getOrDefault(self.keepFormatting)
+
+    def setTessLib(self, value):
+        """
+        Sets the value of :py:attr:`tessLib`.
+        """
+        return self._set(tessLib=value)
+
+    def getTessLib(self):
+        """
+        Gets the value of :py:attr:`tessLib`.
+        """
+        return self.getOrDefault(self.tessLib)
 
