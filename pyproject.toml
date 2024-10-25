@@ -13,18 +13,17 @@ imagesize = "1.4.1"
 tesserocr = "2.7.1"
 pytest = "8.3.3"
 pyspark-types = { git = "https://github.com/kolia1985/pyspark_types" }
+PyMuPDF = "1.24.11"
 
 [project]
 dependencies = [
-    "pyspark",
-    "numpy",
     "pytest"
 ]
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.3"
 pytest-spark = "0.6.0"
-
+jupyter = "^1.1.1"
 
 [build-system]
 requires = ["poetry-core"]

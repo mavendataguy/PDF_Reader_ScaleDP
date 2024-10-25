@@ -14,13 +14,9 @@ class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasI
     """
 
     @keyword_only
-    def __init__(self):
+    def __init__(self, inputCol='content', outputCol='image', pathCol="path", keepInputData=False, imageType=ImageType.FILE.value):
         super(DataToImage, self).__init__()
-        self._setDefault(outputCol='image')
-        self._setDefault(inputCol='content')
-        self._setDefault(pathCol="path")
-        self._setDefault(keepInputData=False)
-        self._setDefault(imageType=ImageType.FILE.value)
+        self._setDefault(inputCol=inputCol, outputCol=outputCol, pathCol=pathCol, keepInputData=keepInputData, imageType=imageType)
 
     def transform_udf(self, input, path, resolution):
         return Image.from_binary(input, path, self.getImageType(), resolution=resolution)

@@ -15,17 +15,13 @@ from utils import get_size, cluster
 
 
 class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
-                    DefaultParamsReadable, DefaultParamsWritable):
+                    DefaultParamsReadable, DefaultParamsWritable, HasScoreThreshold):
     """
     Run Tesseract OCR text recognition on images.
     """
     scaleFactor = Param(Params._dummy(), "scaleFactor",
                       "Scale Factor.",
                       typeConverter=TypeConverters.toFloat)
-
-    scoreThreshold = Param(Params._dummy(), "scoreThreshold",
-                        "Scale Factor.",
-                        typeConverter=TypeConverters.toFloat)
 
     psm = Param(Params._dummy(), "psm",
                            "The desired PageSegMode. Defaults to :attr:`PSM.AUTO",
@@ -201,18 +197,6 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         Sets the value of :py:attr:`scaleFactor`.
         """
         return self.getOrDefault(self.scaleFactor)
-
-    def setScoreThreshold(self, value):
-        """
-        Sets the value of :py:attr:`scoreThreshold`.
-        """
-        return self._set(scoreThreshold=value)
-
-    def getScoreThreshold(self):
-        """
-        Sets the value of :py:attr:`scoreThreshold`.
-        """
-        return self.getOrDefault(self.scoreThreshold)
 
     def setPsm(self, value):
         """
