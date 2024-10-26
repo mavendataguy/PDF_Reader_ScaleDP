@@ -53,21 +53,16 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-      #----------------------------------------------
-      # install your root project, if required
-      #----------------------------------------------
-      - name: Install project
-        run: poetry install --no-interaction
+
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
       - name: Run tests
-        run: |
-          source .venv/bin/activate
-          pytest --cov-report xml:path/to/coverage.xml tests/
+        run:
+          poetry run pytest --cov-report xml:./coverage.xml tests/
 
       - name: Get Cover
         uses: orgoro/coverage@v3.2
         with:
-          coverageFile: path/to/coverage.xml
+          coverageFile: ./coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
