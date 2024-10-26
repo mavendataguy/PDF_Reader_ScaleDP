@@ -64,5 +64,10 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest tests/
-      # coverage report
+          pytest --cov-report xml:path/to/coverage.xml tests/
+
+      - name: Get Cover
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: path/to/coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
