@@ -3,6 +3,7 @@ from pyspark.ml.pipeline import PipelineModel
 import pytest
 import tempfile
 
+from enums import PSM
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner
@@ -11,8 +12,10 @@ from sparkpdf.models.ner.Ner import Ner
 def test_image_draw_boxes_ocr(image_df):
 
     pipeline = PipelineModel(stages=[
-        TesseractOcr(keepInputData=True),
-        ImageDrawBoxes(inputCols=["image", "text"], lineWidth=2, textSize=20)
+        TesseractOcr(keepInputData=True, scoreThreshold=0.5, psm=PSM.SPARSE_TEXT.value, scaleFactor=2.0),
+        ImageDrawBoxes(inputCols=["image", "text"],
+                       lineWidth=2, textSize=20,
+                       displayDataList=["text", "score"])
     ])
 
     result = pipeline.transform(image_df).collect()

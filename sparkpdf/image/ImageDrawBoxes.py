@@ -33,6 +33,10 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                      "Text size.",
                      typeConverter=TypeConverters.toInt)
 
+    displayDataList = Param(Params._dummy(), "displayDataList",
+                      "Display data list.",
+                      typeConverter=TypeConverters.toListString)
+
     @keyword_only
     def __init__(self,
                  inputCols=['image', 'boxes'],
@@ -43,6 +47,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                  color="red",
                  lineWidth=1,
                  textSize=12,
+                 displayDataList=[],
                  numPartitions=0,
                  pageCol="page"):
         super(ImageDrawBoxes, self).__init__()
@@ -53,9 +58,24 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                          filled=filled,
                          lineWidth=lineWidth,
                          textSize=textSize,
+                         displayDataList=displayDataList,
                          color=color,
                          numPartitions=numPartitions,
                          pageCol=pageCol)
+    def getDisplayText(self, box):
+        display_list = self.getDisplayDataList()
+        text = []
+        if display_list:
+            for name in display_list:
+                if hasattr(box, name):
+                    val = getattr(box, name)
+                    if isinstance(val, float):
+                        text.append(f"{val:0.2f}")
+                    elif isinstance(val, int):
+                        text.append(str(val))
+                    else:
+                        text.append(val)
+        return ":".join(text)
 
     def transform_udf(self, image, data):
         if not isinstance(image, Image):
@@ -75,13 +95,18 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                     for box in ner.boxes:
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
+                        text = self.getDisplayText(ner)
                         img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
-                        img1.text((box.x, box.y - 2 - self.getTextSize()), ner.entity_group, fill=self.getColor(), font_size=self.getTextSize())
+                        if text:
+                            img1.text((box.x, box.y - 2 - self.getTextSize()), text , fill=self.getColor(), font_size=self.getTextSize())
             else:
                 for box in data.bboxes:
                     box = Box(**box.asDict())
                     img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
-                    img1.text((box.x, box.y - 2 - self.getTextSize()), str(f"{box.score:0.2f}"), fill=self.getColor(), font_size=self.getTextSize())
+                    text = self.getDisplayText(box)
+                    if text:
+                        img1.text((box.x, box.y - 2 - self.getTextSize()), text, fill=self.getColor(), font_size=self.getTextSize())
+
 
         except Exception as e:
             exception = traceback.format_exc()
@@ -137,8 +162,21 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         Sets the value of :py:attr:`textSize`.
         """
         return self._set(textSize=value)
+
     def getTextSize(self):
         """
         Gets the value of :py:attr:`textSize`.
         """
         return self.getOrDefault(self.textSize)
+
+    def setDisplayDataList(self, value):
+        """
+        Sets the value of :py:attr:`displayDataList`.
+        """
+        return self._set(displayDataList=value)
+
+    def getDisplayDataList(self):
+        """
+        Gets the value of :py:attr:`displayDataList`.
+        """
+        return self.getOrDefault(self.displayDataList)
