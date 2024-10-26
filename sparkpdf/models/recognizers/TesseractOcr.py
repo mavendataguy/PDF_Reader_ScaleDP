@@ -10,7 +10,7 @@ from sparkpdf.schemas.Box import Box
 from sparkpdf.schemas.Image import Image
 from sparkpdf.schemas.OcrOutput import OcrOutput
 from sparkpdf.params import *
-from enums import PSM, OEM, TessLib
+from ...enums import PSM, OEM, TessLib
 from utils import get_size, cluster
 
 

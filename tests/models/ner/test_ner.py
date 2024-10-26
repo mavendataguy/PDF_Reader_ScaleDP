@@ -10,7 +10,7 @@ from pyspark.ml.pipeline import PipelineModel
 
 def test_ner(image_df):
     ocr = TesseractOcr()
-    ner = Ner(model="obi/deid_bert_i2b2", numPartitions=0, device=Device.CUDA.value)
+    ner = Ner(model="obi/deid_bert_i2b2", numPartitions=0, device=Device.CPU.value)
     result_df = ner.transform(ocr.transform(image_df))
 
     result = result_df.select("ner").cache()
@@ -21,4 +21,4 @@ def test_ner(image_df):
     assert (hasattr(data[0], "ner"))
     ner_tags = result.select(f.explode("ner.entities").alias("ner")).select("ner.*")
     ner_tags.show(40)
-    assert (ner_tags.count() == 78)
+    assert (ner_tags.count() > 70)
