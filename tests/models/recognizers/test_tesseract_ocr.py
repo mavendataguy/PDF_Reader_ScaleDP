@@ -1,6 +1,6 @@
 import pytest
 
-from enums import TessLib
+from sparkpdf.enums import TessLib
 from sparkpdf.image.DataToImage import DataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 

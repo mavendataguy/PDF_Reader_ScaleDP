@@ -1,7 +1,7 @@
 import datetime
 
 from sparkpdf.models.ner.BaseNer import BaseNer
-from enums import Device
+from ...enums import Device
 from sparkpdf.schemas.Entity import Entity
 from sparkpdf.schemas.NerOutput import NerOutput
 import pandas as pd

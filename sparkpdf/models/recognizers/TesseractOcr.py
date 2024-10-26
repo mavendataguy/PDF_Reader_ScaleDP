@@ -11,7 +11,7 @@ from sparkpdf.schemas.Image import Image
 from sparkpdf.schemas.OcrOutput import OcrOutput
 from sparkpdf.params import *
 from ...enums import PSM, OEM, TessLib
-from utils import get_size, cluster
+from ...utils import get_size, cluster
 
 
 class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
