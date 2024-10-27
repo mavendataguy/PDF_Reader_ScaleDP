@@ -1,3 +1,8 @@
+<p align="center">
+    <a href="https://circleci.com/gh/stabrise/spark-pdf"><img alt="Build" src="https://img.shields.io/circleci/build/github/stabrise/spark-pdf/main"></a>
+    <a href="https://github.com/stabrise/spark-pdf/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/stabrise/spark-pdf.svg?color=blue"></a>
+</p>
+
 # Spark Pdf
 
 Spark-Pdf is a library for processing documents using Apache Spark.
