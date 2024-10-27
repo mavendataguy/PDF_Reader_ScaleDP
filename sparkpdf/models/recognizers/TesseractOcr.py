@@ -10,8 +10,8 @@ from sparkpdf.schemas.Box import Box
 from sparkpdf.schemas.Image import Image
 from sparkpdf.schemas.OcrOutput import OcrOutput
 from sparkpdf.params import *
-from enums import PSM, OEM, TessLib
-from utils import get_size, cluster
+from ...enums import PSM, OEM, TessLib
+from ...utils import get_size, cluster
 
 
 class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
@@ -179,6 +179,8 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
 
     def transform_udf(self, image):
         logging.info("Run Tesseract OCR")
+        if not isinstance(image, Image):
+            image = Image(**image.asDict())
         if image.exception != "":
             return OcrOutput(path=image.path,
                              text="",
@@ -186,8 +188,6 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
                              type="text",
                              exception=image.exception)
         try:
-            if not isinstance(image, Image):
-                image = Image(**image.asDict())
             image_pil = image.to_pil()
             scale_factor = self.getScaleFactor()
             if scale_factor != 1.0:

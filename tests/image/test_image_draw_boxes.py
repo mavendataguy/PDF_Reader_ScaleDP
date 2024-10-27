@@ -3,7 +3,7 @@ from pyspark.ml.pipeline import PipelineModel
 import pytest
 import tempfile
 
-from enums import PSM
+from sparkpdf.enums import PSM
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner

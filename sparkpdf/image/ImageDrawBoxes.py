@@ -11,7 +11,7 @@ from sparkpdf.schemas.Box import Box
 from sparkpdf.schemas.Entity import Entity
 from sparkpdf.schemas.Image import Image
 from sparkpdf.schemas.NerOutput import NerOutput
-from enums import ImageType
+from ..enums import ImageType
 from sparkpdf.params import *
 
 
