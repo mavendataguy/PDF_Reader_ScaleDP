@@ -1,7 +1,22 @@
 import pytest
+from PIL import Image as pImage
 
 from sparkpdf.image.DataToImage import DataToImage
 from sparkpdf.enums import ImageType
+
+
+@pytest.fixture
+def image_file(resource_path_root):
+    return (resource_path_root / "images/InvoiceforMedicalRecords_10_722.png").absolute().as_posix()
+
+@pytest.fixture
+def image_pil(image_file):
+    return pImage.open(image_file)
+
+@pytest.fixture
+def image(image_pil):
+    from sparkpdf.schemas.Image import Image
+    return Image.from_pil(image_pil, "test", ImageType.FILE.value, 300)
 
 @pytest.fixture
 def raw_image_df(spark_session, resource_path_root):
