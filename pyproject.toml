@@ -18,7 +18,12 @@ PyMuPDF = "1.24.11"
 numpy = "2.1.0"
 pyarrow = "17.0.0"
 transformers = "4.46.0"
-torch = "2.3.0"
+torch = {version = "2.3.0", source = "pytorch_cpu"}
+
+[[tool.poetry.source]]
+name = "pytorch_cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [project]
 dependencies = [
