@@ -14,6 +14,10 @@ def image_pil(image_file):
     return pImage.open(image_file)
 
 @pytest.fixture
+def image_pil_1x1():
+    return pImage.new('RGB', (1, 1), color='red')
+
+@pytest.fixture
 def image(image_pil):
     from sparkpdf.schemas.Image import Image
     return Image.from_pil(image_pil, "test", ImageType.FILE.value, 300)
@@ -35,6 +39,10 @@ def pdf_df(spark_session, resource_path_root):
     df = spark_session.read.format("binaryFile").load(
         (resource_path_root / "pdfs/unipdf-medical-bill.pdf").absolute().as_posix())
     return df
+
+@pytest.fixture
+def pdf_file(resource_path_root):
+    return (resource_path_root / "pdfs/unipdf-medical-bill.pdf").absolute().as_posix()
 
 @pytest.fixture
 def image_df(spark_session, resource_path_root):

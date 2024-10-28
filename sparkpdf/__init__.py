@@ -19,8 +19,8 @@ from pyspark.sql import DataFrame
 
 from sparkpdf.utils.display_utils import show_image, show_pdf, show_ner, visualize_ner
 
-DataFrame.show_image = lambda self, column="image", limit=5, width=800, show_meta=True, : show_image(self, column, limit, width, show_meta)
-DataFrame.show_pdf = lambda self, column="content", limit=5, width=800, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
+DataFrame.show_image = lambda self, column="", limit=5, width=800, show_meta=True, : show_image(self, column, limit, width, show_meta)
+DataFrame.show_pdf = lambda self, column="", limit=5, width=800, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
 DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ner(self, column, limit, truncate)
 DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, labels_list=None : visualize_ner(self, column, text_column, limit, labels_list)
 

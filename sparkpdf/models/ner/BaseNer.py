@@ -35,9 +35,11 @@ class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhite
                                            True),
                                StructField("exception", StringType(), True)])
 
-    def _transform(self, dataset):
+    def get_params(self):
+        return json.dumps({k.name: v for k, v in self.extractParamMap().items()})
 
-        params = json.dumps({k.name: v for k, v in self.extractParamMap().items()})
+    def _transform(self, dataset):
+        params = self.get_params()
         out_col = self.getOutputCol()
         if self.getInputCol() not in dataset.columns:
             input_col = self.getInputCol()

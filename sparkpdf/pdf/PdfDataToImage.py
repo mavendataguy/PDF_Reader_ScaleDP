@@ -43,6 +43,8 @@ class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, H
         logging.info("Run Pdf Data to Image")
         try:
             doc = fitz.open("pdf", input)
+            if len(doc) == 0:
+                raise ValueError("Empty PDF document.")
             if self.getPageLimit():
                 doc = doc[:self.getPageLimit()]
             for page in doc:
@@ -55,12 +57,6 @@ class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, H
                                        width=pix.width,
                                        height=pix.height)
 
-            return [Image.from_binary(pix.pil_tobytes("png"),
-                                    path,
-                                    self.getImageType(),
-                                    resolution=self.getResolution(),
-                                    width=pix.width,
-                                    height=pix.height), ]
         except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error during extract image from the PDF document: {exception}"

@@ -1,24 +1,86 @@
+import pyspark.sql.functions as f
+
+from sparkpdf import DataToImage, ImageDrawBoxes
 from sparkpdf.enums import Device
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
-#from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
-
-import pyspark.sql.functions as f
-import pytest
-import logging
-from pyspark.ml.pipeline import PipelineModel
 
 def test_ner(image_df):
-    ocr = TesseractOcr()
+    # Initialize the OCR stage
+    ocr = TesseractOcr(keepInputData=True)
+
+    # Initialize the NER stage with the specified model and device
     ner = Ner(model="obi/deid_bert_i2b2", numPartitions=0, device=Device.CPU.value)
+
+    # Transform the image dataframe through the OCR and NER stages
     result_df = ner.transform(ocr.transform(image_df))
 
-    result = result_df.select("ner").cache()
-    result_df.select("text.exception").show(1, False)
+    # Cache the result for performance
+    result = result_df.select("ner", "text").cache()
+
+    # Collect the results
     data = result.collect()
-    assert (len(data) == 1)
-    # present ner field
-    assert (hasattr(data[0], "ner"))
+
+    # Check that exceptions is empty
+    assert data[0].text.exception == ""
+
+    # Assert that there is exactly one result
+    assert len(data) == 1
+
+    # Assert that the 'ner' field is present in the result
+    assert hasattr(data[0], "ner")
+
+    # Display the NER results for debugging
+    result.show_ner("ner", 40)
+
+    # Visualize the NER results
+    result.visualize_ner()
+
+    # Extract and count the NER tags
     ner_tags = result.select(f.explode("ner.entities").alias("ner")).select("ner.*")
-    ner_tags.show(40)
-    assert (ner_tags.count() > 70)
+
+    # Assert that there are more than 70 NER tags
+    assert ner_tags.count() > 70
+
+
+def test_ner_local_pipeline(image_file):
+    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    import pyspark
+
+    # Temporarily replace the UserDefinedFunction
+    temp = pyspark.sql.udf.UserDefinedFunction
+    pyspark.sql.udf.UserDefinedFunction = UserDefinedFunction
+
+    # Initialize the pipeline stages
+    data_to_image = DataToImage()
+    ocr = TesseractOcr(keepInputData=True)
+    ner = Ner(model="obi/deid_bert_i2b2", numPartitions=0, device=Device.CPU.value)
+    draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "ner"],
+                          filled=True, color="orange",
+                          displayDataList=['score'])
+
+    # Create the pipeline
+    pipeline = LocalPipeline(stages=[data_to_image, ocr, ner, draw])
+
+    # Run the pipeline on the input image file
+    result = pipeline.fromFile(image_file)
+
+    # Restore the original UserDefinedFunction
+    pyspark.sql.udf.UserDefinedFunction = temp
+
+    # Verify the pipeline result
+    assert result is not None
+    assert "image_with_boxes" in result.columns
+    assert "ner" in result.columns
+
+    # Verify the OCR stage output
+    ocr_result = result["text"][0].text
+    assert len(ocr_result) > 0
+
+    # Verify the NER stage output
+    ner_result = result["ner"][0].entities
+    assert len(ner_result) > 0
+
+    # Verify the draw stage output
+    draw_result = result["image_with_boxes"][0]
+    assert draw_result.exception is ""

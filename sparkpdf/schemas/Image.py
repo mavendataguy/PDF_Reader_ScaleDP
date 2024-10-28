@@ -45,12 +45,8 @@ class Image(object):
         img = Image(path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution)
         try:
             if data is None or len(data) == 0:
-                raise Exception("Empty image data.")
-            if imageType == ImageType.PIL.value:
-                return img.toPIL()
-            elif imageType == ImageType.OPENCV.value:
-                return img.toOpecv()
-            else:
+                raise ValueError("Empty image data.")
+            if imageType in (ImageType.FILE.value, ImageType.WEBP.value):
                 if height is not None:
                     img.height = height
                 if width is not None:
@@ -60,7 +56,7 @@ class Image(object):
                     if img.width is -1:
                         raise Exception("Unable to read image.")
                     logging.info(f"Image size: {img.width}x{img.height}")
-                return img
+            return img
         except Exception:
             exception = traceback.format_exc()
             exception = f"Error during image extraction: Image from binary data: {exception}"
@@ -76,12 +72,7 @@ class Image(object):
         else:
             data.save(buff, "png")
         img = Image(path=path, data=buff.getvalue(), imageType=ImageType.FILE.value, width=data.width, height=data.height, resolution=resolution)
-        if imageType == ImageType.PIL.value:
-            return img.toPIL()
-        elif imageType == ImageType.OPENCV.value:
-            return img.toOpecv()
-        else:
-            return img
+        return img
 
     @staticmethod
     def get_schema():
