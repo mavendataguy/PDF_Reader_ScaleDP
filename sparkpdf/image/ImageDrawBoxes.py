@@ -86,7 +86,8 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
             img = image.to_pil()
             img1 = ImageDraw.Draw(img)
             fill = self.getColor() if self.getFilled()  else None
-            if "entities" in data:
+
+            if hasattr(data, "entities"):
                 if not isinstance(data, NerOutput):
                     data = NerOutput(**data.asDict())
                 for ner in data.entities:
@@ -101,7 +102,8 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                             img1.text((box.x, box.y - 2 - self.getTextSize()), text , fill=self.getColor(), font_size=self.getTextSize())
             else:
                 for box in data.bboxes:
-                    box = Box(**box.asDict())
+                    if not isinstance(box, Box):
+                        box = Box(**box.asDict())
                     img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
                     text = self.getDisplayText(box)
                     if text:

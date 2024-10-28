@@ -27,25 +27,39 @@ def get_column_type(df: DataFrame, column_name: str) -> str:
     return None
 
 
-def show_image(df, field="image", limit=5,  width=600, show_meta=True):
-    column_type = get_column_type(df, field)
+def show_image(df, column="", limit=5, width=600, show_meta=True):
+    if column == "":
+        if "image" in df.columns:
+            column = "image"
+        elif "content" in df.columns:
+            column = "content"
+        else:
+            raise ValueError("Please specify column name")
+    column_type = get_column_type(df, column)
     if column_type == "binary":
-        df = DataToImage().setInputCol(field).setOutputCol("image").transform(df)
-        field = "image"
-    for id_, row in enumerate(df.limit(limit).select(field).collect()):
-        image = row[field]
+        df = DataToImage().setInputCol(column).setOutputCol("image").transform(df)
+        column = "image"
+    for id_, row in enumerate(df.limit(limit).select(column).collect()):
+        image = row[column]
         _show_image(image, width, show_meta, id_)
 
 
-def show_pdf(df, field="content", limit=5,  width=600, show_meta=True):
-    column_type = get_column_type(df, field)
+def show_pdf(df, column="", limit=5, width=600, show_meta=True):
+    if column == "":
+        if "pdf" in df.columns:
+            column = "pdf"
+        elif "content" in df.columns:
+            column = "content"
+        else:
+            raise ValueError("Please specify column name")
+    column_type = get_column_type(df, column)
     if column_type == "binary":
-        df = PdfDataToImage(inputCol=field).transform(df)
-        field = "image"
+        df = PdfDataToImage(inputCol=column).transform(df)
+        column = "image"
     else:
-        raise ValueError("Field must be binary")
-    for id_, row in enumerate(df.limit(limit).select(field).collect()):
-        image = row[field]
+        raise ValueError("Column must be binary")
+    for id_, row in enumerate(df.limit(limit).select(column).collect()):
+        image = row[column]
         _show_image(image, width, show_meta, id_)
 
 

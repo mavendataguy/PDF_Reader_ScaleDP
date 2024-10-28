@@ -103,9 +103,9 @@ class Ner(BaseNer):
     def transform_udf(self, image):
         return self.transform_local(image)
 
-    #@pandas_udf(ArrayType(elementType=NerOutput.getSchema()))
+
     @staticmethod
-    def transform_udf_pandas(texts: pd.DataFrame, params: pd.Series) -> pd.DataFrame:
+    def transform_udf_pandas(texts: pd.DataFrame, params: pd.Series) -> pd.DataFrame: # pragma: no cover
         params = json.loads(params[0])
         model = params['model']
         from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification

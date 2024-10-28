@@ -144,7 +144,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
                          type="text",
                          bboxes=boxes)
 
-    def call_tesserocr(self, image, scale_factor, image_path):
+    def call_tesserocr(self, image, scale_factor, image_path): # pragma: no cover
         from tesserocr import PyTessBaseAPI, RIL, iterate_level
         
         with PyTessBaseAPI(path=self.getTessDataPath(), psm=self.getPsm(), oem=self.getOem(),
