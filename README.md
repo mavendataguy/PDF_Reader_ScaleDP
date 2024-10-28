@@ -50,6 +50,12 @@ It includes the following features:
   poetry run pytest --cov=sparkpdf --cov-report=html:coverage_report tests/ 
 ```
 
+### Build documentation
+
+```bash
+  poetry run sphinx-build -M html source build
+```
+
 ### Docker
 
 Build image:
