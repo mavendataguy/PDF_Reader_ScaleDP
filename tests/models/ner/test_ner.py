@@ -5,7 +5,7 @@ from sparkpdf import DataToImage, ImageDrawBoxes
 from sparkpdf.enums import Device
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
-from text.TextToDocument import TextToDocument
+from sparkpdf.text.TextToDocument import TextToDocument
 
 
 def test_ner(image_df):
