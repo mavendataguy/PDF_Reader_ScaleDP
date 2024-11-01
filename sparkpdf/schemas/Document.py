@@ -1,10 +1,10 @@
-# Description: Schema for OCR output
+# Description: Schema Document
 from pyspark_types.dataclass import map_dataclass_to_struct, register_type
 from dataclasses import dataclass
 from sparkpdf.schemas.Box import Box
 
 @dataclass(order=True)
-class OcrOutput:
+class Document:
     path: str
     text: str
     type: str
@@ -13,6 +13,6 @@ class OcrOutput:
 
     @staticmethod
     def get_schema():
-        return map_dataclass_to_struct(OcrOutput)
+        return map_dataclass_to_struct(Document)
 
-register_type(OcrOutput, OcrOutput.get_schema)
+register_type(Document, Document.get_schema)

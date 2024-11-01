@@ -50,3 +50,9 @@ def image_df(spark_session, resource_path_root):
         (resource_path_root / "images/InvoiceforMedicalRecords_10_722.png").absolute().as_posix())
     bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
     return bin_to_image.transform(df)
+
+@pytest.fixture
+def text_df(spark_session, resource_path_root):
+    df = spark_session.read.text(
+        (resource_path_root / "texts/example.txt").absolute().as_posix(), wholetext=True)
+    return df

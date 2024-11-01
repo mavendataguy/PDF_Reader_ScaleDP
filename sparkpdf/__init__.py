@@ -10,6 +10,7 @@ from sparkpdf.pdf.PdfDataToImage import PdfDataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
+from sparkpdf.text import TextToDocument
 
 from sparkpdf import enums
 from sparkpdf.enums import *
@@ -30,6 +31,7 @@ __all__ = ['start',
            'PdfDataToImage',
            'TesseractOcr',
            'Ner',
+           'TextToDocument',
            'PipelineModel',
            ] + dir(enums)
 

@@ -54,7 +54,7 @@ class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhite
             if self.getNumPartitions() > 0:
                 if self.getPageCol() in dataset.columns:
                     dataset = dataset.repartition( self.getPageCol())
-                else:
+                elif self.getPathCol() in dataset.columns:
                     dataset = dataset.repartition(self.getPathCol())
                 dataset = dataset.coalesce(self.getNumPartitions())
             result = dataset.withColumn(out_col,
