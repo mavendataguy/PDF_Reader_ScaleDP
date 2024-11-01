@@ -1,9 +1,12 @@
 import pyspark.sql.functions as f
+from pyspark.ml import PipelineModel
 
 from sparkpdf import DataToImage, ImageDrawBoxes
 from sparkpdf.enums import Device
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
+from text.TextToDocument import TextToDocument
+
 
 def test_ner(image_df):
     # Initialize the OCR stage
@@ -84,3 +87,21 @@ def test_ner_local_pipeline(image_file):
     # Verify the draw stage output
     draw_result = result["image_with_boxes"][0]
     assert draw_result.exception is ""
+
+
+def test_ner_with_raw_text(text_df):
+
+    text_to_doc = TextToDocument()
+    ner = Ner(model="obi/deid_bert_i2b2")
+
+    pipeline = PipelineModel(stages=[text_to_doc, ner])
+    result = pipeline.transform(text_df).cache()
+
+    result.show_ner("ner")
+
+    ner_tags = result.select(f.explode("ner.entities").alias("ner")).select("ner.*")
+
+    # Assert that there are more than 70 NER tags
+    assert ner_tags.count() > 50
+
+    result.unpersist()

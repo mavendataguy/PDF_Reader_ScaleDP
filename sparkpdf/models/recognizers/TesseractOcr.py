@@ -8,7 +8,7 @@ from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 
 from sparkpdf.schemas.Box import Box
 from sparkpdf.schemas.Image import Image
-from sparkpdf.schemas.OcrOutput import OcrOutput
+from sparkpdf.schemas.Document import Document
 from sparkpdf.params import *
 from ...enums import PSM, OEM, TessLib
 from ...utils import get_size, cluster
@@ -139,10 +139,10 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
             text = self.box_to_formatted_text(boxes)
         else:
             text = " ".join([str(w) for w in res["text"].values.tolist()])
-        return OcrOutput(path=image_path,
-                         text=text,
-                         type="text",
-                         bboxes=boxes)
+        return Document(path=image_path,
+                        text=text,
+                        type="text",
+                        bboxes=boxes)
 
     def call_tesserocr(self, image, scale_factor, image_path): # pragma: no cover
         from tesserocr import PyTessBaseAPI, RIL, iterate_level
@@ -171,22 +171,22 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
             else:
                 text = " ".join(texts)
 
-        return OcrOutput(path=image_path,
-                         text=text,
-                         bboxes=boxes,
-                         type="text",
-                         exception="")
+        return Document(path=image_path,
+                        text=text,
+                        bboxes=boxes,
+                        type="text",
+                        exception="")
 
     def transform_udf(self, image):
         logging.info("Run Tesseract OCR")
         if not isinstance(image, Image):
             image = Image(**image.asDict())
         if image.exception != "":
-            return OcrOutput(path=image.path,
-                             text="",
-                             bboxes=[],
-                             type="text",
-                             exception=image.exception)
+            return Document(path=image.path,
+                            text="",
+                            bboxes=[],
+                            type="text",
+                            exception=image.exception)
         try:
             image_pil = image.to_pil()
             scale_factor = self.getScaleFactor()
@@ -204,11 +204,11 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
             logging.warning(f"{self.uid}: Error in text recognition.")
-            return OcrOutput(path=image.path,
-                             text="",
-                             bboxes=[],
-                             type="text",
-                             exception=exception)
+            return Document(path=image.path,
+                            text="",
+                            bboxes=[],
+                            type="ocr",
+                            exception=exception)
         return result
 
     def _transform(self, dataset):
@@ -217,7 +217,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
             input_col = self.getInputCol()
             raise ValueError(f"Missing input column in transformer {self.uid}: Column '{input_col}' is not present.")
         input_col = dataset[self.getInputCol()]
-        result = dataset.withColumn(out_col, udf(self.transform_udf, OcrOutput.get_schema())(input_col))
+        result = dataset.withColumn(out_col, udf(self.transform_udf, Document.get_schema())(input_col))
         if not self.getKeepInputData():
             result = result.drop(input_col)
         return result
