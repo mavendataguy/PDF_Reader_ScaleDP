@@ -12,3 +12,10 @@ def test_show_image_pdf(raw_image_df, image_df, pdf_df):
     # Display the PDF dataframe
     assert hasattr(pdf_df, "show_pdf"), "Expected Dataframe to have method 'show_pdf'"
     pdf_df.show_pdf()
+
+
+def test_show_text(image_df):
+    # Display the text dataframe
+    assert hasattr(image_df, "show_text"), "Expected Dataframe to have method 'show_text'"
+    image_df.show_text()
+

@@ -1,24 +1,38 @@
 
 from pyspark.sql import DataFrame
-from sparkpdf import DataToImage, PdfDataToImage
+from sparkpdf import DataToImage, PdfDataToImage, TesseractOcr, TextToDocument
 import pyspark.sql.functions as f
 import random
+import base64
 
 def _show_image(image, width=600, show_meta=True, index=0):
-    from IPython.display import display
-    from sparkpdf.schemas.Image import Image
+    from IPython.display import display, HTML
+    from jinja2 import PackageLoader, Environment
     if image is None:
         print("Empty image")
         return
-    if show_meta:
-        print(f"""
-    Image#: {index}
-    Path: {image.path.split("/")[-1]}
-    Resolution: {image.resolution} dpi
-    Size: {image.width} x {image.height} px""")
-    image = Image(**image.asDict())
-    factor = width / image.width
-    display(image.to_pil().resize(size=(width, int(image.height * factor))), metadata={"width": width})
+
+    img_base64 = base64.b64encode(image.data).decode("utf-8")
+
+    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    template = templateEnv.get_template("image.html")
+    metadata = {
+        "Image#": index,
+        "Path": image.path.split("/")[-1],
+        "Size": f"{image.width} x {image.height} px",
+        "Resolution": f"{image.resolution} dpi"
+    }
+
+    if image.exception != "":
+        metadata["Exception"] = image.exception
+
+    rendered_html = template.render(
+        width=width,
+        metadata=metadata,
+        image=img_base64
+    )
+
+    display(HTML(rendered_html))
 
 def get_column_type(df: DataFrame, column_name: str) -> str:
     for name, dtype in df.dtypes:
@@ -44,6 +58,44 @@ def show_image(df, column="", limit=5, width=600, show_meta=True):
         _show_image(image, width, show_meta, id_)
 
 
+def show_text(df, column="", limit=5, width=800):
+    from IPython.display import display, HTML
+    from jinja2 import PackageLoader, Environment
+
+    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    template = templateEnv.get_template("text.html")
+    df = df.limit(limit)
+    if column == "":
+        if "value" in df.columns:
+            column = "text"
+            df = TextToDocument(inputCol="value").transform(df)
+        elif "text" in df.columns:
+            column = "text"
+        elif "content" in df.columns:
+            column = "text"
+            df = DataToImage().transform(df)
+            df = TesseractOcr(keepFormatting=True).transform(df)
+        elif "image" in df.columns:
+            column = "text"
+            df = TesseractOcr(keepFormatting=True).transform(df)
+        else:
+            raise ValueError("Please specify column name")
+    for id, text in enumerate(df.select(f"{column}.*").collect()):
+        metadata = {
+            "Id": id,
+            "Path": text.path.split("/")[-1],
+            "Exception": text.exception
+        }
+
+        rendered_html = template.render(
+            width=width,
+            metadata=metadata,
+            text=text.text
+        )
+
+        display(HTML(rendered_html))
+
+
 def show_pdf(df, column="", limit=5, width=600, show_meta=True):
     if column == "":
         if "pdf" in df.columns:
@@ -67,91 +119,85 @@ def show_ner(df, column="ner", limit=20, truncate=False):
     df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").show(limit, truncate=truncate)
 
 
-def visualize_ner(df, column="ner", text_column="text", limit=20, labels_list=None):
+def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, labels_list=None):
     from IPython.display import display, HTML
-    STYLE_CONFIG = f"""
-<style>
-    .spark-pdf-display-entity-wrapper{{
-        display: inline-grid;
-        text-align: center;
-        border-radius: 8px;
-        margin: 0 2px 5px 2px;
-        padding: 1px
-    }}
+    from jinja2 import PackageLoader, Environment
 
-    .spark-pdf-display-text{{
-        font-size: 14px;
-        line-height: 18px;
-        font-family: sans-serif !important;
-        background: #f1f2f3;
-        border-width: medium;
-        text-align: center;
-        font-weight: 400;
-        border-radius: 5px;
-        padding: 2px 5px;
-        display: block;
-        margin: 2px;
-    }}
+    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    template = templateEnv.get_template("ner.html")
 
-    .spark-pdf-display-entity-name{{
-        font-size: 10px;
-        line-height: 16px;
-        color: #ffffff;
-        font-family: sans-serif !important;
-        text-transform: uppercase;
-        font-weight: 500;
-        display: block;
-        padding: 1px 4px;
-    }}
-    
-    .spark-pdf-display-others{{
-        font-size: 14px;
-        line-height: 24px;
-        font-family: sans-serif !important;
-        font-weight: 400;
-    }}
-</style>
-"""
+    df = df.limit(limit).select(column, text_column).cache()
+    entities = df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").collect()
+    text = df.select(text_column).collect()[0][0]
+    original_text = text.text
+
+    entity_colors = {}
+    current_position = 0
+    html = ""
+    for entity in entities:
+        start = entity.start
+        end = entity.end
+        entity_name = entity.entity_group.lower()
+        if entity_name not in entity_colors:
+            entity_colors[entity_name] = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+
+        if current_position < start:
+            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[
+                                                                         current_position:start] + "</span>"
+        if entity_name in entity_colors:
+            html += f"""<span style='border-radius:4px;padding:2px;color:white;line-height:25px;margin:1px;
+            background-color:{entity_colors[entity_name]};font-size:16px;white-space: nowrap;'>
+            <span style="color:black;background-color:white;border-radius: 2px;padding: 0 1px 0 1px;">
+            {original_text[start:end]}</span><span style='font-weight:500;padding: 4px;'>{entity.entity_group}</span></span>"""
+        else:
+            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[start:end] + "</span>"
+        current_position = end
+
+    metadata = {
+        "Id": 0,
+        "Path": text.path.split("/")[-1],
+        "Exception": text.exception
+    }
+
+    rendered_html = template.render(
+        width=width,
+        metadata=metadata,
+        ner=html
+    )
+
+    display(HTML(rendered_html))
+
+def visualize_ner1(df, column="ner", text_column="text", limit=20, labels_list=None):
+    from IPython.display import display, HTML
+    from jinja2 import PackageLoader, Environment
+
+    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    template = templateEnv.get_template("ner.html")
+
     df = df.limit(limit).select(column, text_column).cache()
     entities = df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").collect()
     original_text = df.select(text_column).collect()[0][0].text
-    if labels_list is not None:
-        labels_list = [v.lower() for v in labels_list]
-    label_color = {}
-    html_output = ""
-    pos = 0
-    df.unpersist()
 
-    def get_color(entity_group):
-        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
-
+    entity_colors = {}
+    current_position = 0
+    html = ""
     for entity in entities:
-        entity_group = entity.entity_group
-        if (entity_group not in label_color) and ((labels_list is None) or (entity_group.lower() in labels_list)):
-            label_color[entity_group.lower()] = get_color(entity_group)
+        start = entity.start
+        end = entity.end
+        entity_name = entity.entity_group.lower()
+        if entity_name not in entity_colors:
+            entity_colors[entity_name] = "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
-        begin = int(entity.start)
-        end = int(entity.end)
-        if pos < begin and pos < len(original_text):
-            white_text = original_text[pos:begin]
-            html_output += '<span class="spark-pdf-display-others" style="background-color: white">{}</span>'.format(
-                white_text)
-        pos = end + 1
-        if entity_group.lower() in label_color:
-            html_output += '<span class="spark-pdf-display-entity-wrapper" style="background-color: {}"><span class="spark-pdf-display-text">{} </span><span class="spark-pdf-display-entity-name">{}</span></span>'.format(
-                label_color[entity_group.lower()],
-                original_text[begin:end + 1],
-                entity_group)
+        if current_position < start:
+            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[
+                                                                         current_position:start] + "</span>"
+        if entity_name in entity_colors:
+            html += f"""<span style='border-radius:4px;padding:2px;color:white;line-height:25px;margin:1px;
+            background-color:{entity_colors[entity_name]};font-size:16px;'>
+            <span style="color:black;background-color:white;border-radius: 2px;padding: 0 1px 0 1px;">
+            {original_text[start:end]}</span><span style='font-weight:500;padding: 4px;'>{entity.entity_group}</span></span>"""
         else:
-            html_output += '<span class="spark-pdf-display-others" style="background-color: white">{}</span>'.format(
-                original_text[begin:end + 1])
+            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[start:end] + "</span>"
+        current_position = end
 
-    if pos < len(original_text):
-        html_output += '<span class="spark-pdf-display-others" style="background-color: white">{}</span>'.format(
-            original_text[pos:])
-
-    html_output += """</div>"""
-
-    html_output = STYLE_CONFIG + html_output.replace("\n", "<br>")
-
-    display(HTML(html_output))
+    display(HTML(html))
