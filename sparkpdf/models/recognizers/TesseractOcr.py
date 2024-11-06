@@ -14,8 +14,8 @@ from ...enums import PSM, OEM, TessLib
 from ...utils import get_size, cluster
 
 
-class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
-                    DefaultParamsReadable, DefaultParamsWritable, HasScoreThreshold):
+class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefaultEnum,
+                    DefaultParamsReadable, DefaultParamsWritable, HasScoreThreshold, HasColumnValidator):
     """
     Run Tesseract OCR text recognition on images.
     """
@@ -77,6 +77,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
                          keepFormatting=keepFormatting,
                          tessDataPath=tessDataPath,
                          tessLib=tessLib)
+
     @staticmethod
     def to_formatted_text(lines, character_height):
         output_lines = []
@@ -85,7 +86,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         for regions in lines:
             line = ""
             # Add extra empty lines if need
-            line_diffs = int((regions[0].y - y) / character_height)
+            line_diffs = int((regions[0].y - y) / (character_height * 2))
             y = regions[0].y
             if line_diffs > 1:
                 for i in range(line_diffs - 1):
@@ -132,6 +133,11 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         import pytesseract
         res = pytesseract.image_to_data(image, output_type=pytesseract.Output.DATAFRAME, config=self.getConfig())
         res["conf"] = res["conf"] / 100
+
+        if not self.getKeepFormatting():
+            res.loc[res["level"] == 4, "conf"] = 1.0
+            res["text"] = res["text"].fillna('\n')
+
         res = res[res["conf"] > self.getScoreThreshold()][['text', 'conf', 'left', 'top', 'width', 'height']]\
             .rename(columns={"conf": "score", "left": "x", "top": "y"})
         boxes = res.apply(lambda x: Box(*x).toString().scale(1 / scale_factor), axis=1).values.tolist()
@@ -213,10 +219,7 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
-        if self.getInputCol() not in dataset.columns:
-            input_col = self.getInputCol()
-            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{input_col}' is not present.")
-        input_col = dataset[self.getInputCol()]
+        input_col = self._validate(self.getInputCol(), dataset)
         result = dataset.withColumn(out_col, udf(self.transform_udf, Document.get_schema())(input_col))
         if not self.getKeepInputData():
             result = result.drop(input_col)
@@ -317,4 +320,3 @@ class TesseractOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData,
         Gets the value of :py:attr:`tessLib`.
         """
         return self.getOrDefault(self.tessLib)
-

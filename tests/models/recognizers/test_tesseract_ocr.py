@@ -1,7 +1,7 @@
 import pytest
 from pyspark import Row
 
-from sparkpdf.enums import TessLib
+from sparkpdf.enums import TessLib, PSM
 from sparkpdf.image.DataToImage import DataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 
@@ -24,7 +24,7 @@ def test_tesseract_ocr(image_df):
 
 def test_tesseract_ocr_pytesseract(image_df):
     # Initialize the Tesseract OCR stage with specific parameters
-    ocr = TesseractOcr(keepFormatting=True)
+    ocr = TesseractOcr(keepFormatting=True, psm=PSM.AUTO)
 
     # Transform the image dataframe through the OCR stage
     result = ocr.transform(image_df).collect()

@@ -47,7 +47,7 @@ def test_ner(image_df):
 
 
 def test_ner_local_pipeline(image_file):
-    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import LocalPipeline, UserDefinedFunction
     import pyspark
 
     # Temporarily replace the UserDefinedFunction

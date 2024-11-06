@@ -75,7 +75,7 @@ class Ner(BaseNer):
                                      )
         return self.pipeline
 
-    def transform_local(self, text):
+    def transform_udf(self, text):
 
         mapping = []
         for idx, box in enumerate(text.bboxes):
@@ -98,10 +98,6 @@ class Ner(BaseNer):
             entities.append(t)
         output = NerOutput(path=text.path, entities=entities, exception="")
         return output
-
-
-    def transform_udf(self, image):
-        return self.transform_local(image)
 
 
     @staticmethod

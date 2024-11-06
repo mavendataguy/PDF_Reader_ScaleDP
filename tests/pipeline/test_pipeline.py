@@ -2,7 +2,7 @@ from sparkpdf import DataToImage
 
 
 def test_local_pipeline(image_file):
-    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import LocalPipeline, UserDefinedFunction
     import pyspark
     original_udf = pyspark.sql.udf.UserDefinedFunction
 

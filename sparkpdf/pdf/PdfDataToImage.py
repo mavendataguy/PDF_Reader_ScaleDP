@@ -13,7 +13,8 @@ from sparkpdf.enums import ImageType
 
 
 class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType,
-                     HasPathCol, HasResolution, HasPageCol, DefaultParamsReadable, DefaultParamsWritable):
+                     HasPathCol, HasResolution, HasPageCol, DefaultParamsReadable, DefaultParamsWritable,
+                     HasColumnValidator):
     """
     Extract image from PDF file
     """
@@ -65,10 +66,7 @@ class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, H
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
-        if self.getInputCol() not in dataset.columns:
-            input_col = self.getInputCol()
-            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{input_col}' is not present.")
-        input_col = dataset[self.getInputCol()]
+        input_col = self._validate(self.getInputCol(), dataset)
         path_col = dataset[self.getPathCol()]
 
         selCol = dataset.columns + [posexplode_outer(udf(self.transform_udf, ArrayType(Image.get_schema()))(input_col, path_col)).alias(self.getPageCol(), out_col), ]

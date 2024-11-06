@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Mykola Melnyk <kolia1985@gmail.com>"]
 readme = "README.md"
+packages = [{include = "sparkpdf"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -33,7 +34,6 @@ priority = "explicit"
 dependencies = [
     "pytest"
 ]
-
 
 
 [tool.poetry.group.test.dependencies]

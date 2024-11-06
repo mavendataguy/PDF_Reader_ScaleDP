@@ -10,7 +10,7 @@ from sparkpdf.pdf.PdfDataToImage import PdfDataToImage
 from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
-from sparkpdf.text import TextToDocument
+from sparkpdf.text.TextToDocument import TextToDocument
 
 from sparkpdf import enums
 from sparkpdf.enums import *
@@ -18,12 +18,13 @@ from sparkpdf.enums import *
 from pyspark.sql import DataFrame
 
 
-from sparkpdf.utils.display_utils import show_image, show_pdf, show_ner, visualize_ner
+from sparkpdf.utils.display_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
 
-DataFrame.show_image = lambda self, column="", limit=5, width=800, show_meta=True, : show_image(self, column, limit, width, show_meta)
-DataFrame.show_pdf = lambda self, column="", limit=5, width=800, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
+DataFrame.show_image = lambda self, column="", limit=5, width=None, show_meta=True, : show_image(self, column, limit, width, show_meta)
+DataFrame.show_pdf = lambda self, column="", limit=5, width=None, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
 DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ner(self, column, limit, truncate)
-DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, labels_list=None : visualize_ner(self, column, text_column, limit, labels_list)
+DataFrame.show_text = lambda self, column="", limit=20, width=None: show_text(self, column, limit, width)
+DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None : visualize_ner(self, column, text_column, limit, width, labels_list)
 
 __all__ = ['start',
            'DataToImage',
@@ -63,6 +64,7 @@ def info():
 def start(conf=None,
           master_url="local[*]",
           with_aws=False,
+          with_pro=False,
           logLevel="ERROR"):
     """
     Start Spark session with SparkPDF
@@ -73,6 +75,13 @@ def start(conf=None,
     """
     os.environ['PYSPARK_PYTHON'] = sys.executable
     os.environ["TRANSFORMERS_VERBOSITY"] = logLevel.lower()
+
+    if with_pro:
+        try:
+            import sparkpdf_pro
+        except ImportError:
+            raise ImportError("Spark Pdf Pro is not installed. Please install it using 'pip install sparkpdf-pro'")
+
 
     jars = []
     jars_packages = []

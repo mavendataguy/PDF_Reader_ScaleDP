@@ -8,7 +8,7 @@ from sparkpdf.enums import ImageType
 
 
 class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType,
-                  HasPathCol, DefaultParamsReadable, DefaultParamsWritable):
+                  HasPathCol, DefaultParamsReadable, DefaultParamsWritable, HasColumnValidator):
     """
     Transform Binary Content to Image
     """
@@ -23,11 +23,8 @@ class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasI
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
-        if self.getInputCol() not in dataset.columns:
-            input_col = self.getInputCol()
-            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{input_col}' is not present.")
-        input_col = dataset[self.getInputCol()]
-        path_col = dataset[self.getPathCol()]
+        input_col = self._validate(self.getInputCol(), dataset)
+        path_col = self._validate(self.getPathCol(), dataset)
         if "resolution" in dataset.columns:
             resolution = dataset["resolution"]
         else:

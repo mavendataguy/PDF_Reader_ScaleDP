@@ -69,7 +69,7 @@ def test_image_draw_boxes_ner(image_df):
     print("file://" + temp.name)
 
 def test_image_draw_boxes_local(image_file, pdf_file):
-    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import LocalPipeline, UserDefinedFunction
     import pyspark
 
     # Temporarily replace the UserDefinedFunction

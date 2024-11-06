@@ -12,7 +12,8 @@ from sparkpdf.schemas.NerOutput import NerOutput
 
 
 class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhiteList, HasDevice, HasModel, HasPathCol,
-          DefaultParamsReadable, DefaultParamsWritable, HasNumPartitions, HasScoreThreshold, HasBatchSize, HasPageCol):
+          DefaultParamsReadable, DefaultParamsWritable, HasNumPartitions, HasScoreThreshold, HasBatchSize, HasPageCol,
+         HasColumnValidator):
 
     def outputSchema(self):
         return StructType([StructField("path", StringType(), True),
@@ -41,10 +42,7 @@ class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhite
     def _transform(self, dataset):
         params = self.get_params()
         out_col = self.getOutputCol()
-        if self.getInputCol() not in dataset.columns:
-            input_col = self.getInputCol()
-            raise ValueError(f"""Missing input column in {self.uid}: Column '{input_col}' is not present.""")
-        in_col = dataset[self.getInputCol()]
+        in_col = self._validate(self.getInputCol(), dataset)
 
         if not hasattr(dataset, "sparkSession"):
             result = dataset.withColumn(out_col,

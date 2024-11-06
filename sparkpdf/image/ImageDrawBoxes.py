@@ -1,6 +1,8 @@
 
 import traceback
 import logging
+import random
+
 from PIL import ImageDraw
 from pyspark import keyword_only
 from pyspark.sql.functions import udf
@@ -16,7 +18,7 @@ from sparkpdf.params import *
 
 
 class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, HasImageType, HasPageCol,
-                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions):
+                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions, HasColumnValidator):
     """
     Draw boxes on image
     """
@@ -44,7 +46,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                  keepInputData=False,
                  imageType=ImageType.FILE.value,
                  filled=False,
-                 color="red",
+                 color=None,
                  lineWidth=1,
                  textSize=12,
                  displayDataList=[],
@@ -78,6 +80,10 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         return ":".join(text)
 
     def transform_udf(self, image, data):
+
+        def get_color():
+            return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+
         if not isinstance(image, Image):
             image = Image(**image.asDict())
         try:
@@ -90,16 +96,25 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
             if hasattr(data, "entities"):
                 if not isinstance(data, NerOutput):
                     data = NerOutput(**data.asDict())
+                colors = {}
                 for ner in data.entities:
+
                     if not isinstance(ner, Entity):
                         ner = Entity(**ner.asDict())
+
+                    if ner.entity_group not in colors:
+                        colors[ner.entity_group] = get_color()
+                    if self.getColor() is None:
+                        color = colors[ner.entity_group]
+                    else:
+                        color = self.getColor()
                     for box in ner.boxes:
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
                         text = self.getDisplayText(ner)
-                        img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
+                        img1.rectangle(box.shape(), outline=color, fill=fill, width=self.getLineWidth())
                         if text:
-                            img1.text((box.x, box.y - 2 - self.getTextSize()), text , fill=self.getColor(), font_size=self.getTextSize())
+                            img1.text((box.x, box.y - self.getTextSize() * 1.2), text , fill=color, font_size=self.getTextSize())
             else:
                 for box in data.bboxes:
                     if not isinstance(box, Box):
@@ -107,7 +122,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                     img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
                     text = self.getDisplayText(box)
                     if text:
-                        img1.text((box.x, box.y - 2 - self.getTextSize()), text, fill=self.getColor(), font_size=self.getTextSize())
+                        img1.text((box.x, box.y - self.getTextSize() * 1.2), text, fill=self.getColor(), font_size=self.getTextSize())
 
 
         except Exception as e:
@@ -119,11 +134,8 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
-        if self.getInputCols()[0] not in dataset.columns:
-            input_col = self.getInputCols()[0]
-            raise ValueError(f"""Missing input column in {self.uid}: Column '{input_col}' is not present.""")
-        image_col = dataset[self.getInputCols()[0]]
-        box_col = dataset[self.getInputCols()[1]]
+        image_col = self._validate(self.getInputCols()[0], dataset)
+        box_col = self._validate(self.getInputCols()[1], dataset)
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())

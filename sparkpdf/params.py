@@ -1,4 +1,5 @@
 from pyspark.ml.param import Param, Params, TypeConverters
+from enum import IntEnum, Enum
 
 class HasImageType(Params):
 
@@ -324,3 +325,32 @@ class HasColor(Params):
         Gets the value of color or its default value.
         """
         return self.getOrDefault(self.color)
+
+
+class HasDefaultEnum(Params):
+
+    def _setDefault(self, **kwargs):
+        """
+        Sets default params.
+        """
+        for param, value in kwargs.items():
+            if value is not None and isinstance(value, Enum):
+                try:
+                    value = value.value
+                except TypeError as e:
+                    raise TypeError(
+                        'Invalid default param value given for param "%s". %s' % (param, e)
+                    )
+            super(HasDefaultEnum, self)._setDefault(**{param: value})
+        return self
+
+
+class HasColumnValidator():
+
+    def _validate(self, column_name, dataset):
+        """
+        Validate input schema.
+        """
+        if column_name not in dataset.columns:
+            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{column_name}' is not present.")
+        return dataset[column_name]
