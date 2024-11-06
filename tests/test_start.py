@@ -1,4 +1,4 @@
-from sparkpdf import start
+from sparkpdf import sparkpdf
 
 def test_start_function():
-    start(conf={"spark.executor.memory": "2g"}, with_aws=True)
+    sparkpdf(conf={"spark.executor.memory": "2g"}, with_aws=True)

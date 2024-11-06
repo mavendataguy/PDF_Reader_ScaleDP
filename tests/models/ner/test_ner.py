@@ -47,7 +47,7 @@ def test_ner(image_df):
 
 
 def test_ner_local_pipeline(image_file):
-    from sparkpdf.pipeline.PandasPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
     import pyspark
 
     # Temporarily replace the UserDefinedFunction
@@ -63,7 +63,7 @@ def test_ner_local_pipeline(image_file):
                           displayDataList=['score'])
 
     # Create the pipeline
-    pipeline = LocalPipeline(stages=[data_to_image, ocr, ner, draw])
+    pipeline = PandasPipeline(stages=[data_to_image, ocr, ner, draw])
 
     # Run the pipeline on the input image file
     result = pipeline.fromFile(image_file)

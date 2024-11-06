@@ -18,7 +18,7 @@ from sparkpdf.enums import *
 from pyspark.sql import DataFrame
 
 
-from sparkpdf.utils.display_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
+from sparkpdf.utils.show_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
 
 DataFrame.show_image = lambda self, column="", limit=5, width=None, show_meta=True, : show_image(self, column, limit, width, show_meta)
 DataFrame.show_pdf = lambda self, column="", limit=5, width=None, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
@@ -26,7 +26,7 @@ DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ne
 DataFrame.show_text = lambda self, column="", limit=20, width=None: show_text(self, column, limit, width)
 DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None : visualize_ner(self, column, text_column, limit, width, labels_list)
 
-__all__ = ['start',
+__all__ = ['sparkpdf',
            'DataToImage',
            'ImageDrawBoxes',
            'PdfDataToImage',
@@ -56,16 +56,11 @@ def aws_version():
     return spark_hadoop_map[pyspark.__version__[:3]]
 
 
-def info():
-    print(f"Spark version: {pyspark.__version__}")
-    print(f"Spark Pdf version: {version()}\n")
-
-
-def start(conf=None,
-          master_url="local[*]",
-          with_aws=False,
-          with_pro=False,
-          logLevel="ERROR"):
+def sparkpdf(conf=None,
+             master_url="local[*]",
+             with_aws=False,
+             with_pro=False,
+             logLevel="ERROR"):
     """
     Start Spark session with SparkPDF
     @param conf: Instance of SparkConf or dict with extra configuration.
@@ -115,7 +110,6 @@ def start(conf=None,
     builder.config("spark.jars", ",".join(jars))
     builder.config("spark.jars.packages", ",".join(jars_packages))
 
-    info()
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel(logLevel=logLevel)
     return spark

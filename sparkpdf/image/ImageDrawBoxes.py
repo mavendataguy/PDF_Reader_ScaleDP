@@ -35,6 +35,10 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                      "Text size.",
                      typeConverter=TypeConverters.toInt)
 
+    padding = Param(Params._dummy(), "padding",
+                     "Padding.",
+                     typeConverter=TypeConverters.toInt)
+
     displayDataList = Param(Params._dummy(), "displayDataList",
                       "Display data list.",
                       typeConverter=TypeConverters.toListString)
@@ -51,6 +55,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                  textSize=12,
                  displayDataList=[],
                  numPartitions=0,
+                 padding=0,
                  pageCol="page"):
         super(ImageDrawBoxes, self).__init__()
         self._setDefault(inputCols=inputCols,
@@ -62,6 +67,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                          textSize=textSize,
                          displayDataList=displayDataList,
                          color=color,
+                         padding=padding,
                          numPartitions=numPartitions,
                          pageCol=pageCol)
     def getDisplayText(self, box):
@@ -112,17 +118,24 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
                         text = self.getDisplayText(ner)
-                        img1.rectangle(box.shape(), outline=color, fill=fill, width=self.getLineWidth())
+                        img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4, fill=fill, width=self.getLineWidth())
                         if text:
-                            img1.text((box.x, box.y - self.getTextSize() * 1.2), text , fill=color, font_size=self.getTextSize())
+                            tbox = list(img1.textbbox((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text , font_size=self.getTextSize()))
+                            tbox[3] = tbox[3] + self.getTextSize()/4
+                            tbox[2] = tbox[2] + self.getTextSize() / 4
+                            tbox[0] = box.x - self.getPadding()
+                            tbox[1] = box.y - self.getTextSize() * 1.2 - self.getPadding()
+                            img1.rounded_rectangle(tbox, outline=color, radius=2, fill=color)
+                            img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text,
+                                      stroke_width=0, fill="white", font_size=self.getTextSize())
             else:
                 for box in data.bboxes:
                     if not isinstance(box, Box):
                         box = Box(**box.asDict())
-                    img1.rectangle(box.shape(), outline=self.getColor(), fill=fill, width=self.getLineWidth())
+                    img1.rounded_rectangle(box.shape(self.getPadding()), outline=self.getColor(), radius=4, fill=fill, width=self.getLineWidth())
                     text = self.getDisplayText(box)
                     if text:
-                        img1.text((box.x, box.y - self.getTextSize() * 1.2), text, fill=self.getColor(), font_size=self.getTextSize())
+                        img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text, fill=self.getColor(), font_size=self.getTextSize())
 
 
         except Exception as e:
@@ -194,3 +207,9 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         Gets the value of :py:attr:`displayDataList`.
         """
         return self.getOrDefault(self.displayDataList)
+
+    def getPadding(self):
+        """
+        Gets the value of :py:attr:`padding`.
+        """
+        return self.getOrDefault(self.padding)

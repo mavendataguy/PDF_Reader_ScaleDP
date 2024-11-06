@@ -9,7 +9,8 @@ Let's import the necessary modules and create a Spark session:
 
 ```python
 from sparkpdf import *
-spark = start()
+
+spark = sparkpdf()
 ```
 
 Next, we will load a PDF file into a Spark DataFrame:

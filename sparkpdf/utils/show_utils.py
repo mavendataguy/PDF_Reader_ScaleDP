@@ -167,37 +167,3 @@ def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, lab
 
     display(HTML(rendered_html))
 
-def visualize_ner1(df, column="ner", text_column="text", limit=20, labels_list=None):
-    from IPython.display import display, HTML
-    from jinja2 import PackageLoader, Environment
-
-    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
-    template = templateEnv.get_template("ner.html")
-
-    df = df.limit(limit).select(column, text_column).cache()
-    entities = df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").collect()
-    original_text = df.select(text_column).collect()[0][0].text
-
-    entity_colors = {}
-    current_position = 0
-    html = ""
-    for entity in entities:
-        start = entity.start
-        end = entity.end
-        entity_name = entity.entity_group.lower()
-        if entity_name not in entity_colors:
-            entity_colors[entity_name] = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-
-        if current_position < start:
-            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[
-                                                                         current_position:start] + "</span>"
-        if entity_name in entity_colors:
-            html += f"""<span style='border-radius:4px;padding:2px;color:white;line-height:25px;margin:1px;
-            background-color:{entity_colors[entity_name]};font-size:16px;'>
-            <span style="color:black;background-color:white;border-radius: 2px;padding: 0 1px 0 1px;">
-            {original_text[start:end]}</span><span style='font-weight:500;padding: 4px;'>{entity.entity_group}</span></span>"""
-        else:
-            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[start:end] + "</span>"
-        current_position = end
-
-    display(HTML(html))
