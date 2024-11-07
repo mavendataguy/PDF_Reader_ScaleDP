@@ -1,5 +1,5 @@
 # Description: Schema Document
-from pyspark_types.dataclass import map_dataclass_to_struct, register_type
+from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type
 from dataclasses import dataclass
 from sparkpdf.schemas.Box import Box
 

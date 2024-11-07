@@ -26,7 +26,7 @@ DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ne
 DataFrame.show_text = lambda self, column="", limit=20, width=None: show_text(self, column, limit, width)
 DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None : visualize_ner(self, column, text_column, limit, width, labels_list)
 
-__all__ = ['sparkpdf',
+__all__ = ['SparkPdfSession',
            'DataToImage',
            'ImageDrawBoxes',
            'PdfDataToImage',
@@ -56,11 +56,11 @@ def aws_version():
     return spark_hadoop_map[pyspark.__version__[:3]]
 
 
-def sparkpdf(conf=None,
-             master_url="local[*]",
-             with_aws=False,
-             with_pro=False,
-             logLevel="ERROR"):
+def SparkPdfSession(conf=None,
+                    master_url="local[*]",
+                    with_aws=False,
+                    with_pro=False,
+                    logLevel="ERROR"):
     """
     Start Spark session with SparkPDF
     @param conf: Instance of SparkConf or dict with extra configuration.

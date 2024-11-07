@@ -6,7 +6,7 @@ from PIL import Image as pImage
 import traceback
 from dataclasses import dataclass
 from ..enums import ImageType
-from pyspark_types.dataclass import map_dataclass_to_struct, register_type, BinaryT
+from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type, BinaryT
 
 @dataclass(order=True)
 class Image(object):
