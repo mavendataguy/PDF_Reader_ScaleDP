@@ -14,31 +14,30 @@ from sparkpdf.enums import ImageType
 
 class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType,
                      HasPathCol, HasResolution, HasPageCol, DefaultParamsReadable, DefaultParamsWritable,
-                     HasColumnValidator):
+                     HasColumnValidator, HasDefaultEnum):
     """
     Extract image from PDF file
     """
     pageLimit = Param(Params._dummy(), "pageLimit", "Limit number of pages to convert to image",
                       typeConverter=TypeConverters.toInt)
 
+    defaultParams = {
+        "inputCol": "content",
+        "outputCol": "image",
+        "pathCol": "path",
+        "pageCol": "page",
+        "keepInputData": False,
+        "imageType": ImageType.FILE,
+        "resolution": 300,
+        "pageLimit": 0
+    }
+
+
     @keyword_only
-    def __init__(self, inputCol="content",
-                 outputCol="image",
-                 pathCol="path",
-                 pageCol="page",
-                 keepInputData=False,
-                 imageType=ImageType.FILE.value,
-                 resolution=300,
-                 pageLimit=0):
+    def __init__(self, **kwargs):
         super(PdfDataToImage, self).__init__()
-        self._setDefault(inputCol=inputCol,
-                         outputCol=outputCol,
-                         pathCol=pathCol,
-                         pageCol=pageCol,
-                         keepInputData=keepInputData,
-                         imageType=imageType,
-                         resolution=resolution,
-                         pageLimit=pageLimit)
+        self._setDefault(**self.defaultParams)
+        self._set(**kwargs)
 
     def transform_udf(self, input, path):
         logging.info("Run Pdf Data to Image")

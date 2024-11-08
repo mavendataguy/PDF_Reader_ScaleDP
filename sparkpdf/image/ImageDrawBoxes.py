@@ -18,7 +18,8 @@ from sparkpdf.params import *
 
 
 class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, HasImageType, HasPageCol,
-                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions, HasColumnValidator):
+                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions, HasColumnValidator,
+                     HasDefaultEnum, metaclass=AutoParamsMeta):
     """
     Draw boxes on image
     """
@@ -43,33 +44,27 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                       "Display data list.",
                       typeConverter=TypeConverters.toListString)
 
+    defaultParams = {
+        "inputCols": ['image', 'boxes'],
+        "outputCol": 'image_with_boxes',
+        "keepInputData":False,
+        "imageType": ImageType.FILE,
+        "filled": False,
+        "color": None,
+        "lineWidth": 1,
+        "textSize": 12,
+        "displayDataList": [],
+        "numPartitions": 0,
+        "padding": 0,
+        "pageCol": "page"
+    }
+
     @keyword_only
-    def __init__(self,
-                 inputCols=['image', 'boxes'],
-                 outputCol='image_with_boxes',
-                 keepInputData=False,
-                 imageType=ImageType.FILE.value,
-                 filled=False,
-                 color=None,
-                 lineWidth=1,
-                 textSize=12,
-                 displayDataList=[],
-                 numPartitions=0,
-                 padding=0,
-                 pageCol="page"):
+    def __init__(self, **kwargs):
         super(ImageDrawBoxes, self).__init__()
-        self._setDefault(inputCols=inputCols,
-                         outputCol=outputCol,
-                         keepInputData=keepInputData,
-                         imageType=imageType,
-                         filled=filled,
-                         lineWidth=lineWidth,
-                         textSize=textSize,
-                         displayDataList=displayDataList,
-                         color=color,
-                         padding=padding,
-                         numPartitions=numPartitions,
-                         pageCol=pageCol)
+        self._setDefault(**self.defaultParams)
+        self._set(**kwargs)
+
     def getDisplayText(self, box):
         display_list = self.getDisplayDataList()
         text = []
@@ -118,9 +113,11 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
                         text = self.getDisplayText(ner)
-                        img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4, fill=fill, width=self.getLineWidth())
+                        img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4,
+                                               fill=fill, width=self.getLineWidth())
                         if text:
-                            tbox = list(img1.textbbox((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text , font_size=self.getTextSize()))
+                            tbox = list(img1.textbbox((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()),
+                                                      text , font_size=self.getTextSize()))
                             tbox[3] = tbox[3] + self.getTextSize()/4
                             tbox[2] = tbox[2] + self.getTextSize() / 4
                             tbox[0] = box.x - self.getPadding()
@@ -129,14 +126,19 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                             img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text,
                                       stroke_width=0, fill="white", font_size=self.getTextSize())
             else:
+                if self.getColor() is None:
+                    color = "green"
+                else:
+                    color = self.getColor()
                 for box in data.bboxes:
                     if not isinstance(box, Box):
                         box = Box(**box.asDict())
-                    img1.rounded_rectangle(box.shape(self.getPadding()), outline=self.getColor(), radius=4, fill=fill, width=self.getLineWidth())
+                    img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4,
+                                           fill=fill, width=self.getLineWidth())
                     text = self.getDisplayText(box)
                     if text:
-                        img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text, fill=self.getColor(), font_size=self.getTextSize())
-
+                        img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text,
+                                  fill=color, font_size=self.getTextSize())
 
         except Exception as e:
             exception = traceback.format_exc()
@@ -157,59 +159,3 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         if not self.getKeepInputData():
             result = result.drop(image_col)
         return result
-
-    def setFilled(self, value):
-        """
-        Sets the value of :py:attr:`filled`.
-        """
-        return self._set(filled=value)
-
-    def getFilled(self):
-        """
-        Gets the value of :py:attr:`filled`.
-
-        meta private:
-        """
-        return self.getOrDefault(self.filled)
-
-    def setLineWidth(self, value):
-        """
-        Sets the value of :py:attr:`lineWidth`.
-        """
-        return self._set(lineWidth=value)
-
-    def getLineWidth(self):
-        """
-        Gets the value of :py:attr:`lineWidth`.
-        """
-        return self.getOrDefault(self.lineWidth)
-
-    def setTextSize(self, value):
-        """
-        Sets the value of :py:attr:`textSize`.
-        """
-        return self._set(textSize=value)
-
-    def getTextSize(self):
-        """
-        Gets the value of :py:attr:`textSize`.
-        """
-        return self.getOrDefault(self.textSize)
-
-    def setDisplayDataList(self, value):
-        """
-        Sets the value of :py:attr:`displayDataList`.
-        """
-        return self._set(displayDataList=value)
-
-    def getDisplayDataList(self):
-        """
-        Gets the value of :py:attr:`displayDataList`.
-        """
-        return self.getOrDefault(self.displayDataList)
-
-    def getPadding(self):
-        """
-        Gets the value of :py:attr:`padding`.
-        """
-        return self.getOrDefault(self.padding)

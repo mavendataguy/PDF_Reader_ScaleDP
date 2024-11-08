@@ -7,16 +7,25 @@ from sparkpdf.params import *
 from sparkpdf.enums import ImageType
 
 
-class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType,
+class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType, HasDefaultEnum,
                   HasPathCol, DefaultParamsReadable, DefaultParamsWritable, HasColumnValidator):
     """
     Transform Binary Content to Image
     """
 
+    defaultParams = {
+        "inputCol": "content",
+        "outputCol": "image",
+        "pathCol": "path",
+        "keepInputData": False,
+        "imageType": ImageType.FILE
+    }
+
     @keyword_only
-    def __init__(self, inputCol='content', outputCol='image', pathCol="path", keepInputData=False, imageType=ImageType.FILE.value):
+    def __init__(self, **kwargs):
         super(DataToImage, self).__init__()
-        self._setDefault(inputCol=inputCol, outputCol=outputCol, pathCol=pathCol, keepInputData=keepInputData, imageType=imageType)
+        self._setDefault(**self.defaultParams)
+        self._set(**kwargs)
 
     def transform_udf(self, input, path, resolution):
         return Image.from_binary(input, path, self.getImageType(), resolution=resolution)

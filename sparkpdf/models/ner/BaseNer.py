@@ -13,7 +13,7 @@ from sparkpdf.schemas.NerOutput import NerOutput
 
 class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhiteList, HasDevice, HasModel, HasPathCol,
           DefaultParamsReadable, DefaultParamsWritable, HasNumPartitions, HasScoreThreshold, HasBatchSize, HasPageCol,
-         HasColumnValidator):
+         HasColumnValidator, HasDefaultEnum):
 
     def outputSchema(self):
         return StructType([StructField("path", StringType(), True),

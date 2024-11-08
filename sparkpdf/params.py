@@ -1,6 +1,26 @@
 from pyspark.ml.param import Param, Params, TypeConverters
 from enum import IntEnum, Enum
 
+
+class AutoParamsMeta(type(Params), type):
+    def __new__(cls, name, bases, dct):
+        dct_copy = dct.copy()
+        for attr_name, attr_value in dct_copy.items():
+            if isinstance(attr_value, Param):
+                set_method_name = f"set{attr_name[0].upper()}{attr_name[1:]}"
+                get_method_name = f"get{attr_name[0].upper()}{attr_name[1:]}"
+
+                def set_method(self, value, attr_name=attr_name):
+                    return self._set(**{attr_name: value})
+
+                def get_method(self, attr_name=attr_name):
+                    return self.getOrDefault(attr_name)
+
+                dct[set_method_name] = set_method
+                dct[get_method_name] = get_method
+
+        return super(AutoParamsMeta, cls).__new__(cls, name, bases, dct)
+
 class HasImageType(Params):
 
     imageType = Param(Params._dummy(), "imageType",
@@ -342,6 +362,22 @@ class HasDefaultEnum(Params):
                         'Invalid default param value given for param "%s". %s' % (param, e)
                     )
             super(HasDefaultEnum, self)._setDefault(**{param: value})
+        return self
+
+    def _set(self, **kwargs):
+        """
+        Sets user-supplied params.
+        """
+        for param, value in kwargs.items():
+            p = getattr(self, param)
+            if value is not None:
+                if isinstance(value, Enum):
+                    value = value.value
+                try:
+                    value = p.typeConverter(value)
+                except TypeError as e:
+                    raise TypeError('Invalid param value given for param "%s". %s' % (p.name, e))
+            self._paramMap[p] = value
         return self
 
 
