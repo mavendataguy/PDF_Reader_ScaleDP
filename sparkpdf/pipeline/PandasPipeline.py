@@ -57,7 +57,7 @@ class DatasetPd(pd.DataFrame):
         return self
 
 
-class LocalPipeline():
+class PandasPipeline():
     stages = []
     def setStages(self, value):
         self.stages = value

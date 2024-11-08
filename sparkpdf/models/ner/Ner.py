@@ -1,5 +1,5 @@
 import datetime
-
+from pyspark import keyword_only
 from sparkpdf.models.ner.BaseNer import BaseNer
 from ...enums import Device
 from sparkpdf.schemas.Entity import Entity
@@ -13,32 +13,27 @@ def log_info(msg):
 
 class Ner(BaseNer):
 
-    def __init__(self,
-                 inputCol='text',
-                 outputCol='ner',
-                 keepInputData=True,
-                 model="d4data/biomedical-ner-all",
-                 whiteList=[],
-                 numPartitions=1,
-                 device=Device.CPU.value,
-                 batchSize=1,
-                 scoreThreshold=0.0,
-                 pageCol="page",
-                 pathCol="path"):
-        super(Ner, self).__init__()
-        self._setDefault(inputCol=inputCol,
-                         outputCol=outputCol,
-                         keepInputData=keepInputData,
-                         model=model,
-                         whiteList=whiteList,
-                         numPartitions=numPartitions,
-                         device=device,
-                         batchSize=batchSize,
-                         scoreThreshold=scoreThreshold,
-                         pageCol=pageCol,
-                         pathCol=pathCol)
+    defaultParams = {
+        "inputCol": "text",
+        "outputCol": "ner",
+        "keepInputData": True,
+        "model": "d4data/biomedical-ner-all",
+        "whiteList": [],
+        "numPartitions": 1,
+        "device": Device.CPU,
+        "batchSize": 1,
+        "scoreThreshold": 0.0,
+        "pageCol": "page",
+        "pathCol": "path"
+    }
 
+    @keyword_only
+    def __init__(self, **kwargs):
+        super(Ner, self).__init__()
+        self._setDefault(**self.defaultParams)
+        self._set(**kwargs)
         self.pipeline = None
+
 
     @staticmethod
     def split_text(text, max_length=500, stride=256):
@@ -75,7 +70,7 @@ class Ner(BaseNer):
                                      )
         return self.pipeline
 
-    def transform_local(self, text):
+    def transform_udf(self, text):
 
         mapping = []
         for idx, box in enumerate(text.bboxes):
@@ -98,10 +93,6 @@ class Ner(BaseNer):
             entities.append(t)
         output = NerOutput(path=text.path, entities=entities, exception="")
         return output
-
-
-    def transform_udf(self, image):
-        return self.transform_local(image)
 
 
     @staticmethod

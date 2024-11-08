@@ -69,7 +69,7 @@ def test_image_draw_boxes_ner(image_df):
     print("file://" + temp.name)
 
 def test_image_draw_boxes_local(image_file, pdf_file):
-    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
     import pyspark
 
     # Temporarily replace the UserDefinedFunction
@@ -84,7 +84,7 @@ def test_image_draw_boxes_local(image_file, pdf_file):
                           displayDataList=["text", "score"])
 
     # Create the pipeline
-    pipeline = LocalPipeline(stages=[data_to_image, ocr, draw])
+    pipeline = PandasPipeline(stages=[data_to_image, ocr, draw])
 
     # Run the pipeline on the input image file
     result = pipeline.fromFile(image_file)

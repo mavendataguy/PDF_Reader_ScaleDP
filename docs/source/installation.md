@@ -14,13 +14,13 @@ To install the `spark-pdf` library, follow the steps below:
 You can install the `spark-pdf` library using `pip`. Run the following command in your terminal:
 
 ```sh
-pip install spark-pdf
+pip install pyspark-pdf
 ```
 
 For run ML transformers you need to install extra dependencies using following command:
 
 ```sh
-pip install spark-pdf[ml]
+pip install pyspark-pdf[ml]
 ```
 
 Or manually install `transformers` and `torch` library:

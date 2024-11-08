@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pyspark_types.dataclass import map_dataclass_to_struct, register_type
+from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type
 @dataclass(order=True)
 class Box:
     text: str
@@ -28,8 +28,8 @@ class Box:
                    width = int(self.width * factor),
                    height = int(self.height * factor))
 
-    def shape(self):
-        return [(self.x, self.y), (self.x + self.width, self.y + self.height)]
+    def shape(self, padding=0):
+        return [(self.x - padding, self.y - padding), (self.x + self.width + padding, self.y + self.height +  padding)]
 
     def bbox(self):
         return [self.x, self.y, self.x + self.width, self.y + self.height]

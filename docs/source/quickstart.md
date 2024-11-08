@@ -9,14 +9,15 @@ Let's import the necessary modules and create a Spark session:
 
 ```python
 from sparkpdf import *
-spark = start()
+
+spark = SparkPdfSession()
 ```
 
 Next, we will load a PDF file into a Spark DataFrame:
 
 ```python
-import pkg_resources
-doc_example = pkg_resources.resource_filename('sparkpdf', 'resources/pdf/Personal_Health_Record_Example.pdf')
+# Open some pdf from resources or any other pdf file
+doc_example = files('resources/pdf/SparkPdf.pdf')
 df = spark.read.format("binaryFile").load(doc_example)
 ```
 
@@ -58,7 +59,8 @@ In this example, we will show you how to extract text from images using the `spa
 We already have a Spark session, so let's load an image into a Spark DataFrame:
 
 ```python
-doc_example = pkg_resources.resource_filename('sparkpdf', 'resources/images/Personal_Health_Record_Example.png')
+# Open some image from resources or any other image file
+doc_example = files('resources/images/SparkPdfLogo.png')
 df = spark.read.format("binaryFile").load(doc_example)
 ```
 Let's define a Spark ML pipeline to extract text from the image:

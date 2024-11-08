@@ -1,23 +1,26 @@
 [tool.poetry]
-name = "spark-pdf"
-version = "0.1.0"
-description = ""
-authors = ["Mykola Melnyk <kolia1985@gmail.com>"]
+name = "pyspark-pdf"
+version = "0.1.0rc9"
+description = "Spark-Pdf is a library for processing documents using Apache Spark"
+authors = ["Mykola Melnyk <mykola@stabrise.com>"]
+repository = "https://github.com/StabRise/spark-pdf"
+license = "AGPL-3.0"
 readme = "README.md"
+packages = [{include = "sparkpdf"}]
+include = ["sparkpdf/resource/*"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 pyspark = "3.5.3"
-pillow = "11.0.0"
+pillow = "^10.4.0"
 imagesize = "1.4.1"
-pandas = "2.2.3"
+pandas = "^2.2.2"
 pytesseract = "0.3.13"
-pytest = "8.3.3"
-pyspark-types = { git = "https://github.com/kolia1985/pyspark_types" }
+pytest = "^7.4.4"
 PyMuPDF = "1.24.11"
-numpy = "2.1.0"
+numpy = "^1.26.4"
 pyarrow = "17.0.0"
-transformers = {version = "^4.46.0", optional = true}
+transformers = {version = "^4.42.0", optional = true}
 torch = {version = "^2.3.0", source = "pytorch_cpu", optional = true}
 
 
@@ -35,9 +38,8 @@ dependencies = [
 ]
 
 
-
 [tool.poetry.group.test.dependencies]
-pytest = "^8.3.3"
+pytest = "^7.4.4"
 pytest-spark = "0.6.0"
 jupyter = "^1.1.1"
 tesserocr = "2.7.1"

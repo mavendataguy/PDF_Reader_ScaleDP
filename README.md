@@ -1,8 +1,9 @@
 <img src="./images/SparkPdfLogo.png">
 
 <p align="center">
-    <a href="https://circleci.com/gh/stabrise/spark-pdf"><img alt="Build" src="https://img.shields.io/circleci/build/github/stabrise/spark-pdf/main"></a>
+    <a href="https://pypi.org/project/pyspark-pdf/" alt="Package on PyPI"><img src="https://img.shields.io/pypi/v/pyspark-pdf.svg" /></a>
     <a href="https://github.com/stabrise/spark-pdf/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/stabrise/spark-pdf.svg?color=blue"></a>
+    <a href="https://stabrise.com"><img alt="StabRise" src="https://img.shields.io/badge/powered%20by-StabRise-orange.svg?style=flat&colorA=E1523D&colorB=007D8A"></a>
 </p>
 
 
@@ -24,13 +25,13 @@ It includes the following features:
 
 ### Requirements
 
-- Python 3.11
+- Python 3.10
 - Apache Spark 3.5 or higher
 - Java 8
-- Tesseract 5.0 or higher
+- Tesseract 4.0 or higher
 
 ```bash
-  pip install spark-pdf
+  pip install pyspark-pdf
 ```
 
 ## Development
@@ -54,6 +55,12 @@ It includes the following features:
   poetry run pytest --cov=sparkpdf --cov-report=html:coverage_report tests/ 
 ```
 
+### Build package
+
+```bash
+  poetry build
+```
+
 ### Build documentation
 
 ```bash
@@ -71,4 +78,11 @@ Build image:
 Run container:
 ```bash
   docker run --rm -it --entrypoint bash spark-pdf:latest
+```
+
+### Release
+
+```bash
+  poetry version patch
+  poetry publish --build
 ```

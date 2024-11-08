@@ -2,7 +2,7 @@ from sparkpdf import DataToImage
 
 
 def test_local_pipeline(image_file):
-    from sparkpdf.pipeline.LocalPipeline import LocalPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
     import pyspark
     original_udf = pyspark.sql.udf.UserDefinedFunction
 
@@ -14,7 +14,7 @@ def test_local_pipeline(image_file):
         data_to_image = DataToImage()
 
         # Initialize the LocalPipeline with the DataToImage stage
-        pipeline = LocalPipeline(stages=[data_to_image])
+        pipeline = PandasPipeline(stages=[data_to_image])
 
         # Read the image file
         with open(image_file, "rb") as f:
