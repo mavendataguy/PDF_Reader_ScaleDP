@@ -1,10 +1,13 @@
 [tool.poetry]
 name = "pyspark-pdf"
-version = "0.1.0rc6"
+version = "0.1.0rc9"
 description = "Spark-Pdf is a library for processing documents using Apache Spark"
 authors = ["Mykola Melnyk <mykola@stabrise.com>"]
+repository = "https://github.com/StabRise/spark-pdf"
+license = "AGPL-3.0"
 readme = "README.md"
 packages = [{include = "sparkpdf"}]
+include = ["sparkpdf/resource/*"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

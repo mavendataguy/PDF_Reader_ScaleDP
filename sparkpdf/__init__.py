@@ -11,12 +11,11 @@ from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
 from sparkpdf.text.TextToDocument import TextToDocument
-
+from  importlib import resources
 from sparkpdf import enums
 from sparkpdf.enums import *
 
 from pyspark.sql import DataFrame
-
 
 from sparkpdf.utils.show_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
 
@@ -26,17 +25,6 @@ DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ne
 DataFrame.show_text = lambda self, column="", limit=20, width=None: show_text(self, column, limit, width)
 DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None : visualize_ner(self, column, text_column, limit, width, labels_list)
 
-__all__ = ['SparkPdfSession',
-           'DataToImage',
-           'ImageDrawBoxes',
-           'PdfDataToImage',
-           'TesseractOcr',
-           'Ner',
-           'TextToDocument',
-           'PipelineModel',
-           ] + dir(enums)
-
-
 def version():
     version_path = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(version_path, 'VERSION'), encoding="utf-8") as version_file:
@@ -45,6 +33,21 @@ def version():
 
 __version__ = version()
 
+
+__all__ = ['SparkPdfSession',
+           'DataToImage',
+           'ImageDrawBoxes',
+           'PdfDataToImage',
+           'TesseractOcr',
+           'Ner',
+           'TextToDocument',
+           'PipelineModel',
+           '__version__',
+           'files',
+           ] + dir(enums)
+
+
+files = lambda path: resources.files('sparkpdf').joinpath(path).as_posix()
 
 def aws_version():
     spark_hadoop_map = {"3.0": "2.7.4",
