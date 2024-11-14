@@ -80,6 +80,11 @@ Run container:
   docker run --rm -it --entrypoint bash spark-pdf:latest
 ```
 
+```bash
+docker run -p 8888:8888 spark-pdf:latest
+
+```
+
 ### Release
 
 ```bash
