@@ -21,6 +21,13 @@ It includes the following features:
 - Run NER on text extracted from PDF documents/Images
 - Visualize NER results
 
+## Support various OCR Engines
+
+- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
+- [Easy OCR](https://github.com/JaidedAI/EasyOCR)
+- [Surya OCR](https://github.com/VikParuchuri/surya)
+- [DocTR](https://github.com/mindee/doctr)
+
 ## Installation
 
 ### Requirements
