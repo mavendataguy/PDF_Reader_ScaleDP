@@ -1,6 +1,6 @@
 from pyspark.ml.param import Param, Params, TypeConverters
 from enum import IntEnum, Enum
-from langs import *
+from .langs import *
 
 class AutoParamsMeta(type(Params), type):
     def __new__(cls, name, bases, dct):
