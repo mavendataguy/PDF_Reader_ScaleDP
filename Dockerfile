@@ -10,11 +10,16 @@ RUN mv wtf-bookworm.sources /etc/apt/sources.list.d/
 RUN apt-get update && apt-get install --no-install-recommends --yes \
     tesseract-ocr openjdk-8-jdk
 
+EXPOSE 8888
+
 USER root
 WORKDIR /app
-COPY poetry.lock pyproject.toml /app/
+COPY poetry.lock pyproject.toml README.md LICENSE /app/
+COPY tutorials /app/tutorials
+COPY sparkpdf /app/sparkpdf
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install -n --no-ansi
+RUN pip3 install jupyterlab
 
-ENTRYPOINT ["top", "-b"]
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root" , "--notebook-dir=/app/tutorials", "./tutorials/1.QuickStart.ipynb"]
