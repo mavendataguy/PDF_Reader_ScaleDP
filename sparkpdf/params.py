@@ -1,6 +1,6 @@
 from pyspark.ml.param import Param, Params, TypeConverters
 from enum import IntEnum, Enum
-
+from langs import *
 
 class AutoParamsMeta(type(Params), type):
     def __new__(cls, name, bases, dct):
@@ -349,11 +349,24 @@ class HasColor(Params):
 
 class HasDefaultEnum(Params):
 
+    @staticmethod
+    def _any_lang_to_code(lang):
+        if lang in TESSERACT_CODE_TO_LANGUAGE:
+            return LANGUAGE_TO_CODE[TESSERACT_CODE_TO_LANGUAGE[lang]]
+        elif lang in LANGUAGE_TO_CODE:
+            return LANGUAGE_TO_CODE[lang]
+        elif lang in CODE_TO_LANGUAGE:
+            return lang
+        else:
+            raise ValueError(f"Invalid language: {lang}")
+
     def _setDefault(self, **kwargs):
         """
         Sets default params.
         """
         for param, value in kwargs.items():
+            if param == "lang":
+                value = [self._any_lang_to_code(lang) for lang in value]
             if value is not None and isinstance(value, Enum):
                 try:
                     value = value.value
@@ -371,6 +384,8 @@ class HasDefaultEnum(Params):
         for param, value in kwargs.items():
             p = getattr(self, param)
             if value is not None:
+                if p.name == "lang":
+                    value = [self._any_lang_to_code(lang) for lang in value]
                 if isinstance(value, Enum):
                     value = value.value
                 try:
@@ -390,3 +405,45 @@ class HasColumnValidator():
         if column_name not in dataset.columns:
             raise ValueError(f"Missing input column in transformer {self.uid}: Column '{column_name}' is not present.")
         return dataset[column_name]
+
+
+class HasPartitionMap(Params):
+
+    partitionMap = Param(Params._dummy(), "partitionMap",
+                          "Force use pandas udf.",
+                          typeConverter=TypeConverters.toBoolean)
+
+    def setPartitionMap(self, value):
+        """
+        Sets the value of :py:attr:`partitionMap`.
+        """
+        return self._set(partitionMap=value)
+
+    def getPartitionMap(self):
+        """
+        Sets the value of :py:attr:`partitionMap`.
+        """
+        return self.getOrDefault(self.partitionMap)
+
+class HasLang(Params):
+    lang = Param(Params._dummy(), "lang",
+                      "Language.",
+                      typeConverter=TypeConverters.toListString)
+
+    def setLang(self, value):
+        """
+        Sets the value of :py:attr:`lang`.
+        """
+        return self._set(lang=value)
+
+    def getLang(self) -> str:
+        """
+        Gets the value of lang or its default value.
+        """
+        return self.getOrDefault(self.lang)
+
+    def getLangTess(self) -> str:
+        """
+        Gets the value of lang or its default value.
+        """
+        return "+".join(LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in self.getOrDefault(self.lang))
