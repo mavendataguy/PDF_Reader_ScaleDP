@@ -7,7 +7,7 @@ from sparkpdf.enums import ImageType
 
 @pytest.fixture
 def image_file(resource_path_root):
-    return (resource_path_root / "images/InvoiceforMedicalRecords_10_722.png").absolute().as_posix()
+    return (resource_path_root / "images/Invoice.png").absolute().as_posix()
 
 @pytest.fixture
 def image_pil(image_file):
@@ -25,7 +25,7 @@ def image(image_pil):
 @pytest.fixture
 def raw_image_df(spark_session, resource_path_root):
     return spark_session.read.format("binaryFile").load(
-        (resource_path_root / "images/InvoiceforMedicalRecords_10_722.png").absolute().as_posix())
+        (resource_path_root / "images/Invoice.png").absolute().as_posix())
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def pdf_file(resource_path_root):
 @pytest.fixture
 def image_df(spark_session, resource_path_root):
     df = spark_session.read.format("binaryFile").load(
-        (resource_path_root / "images/InvoiceforMedicalRecords_10_722.png").absolute().as_posix())
+        (resource_path_root / "images/Invoice.png").absolute().as_posix())
     bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
     return bin_to_image.transform(df)
 
