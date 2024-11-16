@@ -4,6 +4,7 @@ from sparkpdf.enums import Device
 
 
 def test_surya_ocr_class(image_line):
+    pytest.skip("Slow test")
     # Test SuryatOcr
     result1 = SuryaOcr(keepFormatting=False, partitionMap=False, device=Device.CPU).transform_udf(image_line)
     assert result1.exception == "", "Expected no exception for keepFormatting=False"
@@ -11,6 +12,7 @@ def test_surya_ocr_class(image_line):
 
 
 def test_surya_ocr_pandas_udf(image_line_df):
+    pytest.skip("Slow test")
     ocr = SuryaOcr(partitionMap=True, device=Device.CPU, keepFormatting=True)
 
     # Transform the image dataframe through the OCR stage

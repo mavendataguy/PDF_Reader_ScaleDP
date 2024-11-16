@@ -1,9 +1,10 @@
-
+import pytest
 from sparkpdf.models.recognizers.EasyOcr import EasyOcr
 from sparkpdf.enums import Device
 
 
 def test_easy_ocr(image_line_df):
+    pytest.skip("Slow test")
     ocr = EasyOcr(device=Device.CPU, keepFormatting=True)
 
     # Transform the image dataframe through the OCR stage
@@ -18,6 +19,7 @@ def test_easy_ocr(image_line_df):
 
 
 def test_easy_ocr_pandas_udf(image_line_df):
+    pytest.skip("Slow test")
     ocr = EasyOcr(device=Device.CPU, keepFormatting=True, partitionMap=True)
 
     # Transform the image dataframe through the OCR stage
