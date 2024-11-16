@@ -47,13 +47,11 @@ def test_ner(image_df):
 
 
 def test_ner_local_pipeline(image_file):
-    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
 
     # Temporarily replace the UserDefinedFunction
-    temp = pyspark.sql.udf.UserDefinedFunction
-    pyspark.sql.udf.UserDefinedFunction = UserDefinedFunction
-
+    pathSparkFunctions(pyspark)
     # Initialize the pipeline stages
     data_to_image = DataToImage()
     ocr = TesseractOcr(keepInputData=True)
@@ -67,9 +65,6 @@ def test_ner_local_pipeline(image_file):
 
     # Run the pipeline on the input image file
     result = pipeline.fromFile(image_file)
-
-    # Restore the original UserDefinedFunction
-    pyspark.sql.udf.UserDefinedFunction = temp
 
     # Verify the pipeline result
     assert result is not None
@@ -87,6 +82,8 @@ def test_ner_local_pipeline(image_file):
     # Verify the draw stage output
     draw_result = result["image_with_boxes"][0]
     assert draw_result.exception is ""
+
+    unpathSparkFunctions(pyspark)
 
 
 def test_ner_with_raw_text(text_df):

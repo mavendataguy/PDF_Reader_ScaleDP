@@ -12,6 +12,8 @@ from sparkpdf.models.ner.Ner import Ner
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
 from sparkpdf.text.TextToDocument import TextToDocument
 from sparkpdf.models.recognizers.SuryaOcr import SuryaOcr
+from sparkpdf.models.recognizers.EasyOcr import EasyOcr
+from sparkpdf.models.recognizers.DocTROcr import DocTROcr
 from  importlib import resources
 from sparkpdf import enums
 from sparkpdf.enums import *
@@ -44,6 +46,8 @@ __all__ = ['SparkPdfSession',
            'TextToDocument',
            'PipelineModel',
            'SuryaOcr',
+           'EasyOcr',
+           'DocTROcr',
            '__version__',
            'files',
            ] + dir(enums)
