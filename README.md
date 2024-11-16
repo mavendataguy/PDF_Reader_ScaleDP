@@ -23,10 +23,13 @@ It includes the following features:
 
 ## Support various OCR Engines
 
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
-- [Easy OCR](https://github.com/JaidedAI/EasyOCR)
-- [Surya OCR](https://github.com/VikParuchuri/surya)
-- [DocTR](https://github.com/mindee/doctr)
+|                   | Bbox  level | Support GPU | Separate model  for text detection | Processing time 1 page (CPU/GPU) secs | Support Handwritten Text |
+|-------------------|-------------|-------------|------------------------------------|---------------------------------------|--------------------------|
+| [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)     | character   | no          | no                                 | 0.2/no                                | not good                 |
+| Tesseract OCR CLI | character   | no          | no                                 | 0.2/no                                | not good                 |
+| [Easy OCR](https://github.com/JaidedAI/EasyOCR)          | word        | yes         | yes                                |                                       |                          |
+| [Surya OCR](https://github.com/VikParuchuri/surya)         | line        | yes         | yes                                |                                       |                          |
+| [DocTR](https://github.com/mindee/doctr)       | word        | yes         | yes                                |                                       |                          |
 
 ## Installation
 
