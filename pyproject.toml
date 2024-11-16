@@ -24,6 +24,7 @@ pyarrow = "17.0.0"
 filelock = "*"
 surya-ocr = "0.6.13"
 easyocr = "1.7.2"
+python-doctr = "0.10.0"
 transformers = {version = "^4.42.0", optional = true}
 torch = {version = "^2.3.0", source = "pytorch_cpu", optional = true}
 

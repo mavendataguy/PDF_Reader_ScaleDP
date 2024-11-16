@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import io
 import gc
 import torch
 from pyspark import keyword_only
@@ -13,7 +14,7 @@ from sparkpdf.schemas.Document import Document
 from sparkpdf.models.recognizers.BaseOcr import BaseOcr
 
 
-class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
+class DocTROcr(BaseOcr, HasDevice, HasBatchSize):
 
     defaultParams = {
         "inputCol": "image",
@@ -34,55 +35,56 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
 
     @keyword_only
     def __init__(self, **kwargs):
-        super(EasyOcr, self).__init__()
+        super(DocTROcr, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
 
-    @staticmethod
-    def points_to_box(points, text, score):
-        """
-        Convert a set of four corner points to (x, y, width, height).
-
-        Args:
-            points (list of tuple): List of four (x, y) tuples representing the corners.
-
-        Returns:
-            tuple: A tuple (x, y, width, height).
-        """
-        x_coords = [p[0] for p in points]
-        y_coords = [p[1] for p in points]
-
-        x = min(x_coords)
-        y = min(y_coords)
-        width = max(x_coords) - x
-        height = max(y_coords) - y
-
-        return Box(text=text, score=score, x=x,
-                   y=y, width=width, height=height)
 
     @classmethod
     def call_ocr(cls, images, params):
-        import easyocr
         if int(params['device']) == Device.CPU.value:
             device = False
         else:
             device = True
 
-        langs = params["lang"]
-        scale_factor = params['scaleFactor']
-        reader = easyocr.Reader(langs, device)
+        from doctr.io import DocumentFile
+        from doctr.models import ocr_predictor
+
+        #det_arch = 'db_mobilenet_v3_large',  # detection architecture
+        #reco_arch = 'crnn_mobilenet_v3_small',  # recognition architecture
+
+        model = ocr_predictor(pretrained=True)
         results = []
         for (image, image_path) in images:
+            buff = io.BytesIO()
+            image.save(buff, "png")
+            doc = DocumentFile.from_images(buff.getvalue())
+            # Analyze
+            result = model(doc)
 
-            image = np.array(image.convert('RGB'))[:, :, ::-1].copy()
-            result = reader.readtext(image)
-            boxes = [ EasyOcr.points_to_box(box, text, float(score)).toString().scale(1 / scale_factor)
-                      for box, text, score in result]
+            boxes = []
+
+
+            for page in result.pages:
+                h, w = page.dimensions
+                for block in page.blocks:
+                    for line in block.lines:
+                        for word in line.words:
+
+                            xmin, ymin, xmax, ymax = [tupl for tuploftupls in word.geometry for tupl in tuploftupls]
+                            xmin = int(xmin * w)
+                            ymin = int(ymin * h)
+                            xmax = int(xmax * w)
+                            ymax = int(ymax * h)
+
+                            boxes.append(
+                                Box(word.value, word.confidence, xmin, ymin, abs(xmax - xmin), abs(ymax - ymin)))
+
 
             if params["keepFormatting"]:
-                text = EasyOcr.box_to_formatted_text(boxes, params["lineTolerance"])
+                text = DocTROcr.box_to_formatted_text(boxes, params["lineTolerance"])
             else:
-                text = "\n".join([str(w.text) for w in boxes])
+                text = result.render()
 
             results.append(Document(path=image_path,
                         text=text,
@@ -90,6 +92,7 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
                         bboxes=boxes))
 
         gc.collect()
+
         if int(params['device']) == Device.CUDA.value:
             torch.cuda.empty_cache()
 
