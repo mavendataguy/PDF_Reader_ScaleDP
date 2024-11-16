@@ -23,6 +23,11 @@ def image(image_pil):
     return Image.from_pil(image_pil, "test", ImageType.FILE.value, 300)
 
 @pytest.fixture
+def image_line(resource_path_root):
+    from sparkpdf.schemas.Image import Image
+    return Image.from_pil(pImage.open((resource_path_root / "images/text_line.png").absolute().as_posix()), "test", ImageType.FILE.value, 300)
+
+@pytest.fixture
 def raw_image_df(spark_session, resource_path_root):
     return spark_session.read.format("binaryFile").load(
         (resource_path_root / "images/Invoice.png").absolute().as_posix())
@@ -48,6 +53,13 @@ def pdf_file(resource_path_root):
 def image_df(spark_session, resource_path_root):
     df = spark_session.read.format("binaryFile").load(
         (resource_path_root / "images/Invoice.png").absolute().as_posix())
+    bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
+    return bin_to_image.transform(df)
+
+@pytest.fixture
+def image_line_df(spark_session, resource_path_root):
+    df = spark_session.read.format("binaryFile").load(
+        (resource_path_root / "images/text_line.png").absolute().as_posix())
     bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
     return bin_to_image.transform(df)
 

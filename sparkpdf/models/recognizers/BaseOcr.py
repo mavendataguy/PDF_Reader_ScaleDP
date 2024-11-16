@@ -2,6 +2,7 @@ import traceback
 import logging
 import json
 
+import pandas as pd
 from pyspark.sql.types import *
 from sparkpdf.params import *
 from pyspark.ml import Transformer
@@ -76,8 +77,11 @@ class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefau
         ]
         return BaseOcr.to_formatted_text(lines, character_height)
 
-    def transform_udf(self, image):
+    def transform_udf(self, image, params=None):
         logging.info("Run OCR")
+        if params is None:
+            params = self.get_params()
+        params = json.loads(params)
         if not isinstance(image, Image):
             image = Image(**image.asDict())
         if image.exception != "":
@@ -93,7 +97,8 @@ class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefau
                 resized_image = image_pil.resize((int(image_pil.width * scale_factor), int(image_pil.height * scale_factor)))
             else:
                 resized_image = image_pil
-            result = self.call_ocr(resized_image, scale_factor, image.path)
+
+            result = self.call_ocr([(resized_image, image.path)], params)
         except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
@@ -103,7 +108,32 @@ class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefau
                             bboxes=[],
                             type="ocr",
                             exception=exception)
-        return result
+        return result[0]
+
+    @classmethod
+    def call_ocr(cls, resized_images,  params):
+        raise NotImplementedError("Subclasses should implement this method")
+
+    @classmethod
+    def transform_udf_pandas(cls, images: pd.DataFrame, params: pd.Series) -> pd.DataFrame:
+        params = json.loads(params[0])
+
+        resized_images = []
+        for index, image in images.iterrows():
+            if not isinstance(image, Image):
+                image = Image(**image.to_dict())
+            image_pil = image.to_pil()
+            scale_factor = params['scaleFactor']
+            if scale_factor != 1.0:
+                resized_image = image_pil.resize(
+                    (int(image_pil.width * scale_factor), int(image_pil.height * scale_factor)))
+            else:
+                resized_image = image_pil
+            resized_images.append((resized_image, image.path))
+
+        results = cls.call_ocr(resized_images, params)
+
+        return pd.DataFrame(results)
 
 
     def outputSchema(self):
@@ -127,12 +157,10 @@ class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefau
     def _transform(self, dataset):
         out_col = self.getOutputCol()
         input_col = self._validate(self.getInputCol(), dataset)
-
+        params = self.get_params()
         if not self.getPartitionMap():
-            result = dataset.withColumn(out_col, udf(self.transform_udf, Document.get_schema())(input_col))
+            result = dataset.withColumn(out_col, udf(self.transform_udf, Document.get_schema())(input_col, lit(params)))
         else:
-            print("UDF")
-            params = self.get_params()
             if self.getNumPartitions() > 0:
                 if self.getPageCol() in dataset.columns:
                     dataset = dataset.repartition( self.getPageCol())

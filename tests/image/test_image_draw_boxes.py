@@ -5,9 +5,9 @@ import tempfile
 from sparkpdf import DataToImage
 from sparkpdf.enums import PSM
 from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 from sparkpdf.models.ner.Ner import Ner
 
+from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
 
 def test_image_draw_boxes_ocr(image_df):
 
@@ -69,12 +69,12 @@ def test_image_draw_boxes_ner(image_df):
     print("file://" + temp.name)
 
 def test_image_draw_boxes_local(image_file, pdf_file):
-    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
+    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
 
     # Temporarily replace the UserDefinedFunction
-    temp = pyspark.sql.udf.UserDefinedFunction
-    pyspark.sql.udf.UserDefinedFunction = UserDefinedFunction
+    pathSparkFunctions(pyspark)
+
 
     # Initialize the pipeline stages
     data_to_image = DataToImage()
@@ -106,4 +106,4 @@ def test_image_draw_boxes_local(image_file, pdf_file):
     assert 'Unable to read image' in pdf_result["image_with_boxes"][0].exception
 
     # Restore the original UserDefinedFunction
-    pyspark.sql.udf.UserDefinedFunction = temp
+    unpathSparkFunctions(pyspark)
