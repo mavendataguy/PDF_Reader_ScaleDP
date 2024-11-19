@@ -17,9 +17,9 @@
 
 ---
 
-**Documentation**: <a href="https://stabrise.com/spark-pdf/" target="_blank">https://stabrise.com/spark-pdf/</a>
+**Tutorials**: <a href="https://github.com/StabRise/spark-pdf-tutorials/" target="_blank">https://github.com/StabRise/spark-pdf-tutorials</a>
 
-**Source Code**: <a href="https://github.com/StabRise/spark-pdf/" target="_blank">https://github.com/StabRise/spark-pdf/</a>
+**Source Code**: <a href="https://github.com/StabRise/spark-pdf/" target="_blank">https://github.com/StabRise/spark-pdf</a>
 
 ---
 
@@ -78,8 +78,47 @@ Open Jupyter Notebook in your browser:
   http://localhost:8888
 ```
 
-## Ocr engines
+## Qiuckstart
 
+Start a Spark session with Spark-Pdf:
+
+```python
+from sparkpdf import *
+spark = SparkPdfSession()
+spark
+```
+
+Read example pdf file:
+
+```python
+pdf_example = files('resources/pdfs/SparkPdf.pdf')
+
+df = spark.read.format("binaryFile") \
+    .load(pdf_example)
+
+df.show_pdf()
+```
+Output:
+
+<img src="images/PdfOutput.png" width="400">
+
+Define pipeline for extract text from the PDF and call it:
+
+```python
+pipeline = PipelineModel(stages=[
+    PdfDataToImage(),
+    TesseractOcr(keepFormatting=True, psm=PSM.SPARSE_TEXT)
+])
+
+result = pipeline.transform(df).cache()
+result.show_text()
+```
+
+Output:
+
+<img src="images/TextOutput.png" width="400">
+
+## Ocr engines
 
 |                   | Bbox  level | Support GPU | Separate model  for text detection | Processing time 1 page (CPU/GPU) secs | Support Handwritten Text |
 |-------------------|-------------|-------------|------------------------------------|---------------------------------------|--------------------------|
@@ -90,45 +129,3 @@ Open Jupyter Notebook in your browser:
 | [DocTR](https://github.com/mindee/doctr)       | word        | yes         | yes                                |                                       |                          |
 
 
-
-## Development
-
-### Setup
-
-```bash
-  git clone
-  cd spark-pdf
-```
-
-### Install dependencies
-
-```bash
-  poetry install
-```
-
-### Run tests
-
-```bash
-  poetry run pytest --cov=sparkpdf --cov-report=html:coverage_report tests/ 
-```
-
-### Build package
-
-```bash
-  poetry build
-```
-
-### Build documentation
-
-```bash
-  poetry run sphinx-build -M html source build
-```
-
-
-
-### Release
-
-```bash
-  poetry version patch
-  poetry publish --build
-```
