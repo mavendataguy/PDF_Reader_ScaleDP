@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "pyspark-pdf"
+name = "scaledp"
 version = "0.1.0rc10"
-description = "Spark-Pdf is a library for processing documents using Apache Spark"
+description = "ScaleDP is a library for processing documents using Apache Spark"
 authors = ["Mykola Melnyk <mykola@stabrise.com>"]
-repository = "https://github.com/StabRise/spark-pdf"
-homepage = "https://stabrise.com/spark-pdf/"
+repository = "https://github.com/StabRise/scaledp"
+homepage = "https://stabrise.com/scaledp/"
 license = "AGPL-3.0"
 readme = "README.md"
-packages = [{include = "sparkpdf"}]
-include = ["sparkpdf/resource/*"]
+packages = [{include = "scaledp"}]
+include = ["scaledp/resource/*"]
 
 [tool.poetry.dependencies]
 python = ">=3.10"

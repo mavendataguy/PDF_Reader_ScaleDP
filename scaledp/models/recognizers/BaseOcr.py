@@ -4,14 +4,14 @@ import json
 
 import pandas as pd
 from pyspark.sql.types import *
-from sparkpdf.params import *
+from scaledp.params import *
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 
 from ...utils import get_size, cluster
 from pyspark.sql.functions import udf, pandas_udf, lit
-from sparkpdf.schemas.Document import Document
-from sparkpdf.schemas.Image import Image
+from scaledp.schemas.Document import Document
+from scaledp.schemas.Image import Image
 
 
 class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefaultEnum,

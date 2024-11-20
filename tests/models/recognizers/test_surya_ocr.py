@@ -1,6 +1,6 @@
 import pytest
-from sparkpdf.models.recognizers.SuryaOcr import SuryaOcr
-from sparkpdf.enums import Device
+from scaledp.models.recognizers.SuryaOcr import SuryaOcr
+from scaledp.enums import Device
 
 
 def test_surya_ocr_class(image_line):

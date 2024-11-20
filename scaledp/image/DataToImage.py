@@ -2,9 +2,9 @@ from pyspark import keyword_only
 from pyspark.sql.functions import udf, lit
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
-from sparkpdf.schemas.Image import Image
-from sparkpdf.params import *
-from sparkpdf.enums import ImageType
+from scaledp.schemas.Image import Image
+from scaledp.params import *
+from scaledp.enums import ImageType
 
 
 class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType, HasDefaultEnum,

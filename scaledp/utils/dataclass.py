@@ -6,7 +6,7 @@ from dataclasses import is_dataclass, fields
 import datetime
 from pyspark.sql.types import *
 
-from sparkpdf.utils.auxiliary import LongT, ShortT, ByteT, BinaryT, BoundDecimal
+from scaledp.utils.auxiliary import LongT, ShortT, ByteT, BinaryT, BoundDecimal
 
 type_mapping = {
     str: StringType,

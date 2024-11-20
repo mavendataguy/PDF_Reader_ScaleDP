@@ -5,11 +5,11 @@ from pyspark import keyword_only
 from pyspark.sql.functions import udf, lit, posexplode_outer, col
 from pyspark.sql.types import ArrayType
 
-from sparkpdf.schemas.Image import Image
+from scaledp.schemas.Image import Image
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
-from sparkpdf.params import *
-from sparkpdf.enums import ImageType
+from scaledp.params import *
+from scaledp.enums import ImageType
 
 
 class PdfDataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType,

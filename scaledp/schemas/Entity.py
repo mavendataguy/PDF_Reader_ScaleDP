@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
-from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type, apply_nullability
-from sparkpdf.schemas.Box import Box
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type, apply_nullability
+from scaledp.schemas.Box import Box
 
 
 @dataclass(order=True)

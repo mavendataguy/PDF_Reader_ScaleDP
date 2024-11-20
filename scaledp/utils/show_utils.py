@@ -1,6 +1,6 @@
 
 from pyspark.sql import DataFrame
-from sparkpdf import DataToImage, PdfDataToImage, TesseractOcr, TextToDocument
+from scaledp import DataToImage, PdfDataToImage, TesseractOcr, TextToDocument
 import pyspark.sql.functions as f
 import random
 import base64
@@ -14,7 +14,7 @@ def _show_image(image, width=600, show_meta=True, index=0):
 
     img_base64 = base64.b64encode(image.data).decode("utf-8")
 
-    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
     template = templateEnv.get_template("image.html")
     metadata = {
         "Image#": index,
@@ -62,7 +62,7 @@ def show_text(df, column="", limit=5, width=800):
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
 
-    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
     template = templateEnv.get_template("text.html")
     df = df.limit(limit)
     if column == "":
@@ -123,7 +123,7 @@ def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, lab
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
 
-    templateEnv = Environment(loader=PackageLoader('sparkpdf.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
     template = templateEnv.get_template("ner.html")
 
     df = df.limit(limit).select(column, text_column).cache()

@@ -65,7 +65,7 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run:
-          poetry run pytest --cov-report=xml  --cov=sparkpdf tests/
+          poetry run pytest --cov-report=xml  --cov=scaledp tests/
 
       #----------------------------------------------
       #              Create coverage report

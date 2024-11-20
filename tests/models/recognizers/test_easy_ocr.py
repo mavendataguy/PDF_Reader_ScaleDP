@@ -1,6 +1,6 @@
 import pytest
-from sparkpdf.models.recognizers.EasyOcr import EasyOcr
-from sparkpdf.enums import Device
+from scaledp.models.recognizers.EasyOcr import EasyOcr
+from scaledp.enums import Device
 
 
 def test_easy_ocr(image_line_df):

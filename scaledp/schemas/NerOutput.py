@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
-from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type
-from sparkpdf.schemas.Entity import Entity
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
+from scaledp.schemas.Entity import Entity
 
 
 @dataclass(order=True)

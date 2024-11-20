@@ -1,9 +1,9 @@
-.. spark-pdf documentation master file
+.. scaledp documentation master file
 
-Spark-Pdf documentation
+ScaleDP documentation
 =======================
 
-Spark-Pdf is a library for processing documents using Apache Spark.
+ScaleDP is a library for processing documents using Apache Spark.
 
 It includes the following features:
 
@@ -13,11 +13,11 @@ It includes the following features:
 - Run NLP models on text extracted from PDF documents/Images
 - Visualize NLP results on the images
 
-Benefits of using Spark-Pdf:
+Benefits of using ScaleDP:
 
-- Scalable: Spark-Pdf is built on top of Apache Spark, which is a distributed computing framework. This allows you to process large volumes of documents in parallel.
-- Fast: Spark-Pdf is built for speed. It uses Spark's distributed computing capabilities to process documents quickly.
-- Easy to use models from the Hugging Face's Hub: Spark-Pdf integrates with Hugging Face's Transformers library, which provides state-of-the-art NLP models for text processing.
+- Scalable: ScaleDP is built on top of Apache Spark, which is a distributed computing framework. This allows you to process large volumes of documents in parallel.
+- Fast: ScaleDP is built for speed. It uses Spark's distributed computing capabilities to process documents quickly.
+- Easy to use models from the Hugging Face's Hub: ScaleDP integrates with Hugging Face's Transformers library, which provides state-of-the-art NLP models for text processing.
 
 
 .. toctree::

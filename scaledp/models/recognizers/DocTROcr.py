@@ -6,12 +6,12 @@ import torch
 from pyspark import keyword_only
 import numpy as np
 
-from sparkpdf.enums import Device
-from sparkpdf.params import *
-from sparkpdf.schemas.Image import Image
-from sparkpdf.schemas.Box import Box
-from sparkpdf.schemas.Document import Document
-from sparkpdf.models.recognizers.BaseOcr import BaseOcr
+from scaledp.enums import Device
+from scaledp.params import *
+from scaledp.schemas.Image import Image
+from scaledp.schemas.Box import Box
+from scaledp.schemas.Document import Document
+from scaledp.models.recognizers.BaseOcr import BaseOcr
 
 
 class DocTROcr(BaseOcr, HasDevice, HasBatchSize):

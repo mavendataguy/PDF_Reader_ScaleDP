@@ -1,7 +1,7 @@
 Installation
 ============
 
-To install the `spark-pdf` library, follow the steps below:
+To install the `ScaleDP` library, follow the steps below:
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ To install the `spark-pdf` library, follow the steps below:
 
 ## Installation using pip
 
-You can install the `spark-pdf` library using `pip`. Run the following command in your terminal:
+You can install the `ScaleDP` library using `pip`. Run the following command in your terminal:
 
 ```sh
 pip install pyspark-pdf
@@ -34,15 +34,15 @@ pip install transformers torch
 You can also use the `Dockerfile` provided in the repository to build a Docker image. To build the image, run the following command:
 
 ```sh
-docker build -t spark-pdf .
+docker build -t scaledp .
 ```
 
 ## Installation from source
 
-To install the `spark-pdf` library from source, clone the repository and run the following command:
+To install the `ScaleDP` library from source, clone the repository and run the following command:
 
 ```sh
-git clone https://github.com/StabRise/spark-pdf.git
-cd spark-pdf
+git clone https://github.com/StabRise/scaledp.git
+cd scaledp
 pip install .
 ```

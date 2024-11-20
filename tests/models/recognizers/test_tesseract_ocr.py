@@ -1,9 +1,9 @@
 import pytest
 from pyspark import Row
 
-from sparkpdf.enums import TessLib, PSM
-from sparkpdf.image.DataToImage import DataToImage
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.enums import TessLib, PSM
+from scaledp.image.DataToImage import DataToImage
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 
 def test_tesseract_ocr(image_df):
     pytest.skip()

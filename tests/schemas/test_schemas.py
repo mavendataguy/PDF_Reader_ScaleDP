@@ -1,7 +1,7 @@
 import pytest
 import io
-from sparkpdf import ImageType
-from sparkpdf.schemas.Image import Image
+from scaledp import ImageType
+from scaledp.schemas.Image import Image
 
 def test_image(image_pil_1x1):
     # Test with invalid image data

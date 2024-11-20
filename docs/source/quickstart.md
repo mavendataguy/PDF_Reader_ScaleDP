@@ -8,7 +8,7 @@ Let's start by creating a simple example that uses the `spark-pdf` library to ex
 Let's import the necessary modules and create a Spark session:
 
 ```python
-from sparkpdf import *
+from scaledp import *
 
 spark = SparkPdfSession()
 ```

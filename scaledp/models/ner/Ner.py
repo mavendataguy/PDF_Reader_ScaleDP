@@ -1,9 +1,9 @@
 import datetime
 from pyspark import keyword_only
-from sparkpdf.models.ner.BaseNer import BaseNer
+from scaledp.models.ner.BaseNer import BaseNer
 from ...enums import Device
-from sparkpdf.schemas.Entity import Entity
-from sparkpdf.schemas.NerOutput import NerOutput
+from scaledp.schemas.Entity import Entity
+from scaledp.schemas.NerOutput import NerOutput
 import pandas as pd
 import json
 

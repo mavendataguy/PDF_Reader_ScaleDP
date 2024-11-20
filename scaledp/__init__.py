@@ -5,22 +5,22 @@ from pyspark import SparkConf
 from pyspark.sql import SparkSession
 from pyspark.ml.pipeline import PipelineModel
 from importlib.resources import files
-from sparkpdf.image.DataToImage import DataToImage
-from sparkpdf.pdf.PdfDataToImage import PdfDataToImage
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
-from sparkpdf.models.ner.Ner import Ner
-from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
-from sparkpdf.text.TextToDocument import TextToDocument
-from sparkpdf.models.recognizers.SuryaOcr import SuryaOcr
-from sparkpdf.models.recognizers.EasyOcr import EasyOcr
-from sparkpdf.models.recognizers.DocTROcr import DocTROcr
+from scaledp.image.DataToImage import DataToImage
+from scaledp.pdf.PdfDataToImage import PdfDataToImage
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.models.ner.Ner import Ner
+from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
+from scaledp.text.TextToDocument import TextToDocument
+from scaledp.models.recognizers.SuryaOcr import SuryaOcr
+from scaledp.models.recognizers.EasyOcr import EasyOcr
+from scaledp.models.recognizers.DocTROcr import DocTROcr
 from  importlib import resources
-from sparkpdf import enums
-from sparkpdf.enums import *
+from scaledp import enums
+from scaledp.enums import *
 
 from pyspark.sql import DataFrame
 
-from sparkpdf.utils.show_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
+from scaledp.utils.show_utils import show_image, show_pdf, show_ner, visualize_ner, show_text
 
 DataFrame.show_image = lambda self, column="", limit=5, width=None, show_meta=True, : show_image(self, column, limit, width, show_meta)
 DataFrame.show_pdf = lambda self, column="", limit=5, width=None, show_meta=True, : show_pdf(self, column, limit, width, show_meta)
@@ -37,7 +37,7 @@ def version():
 __version__ = version()
 
 
-__all__ = ['SparkPdfSession',
+__all__ = ['ScaleDPSession',
            'DataToImage',
            'ImageDrawBoxes',
            'PdfDataToImage',
@@ -53,7 +53,7 @@ __all__ = ['SparkPdfSession',
            ] + dir(enums)
 
 
-files = lambda path: resources.files('sparkpdf').joinpath(path).as_posix()
+files = lambda path: resources.files('scaledp').joinpath(path).as_posix()
 
 def aws_version():
     spark_hadoop_map = {"3.0": "2.7.4",
@@ -65,13 +65,13 @@ def aws_version():
     return spark_hadoop_map[pyspark.__version__[:3]]
 
 
-def SparkPdfSession(conf=None,
+def ScaleDPSession(conf=None,
                     master_url="local[*]",
                     with_aws=False,
                     with_pro=False,
                     logLevel="ERROR"):
     """
-    Start Spark session with SparkPDF
+    Start Spark session with ScaleDP
     @param conf: Instance of SparkConf or dict with extra configuration.
     @param master_url: Spark master URL
     @param with_aws: Enable AWS support
@@ -84,7 +84,7 @@ def SparkPdfSession(conf=None,
         try:
             import sparkpdf_pro
         except ImportError:
-            raise ImportError("Spark Pdf Pro is not installed. Please install it using 'pip install sparkpdf-pro'")
+            raise ImportError("ScaleDP Pro Pro is not installed. Please install it using 'pip install scaledp-pro'")
 
 
     jars = []
@@ -111,7 +111,7 @@ def SparkPdfSession(conf=None,
 
     builder = SparkSession.builder \
         .master(master_url) \
-        .appName("SparkPdf")
+        .appName("ScaleDP")
 
     for k, v in default_conf.items():
         builder.config(str(k), str(v))

@@ -1,5 +1,5 @@
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
-from sparkpdf.pdf.PdfDataToImage import PdfDataToImage
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.pdf.PdfDataToImage import PdfDataToImage
 
 
 def test_pdf_data_to_text(pdf_df):

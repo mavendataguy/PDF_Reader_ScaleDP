@@ -1,8 +1,8 @@
-from sparkpdf import DataToImage
+from scaledp import DataToImage
 
 
 def test_local_pipeline(image_file):
-    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
+    from scaledp.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
     import pyspark
     original_udf = pyspark.sql.udf.UserDefinedFunction
 

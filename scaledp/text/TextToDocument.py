@@ -1,8 +1,8 @@
 from pyspark.sql.functions import input_file_name, udf
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
-from sparkpdf.params import *
-from sparkpdf.schemas.Document import Document
+from scaledp.params import *
+from scaledp.schemas.Document import Document
 
 
 class TextToDocument(Transformer, HasInputCol, HasOutputCol, DefaultParamsReadable, DefaultParamsWritable):

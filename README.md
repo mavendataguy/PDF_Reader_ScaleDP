@@ -1,12 +1,12 @@
 
 <p align="center">
   <br/>
-    <img alt="Spark-Pdf library logo" src="https://stabrise.com/media/filer_public_thumbnails/filer_public/de/31/de3156f0-386d-4b3b-ac7e-8856a38f7c1e/sparkpdflogo.png__808x214_subsampling-2.webp" width="376" style="max-width: 100%;">
+    <img alt="ScaleDP" src="https://stabrise.com/media/filer_public_thumbnails/filer_public/4a/7d/4a7d97c2-50d7-4b7a-9902-af2df9b574da/scaledplogo.png__1000x300_subsampling-2.webp" width="450" style="max-width: 100%;">
   <br/>
 </p>
 
 <p align="center">
-    <i>Open-source extension of Apache Spark for Document Processing.</i>
+    <i>An Open-Source Library for Processing Documents in Apache Spark.</i>
 </p>
 
 <p align="center">
@@ -23,9 +23,9 @@
 
 ---
 
-# Welcome to the Spark Pdf library
+# Welcome to the ScaleDP library
 
-Spark-Pdf is library allows you to process documents using Apache Spark.  Discover pre-trained models for your projects or play with the thousands of machine learning apps hosted on the [Hugging Face Hub](https://huggingface.co/).
+ScaleDP is library allows you to process documents using Apache Spark.  Discover pre-trained models for your projects or play with the thousands of machine learning apps hosted on the [Hugging Face Hub](https://huggingface.co/).
 
 ## Key features:
 
@@ -54,7 +54,7 @@ Support various open-source OCR engines:
 
 ### Installation using pip
 
-Install the `Spark-Pdf` package with [pip](https://pypi.org/project/pyspark-pdf/):
+Install the `ScaleDP` package with [pip](https://pypi.org/project/pyspark-pdf/):
 
 ```bash
 pip install pyspark-pdf
@@ -65,12 +65,12 @@ pip install pyspark-pdf
 Build image:
 
 ```bash
-  docker build -t spark-pdf .
+  docker build -t scaledp .
 ```
 
 Run container:
 ```bash
-  docker run -p 8888:8888 spark-pdf:latest
+  docker run -p 8888:8888 scaledp:latest
 ```
 
 Open Jupyter Notebook in your browser:
@@ -80,18 +80,18 @@ Open Jupyter Notebook in your browser:
 
 ## Qiuckstart
 
-Start a Spark session with Spark-Pdf:
+Start a Spark session with ScaleDP:
 
 ```python
-from sparkpdf import *
-spark = SparkPdfSession()
+from scaledp import *
+spark = ScaleDPSession()
 spark
 ```
 
 Read example pdf file:
 
 ```python
-pdf_example = files('resources/pdfs/SparkPdf.pdf')
+pdf_example = files('resources/pdfs/example.pdf')
 
 df = spark.read.format("binaryFile") \
     .load(pdf_example)
@@ -129,3 +129,6 @@ Output:
 | [DocTR](https://github.com/mindee/doctr)       | word        | yes         | yes                                |                                       |                          |
 
 
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or connected to the Apache Software Foundation or Apache Spark.

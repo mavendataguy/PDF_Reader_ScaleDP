@@ -1,7 +1,7 @@
 # Description: Schema Document
-from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 from dataclasses import dataclass
-from sparkpdf.schemas.Box import Box
+from scaledp.schemas.Box import Box
 
 @dataclass(order=True)
 class Document:

@@ -3,10 +3,10 @@
 from pyspark import keyword_only
 
 
-from sparkpdf.schemas.Box import Box
-from sparkpdf.schemas.Document import Document
-from sparkpdf.models.recognizers.BaseOcr import BaseOcr
-from sparkpdf.params import *
+from scaledp.schemas.Box import Box
+from scaledp.schemas.Document import Document
+from scaledp.models.recognizers.BaseOcr import BaseOcr
+from scaledp.params import *
 from ...enums import PSM, OEM, TessLib
 
 

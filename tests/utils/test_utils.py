@@ -1,4 +1,4 @@
-from sparkpdf.utils import get_size
+from scaledp.utils import get_size
 
 
 def test_get_size():

@@ -7,8 +7,8 @@ from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import pandas_udf, lit, udf
 
-from sparkpdf.params import *
-from sparkpdf.schemas.NerOutput import NerOutput
+from scaledp.params import *
+from scaledp.schemas.NerOutput import NerOutput
 
 
 class BaseNer(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasWhiteList, HasDevice, HasModel, HasPathCol,

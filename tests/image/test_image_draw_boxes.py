@@ -2,12 +2,12 @@
 from pyspark.ml.pipeline import PipelineModel
 import tempfile
 
-from sparkpdf import DataToImage
-from sparkpdf.enums import PSM
-from sparkpdf.image.ImageDrawBoxes import ImageDrawBoxes
-from sparkpdf.models.ner.Ner import Ner
+from scaledp import DataToImage
+from scaledp.enums import PSM
+from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
+from scaledp.models.ner.Ner import Ner
 
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 
 def test_image_draw_boxes_ocr(image_df):
 
@@ -69,7 +69,7 @@ def test_image_draw_boxes_ner(image_df):
     print("file://" + temp.name)
 
 def test_image_draw_boxes_local(image_file, pdf_file):
-    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
+    from scaledp.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
 
     # Temporarily replace the UserDefinedFunction

@@ -1,11 +1,11 @@
 import pyspark.sql.functions as f
 from pyspark.ml import PipelineModel
 
-from sparkpdf import DataToImage, ImageDrawBoxes
-from sparkpdf.enums import Device
-from sparkpdf.models.ner.Ner import Ner
-from sparkpdf.models.recognizers.TesseractOcr import TesseractOcr
-from sparkpdf.text.TextToDocument import TextToDocument
+from scaledp import DataToImage, ImageDrawBoxes
+from scaledp.enums import Device
+from scaledp.models.ner.Ner import Ner
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.text.TextToDocument import TextToDocument
 
 
 def test_ner(image_df):
@@ -47,7 +47,7 @@ def test_ner(image_df):
 
 
 def test_ner_local_pipeline(image_file):
-    from sparkpdf.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
+    from scaledp.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
 
     # Temporarily replace the UserDefinedFunction

@@ -9,12 +9,12 @@ from pyspark.sql.functions import udf
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 
-from sparkpdf.schemas.Box import Box
-from sparkpdf.schemas.Entity import Entity
-from sparkpdf.schemas.Image import Image
-from sparkpdf.schemas.NerOutput import NerOutput
+from scaledp.schemas.Box import Box
+from scaledp.schemas.Entity import Entity
+from scaledp.schemas.Image import Image
+from scaledp.schemas.NerOutput import NerOutput
 from ..enums import ImageType
-from sparkpdf.params import *
+from scaledp.params import *
 
 
 class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, HasImageType, HasPageCol,

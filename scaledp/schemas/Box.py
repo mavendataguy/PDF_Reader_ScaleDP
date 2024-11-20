@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sparkpdf.utils.dataclass import map_dataclass_to_struct, register_type
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 @dataclass(order=True)
 class Box:
     text: str

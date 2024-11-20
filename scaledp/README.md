@@ -6,7 +6,7 @@
 
 ```bash
   git clone
-  cd spark-pdf
+  cd scaledp
 ```
 
 ### Install dependencies
@@ -18,7 +18,7 @@
 ### Run tests
 
 ```bash
-  poetry run pytest --cov=sparkpdf --cov-report=html:coverage_report tests/ 
+  poetry run pytest --cov=scaledp --cov-report=html:coverage_report tests/ 
 ```
 
 ### Build package

@@ -1,4 +1,4 @@
-from sparkpdf.image.DataToImage import DataToImage
+from scaledp.image.DataToImage import DataToImage
 
 def test_data_to_image(raw_image_df):
     to_image = DataToImage()

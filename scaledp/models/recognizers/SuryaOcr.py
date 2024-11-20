@@ -2,11 +2,11 @@ import json
 from pyspark import keyword_only
 
 from ...enums import Device
-from sparkpdf.params import *
-from sparkpdf.schemas.Image import Image
-from sparkpdf.schemas.Box import Box
-from sparkpdf.schemas.Document import Document
-from sparkpdf.models.recognizers.BaseOcr import BaseOcr
+from scaledp.params import *
+from scaledp.schemas.Image import Image
+from scaledp.schemas.Box import Box
+from scaledp.schemas.Document import Document
+from scaledp.models.recognizers.BaseOcr import BaseOcr
 import pandas as pd
 import gc
 import torch

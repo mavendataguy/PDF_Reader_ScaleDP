@@ -1,8 +1,8 @@
 import pytest
 from PIL import Image as pImage
 
-from sparkpdf.image.DataToImage import DataToImage
-from sparkpdf.enums import ImageType
+from scaledp.image.DataToImage import DataToImage
+from scaledp.enums import ImageType
 
 
 @pytest.fixture
@@ -19,12 +19,12 @@ def image_pil_1x1():
 
 @pytest.fixture
 def image(image_pil):
-    from sparkpdf.schemas.Image import Image
+    from scaledp.schemas.Image import Image
     return Image.from_pil(image_pil, "test", ImageType.FILE.value, 300)
 
 @pytest.fixture
 def image_line(resource_path_root):
-    from sparkpdf.schemas.Image import Image
+    from scaledp.schemas.Image import Image
     return Image.from_pil(pImage.open((resource_path_root / "images/text_line.png").absolute().as_posix()), "test", ImageType.FILE.value, 300)
 
 @pytest.fixture

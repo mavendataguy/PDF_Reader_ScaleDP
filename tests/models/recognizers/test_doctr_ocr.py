@@ -1,6 +1,6 @@
 
-from sparkpdf.models.recognizers.DocTROcr import DocTROcr
-from sparkpdf.enums import Device
+from scaledp.models.recognizers.DocTROcr import DocTROcr
+from scaledp.enums import Device
 
 
 def test_doctr_ocr(image_line_df):
