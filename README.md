@@ -10,16 +10,16 @@
 </p>
 
 <p align="center">
-    <a href="https://pypi.org/project/pyspark-pdf/" alt="Package on PyPI"><img src="https://img.shields.io/pypi/v/pyspark-pdf.svg" /></a>
+    <a href="https://pypi.org/project/scaledp/" alt="Package on PyPI"><img src="https://img.shields.io/pypi/v/scaledp.svg" /></a>
     <a href="https://github.com/stabrise/spark-pdf/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/stabrise/spark-pdf.svg?color=blue"></a>
     <a href="https://stabrise.com"><img alt="StabRise" src="https://img.shields.io/badge/powered%20by-StabRise-orange.svg?style=flat&colorA=E1523D&colorB=007D8A"></a>
 </p>
 
 ---
 
-**Tutorials**: <a href="https://github.com/StabRise/spark-pdf-tutorials/" target="_blank">https://github.com/StabRise/spark-pdf-tutorials</a>
+**Tutorials**: <a href="https://github.com/StabRise/ScaleDP-Tutorials/" target="_blank">https://github.com/StabRise/ScaleDP-Tutorials</a>
 
-**Source Code**: <a href="https://github.com/StabRise/spark-pdf/" target="_blank">https://github.com/StabRise/spark-pdf</a>
+**Source Code**: <a href="https://github.com/StabRise/ScaleDP/" target="_blank">https://github.com/StabRise/ScaleDP</a>
 
 ---
 
@@ -47,7 +47,7 @@ Support various open-source OCR engines:
 
 ### Prerequisites
 
-- Python 3.10
+- Python 3.10 or higher
 - Apache Spark 3.5 or higher
 - Java 8
 - Tesseract 4.0 or higher
@@ -57,7 +57,7 @@ Support various open-source OCR engines:
 Install the `ScaleDP` package with [pip](https://pypi.org/project/pyspark-pdf/):
 
 ```bash
-pip install pyspark-pdf
+pip install scaledp
 ```
 
 ### Installation using Docker
