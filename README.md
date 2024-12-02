@@ -54,7 +54,7 @@ Support various open-source OCR engines:
 
 ### Installation using pip
 
-Install the `ScaleDP` package with [pip](https://pypi.org/project/pyspark-pdf/):
+Install the `ScaleDP` package with [pip](https://pypi.org/project/scaledp/):
 
 ```bash
 pip install scaledp
