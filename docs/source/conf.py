@@ -8,7 +8,7 @@
 
 project = 'ScaleDP'
 copyright = '2024, StabRise'
-author = 'Mykola Melnyk'
+author = 'StabRise'
 release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
@@ -23,12 +23,38 @@ html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
 
 html_favicon = '_static/favicon.ico'
-html_logo = '_static/ScaleDP.png'
+html_logo = 'https://stabrise.com/media/filer_public_thumbnails/filer_public/4a/7d/4a7d97c2-50d7-4b7a-9902-af2df9b574da/scaledplogo.png__1000x300_subsampling-2.webp'
 
+html_sidebars = {
+    "reference/blog/*": [
+        "navbar-logo.html",
+        "search-field.html"
+    ]
+}
 
+html_theme_options = {
+"icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/StabRise/scaledp/",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/scalepd/",
+            "icon": "https://img.shields.io/pypi/v/scaledp.svg",
+            "type": "url",
+        },
+        {
+            "name": "by StabRise",
+            "url": "https://stabrise.com",
+            "icon": "https://img.shields.io/badge/by-StabRise-orange.svg?style=flat&colorA=E1523D&colorB=007D8A",
+            "type": "url",
+        },
+    ]
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
 html_static_path = ['_static']
