@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Spark-Pdf'
+project = 'ScaleDP'
 copyright = '2024, StabRise'
 author = 'Mykola Melnyk'
 release = '0.1.0'

@@ -14,13 +14,13 @@ To install the `ScaleDP` library, follow the steps below:
 You can install the `ScaleDP` library using `pip`. Run the following command in your terminal:
 
 ```sh
-pip install pyspark-pdf
+pip install scaledp
 ```
 
 For run ML transformers you need to install extra dependencies using following command:
 
 ```sh
-pip install pyspark-pdf[ml]
+pip install scaledp[ml]
 ```
 
 Or manually install `transformers` and `torch` library:
