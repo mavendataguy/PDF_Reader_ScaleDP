@@ -99,7 +99,7 @@ df.show_image("content")
 ```
 Output:
 
-<img src="images/ImageOutput.png" width="400">
+<img src="https://github.com/StabRise/ScaleDP/blob/master/images/ImageOutput.png?raw=true" width="400">
 
 Define pipeline for extract text from the image and run NER:
 
@@ -119,7 +119,7 @@ result.show_text("text")
 
 Output:
 
-<img src="images/TextOutput.png" width="400">
+<img src="https://github.com/StabRise/ScaleDP/blob/master/images/TextOutput.png?raw=true" width="400">
 
 Show NER results:
 
@@ -160,14 +160,14 @@ Visualize NER results:
 ```python
 result.visualize_ner(labels_list=["DATE", "LOC"])
 ```
-<img src="images/NerVisual.png" width="400">
+<img src="https://github.com/StabRise/ScaleDP/blob/master/images/NerVisual.png?raw=true" width="400">
 
 Original image with NER results:
 
 ```python
 result.show_image("image_with_boxes")
 ```
-<img src="images/NerVisualOnImage.png" width="400">
+<img src="https://github.com/StabRise/ScaleDP/blob/master/images/NerVisualOnImage.png?raw=true" width="400">
 
 ## Ocr engines
 
