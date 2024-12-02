@@ -88,35 +88,86 @@ spark = ScaleDPSession()
 spark
 ```
 
-Read example pdf file:
+Read example image file:
 
 ```python
-pdf_example = files('resources/pdfs/example.pdf')
-
+image_example = files('resources/images/Invoice.png')
 df = spark.read.format("binaryFile") \
-    .load(pdf_example)
+    .load(image_example)
 
-df.show_pdf()
+df.show_image("content")
 ```
 Output:
 
-<img src="images/PdfOutput.png" width="400">
+<img src="images/ImageOutput.png" width="400">
 
-Define pipeline for extract text from the PDF and call it:
+Define pipeline for extract text from the image and run NER:
 
 ```python
 pipeline = PipelineModel(stages=[
-    PdfDataToImage(),
-    TesseractOcr(keepFormatting=True, psm=PSM.SPARSE_TEXT)
+    DataToImage(inputCol="content", outputCol="image"),
+    TesseractOcr(inputCol="image", outputCol="text", psm=PSM.AUTO, keepInputData=True),
+    Ner(model="obi/deid_bert_i2b2", inputCol="text", outputCol="ner", keepInputData=True),
+    ImageDrawBoxes(inputCols=["image", "ner"], outputCol="image_with_boxes", lineWidth=3, 
+                   padding=5, displayDataList=['entity_group'])
 ])
 
 result = pipeline.transform(df).cache()
-result.show_text()
+
+result.show_text("text")
 ```
 
 Output:
 
 <img src="images/TextOutput.png" width="400">
+
+Show NER results:
+
+```python
+result.show_ner(limit=20)
+```
+
+Output:
+```text
++------------+-------------------+----------+-----+---+--------------------+
+|entity_group|              score|      word|start|end|               boxes|
++------------+-------------------+----------+-----+---+--------------------+
+|        HOSP|  0.991257905960083|  Hospital|    0|  8|[{Hospital:, 0.94...|
+|         LOC|  0.999171257019043|    Dutton|   10| 16|[{Dutton,, 0.9609...|
+|         LOC| 0.9992585778236389|        MI|   18| 20|[{MI, 0.93335297,...|
+|          ID| 0.6838774085044861|        26|   29| 31|[{26-123123, 0.90...|
+|       PHONE| 0.4669836759567261|         -|   31| 32|[{26-123123, 0.90...|
+|       PHONE| 0.7790696024894714|    123123|   32| 38|[{26-123123, 0.90...|
+|        HOSP|0.37445762753486633|      HOPE|   39| 43|[{HOPE, 0.9525460...|
+|        HOSP| 0.9503226280212402|     HAVEN|   44| 49|[{HAVEN, 0.952546...|
+|         LOC| 0.9975488185882568|855 Howard|   59| 69|[{855, 0.94682700...|
+|         LOC| 0.9984399676322937|    Street|   70| 76|[{Street, 0.95823...|
+|        HOSP| 0.3670221269130707|  HOSPITAL|   77| 85|[{HOSPITAL, 0.959...|
+|         LOC| 0.9990363121032715|    Dutton|   86| 92|[{Dutton,, 0.9647...|
+|         LOC|  0.999313473701477|  MI 49316|   94|102|[{MI, 0.94589012,...|
+|       PHONE| 0.9830010533332825|   ( 123 )|  110|115|[{(123), 0.595334...|
+|       PHONE| 0.9080978035926819|       456|  116|119|[{456-1238, 0.955...|
+|       PHONE| 0.9378324151039124|         -|  119|120|[{456-1238, 0.955...|
+|       PHONE| 0.8746233582496643|      1238|  120|124|[{456-1238, 0.955...|
+|     PATIENT|0.45354968309402466|hopedutton|  132|142|[{hopedutton@hope...|
+|       EMAIL|0.17805588245391846| hopehaven|  143|152|[{hopedutton@hope...|
+|        HOSP|  0.505658745765686|   INVOICE|  157|164|[{INVOICE, 0.9661...|
++------------+-------------------+----------+-----+---+--------------------+
+```
+
+Visualize NER results:
+
+```python
+result.visualize_ner(labels_list=["DATE", "LOC"])
+```
+<img src="images/NerVisual.png" width="400">
+
+Original image with NER results:
+
+```python
+result.show_image("image_with_boxes")
+```
+<img src="images/NerVisualOnImage.png" width="400">
 
 ## Ocr engines
 
