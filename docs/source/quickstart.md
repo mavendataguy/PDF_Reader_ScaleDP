@@ -60,7 +60,7 @@ We already have a Spark session, so let's load an image into a Spark DataFrame:
 
 ```python
 # Open some image from resources or any other image file
-doc_example = files('resources/images/SparkPdfLogo.png')
+doc_example = files('resources/images/ScaleDP.png')
 df = spark.read.format("binaryFile").load(doc_example)
 ```
 Let's define a Spark ML pipeline to extract text from the image:
