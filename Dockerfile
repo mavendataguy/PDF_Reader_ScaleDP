@@ -16,7 +16,7 @@ USER root
 WORKDIR /app
 COPY poetry.lock pyproject.toml README.md LICENSE /app/
 COPY tutorials /app/tutorials
-COPY scaledp /app/sparkpdf
+COPY scaledp /app/scaledp
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install -n --no-ansi
