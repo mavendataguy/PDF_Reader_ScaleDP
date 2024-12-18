@@ -2,7 +2,6 @@ import json
 import pandas as pd
 import io
 import gc
-import torch
 from pyspark import keyword_only
 import numpy as np
 
@@ -46,7 +45,7 @@ class DocTROcr(BaseOcr, HasDevice, HasBatchSize):
             device = False
         else:
             device = True
-
+        import torch
         from doctr.io import DocumentFile
         from doctr.models import ocr_predictor
 

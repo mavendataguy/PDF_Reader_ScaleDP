@@ -9,7 +9,6 @@ from scaledp.schemas.Document import Document
 from scaledp.models.recognizers.BaseOcr import BaseOcr
 import pandas as pd
 import gc
-import torch
 
 class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
 
@@ -38,6 +37,7 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
 
     @classmethod
     def call_ocr(cls, images, params):
+        import torch
         from surya.ocr import run_ocr
         from surya.model.detection.model import load_model as load_det_model, load_processor as load_det_processor
         from surya.model.recognition.model import load_model as load_rec_model

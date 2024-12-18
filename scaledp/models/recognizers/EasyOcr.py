@@ -1,7 +1,6 @@
 import json
 import pandas as pd
 import gc
-import torch
 from pyspark import keyword_only
 import numpy as np
 
@@ -63,6 +62,7 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
     @classmethod
     def call_ocr(cls, images, params):
         import easyocr
+        import torch
         if int(params['device']) == Device.CPU.value:
             device = False
         else:
