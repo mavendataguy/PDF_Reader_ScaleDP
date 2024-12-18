@@ -59,16 +59,15 @@ class BaseOcr(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasDefau
         for regions in lines:
             for region in regions:
                 width = region.width
-                character_widths.append(int(width / len(region.text)))
+                if len(region.text) > 0:
+                    character_widths.append(int(width / len(region.text)))
         return get_size(character_widths)
 
     @staticmethod
     def box_to_formatted_text(boxes, line_tolerance=0):
         character_height = get_size(boxes, lambda x: x.height)
-        line_tolerance = character_height / 3
-        if line_tolerance != 0:
-            line_tolerance = line_tolerance
-
+        if line_tolerance == 0:
+            line_tolerance = character_height / 3
         lines = cluster(boxes, line_tolerance, key=lambda i: int(i.y))
 
         lines = [
