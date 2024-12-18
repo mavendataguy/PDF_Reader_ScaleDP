@@ -447,3 +447,58 @@ class HasLang(Params):
         Gets the value of lang or its default value.
         """
         return "+".join(LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in self.getOrDefault(self.lang))
+
+
+class HasLLM(Params):
+    """
+    Mixin for param model.
+    """
+
+    model = Param(Params._dummy(), "model",
+                           "Model.",
+                           typeConverter=TypeConverters.toString)
+    apiBase = Param(Params._dummy(), "apiBase",
+                  "apiBase.",
+                  typeConverter=TypeConverters.toString)
+    apiKey = Param(Params._dummy(), "apiKey",
+                    "apiKey.",
+                    typeConverter=TypeConverters.toString)
+
+    def __init__(self) -> None:
+        super(HasLLM, self).__init__()
+
+    def getModel(self):
+        """
+        Gets the value of model or its default value.
+        """
+        return self.getOrDefault(self.model)
+
+    def setModel(self, value):
+        """
+        Sets the value of :py:attr:`model`.
+        """
+        return self._set(model=value)
+
+    def getApiBase(self):
+        """
+        Gets the value of apiBase or its default value.
+        """
+        return self.getOrDefault(self.apiBase)
+
+    def setApiBase(self, value):
+        """
+        Sets the value of :py:attr:`model`.
+        """
+        return self._set(apiBase=value)
+
+    def getApiKey(self):
+        """
+        Gets the value of apiKey or its default value.
+        """
+        return self.getOrDefault(self.apiKey)
+
+    def setApiKey(self, value):
+        """
+        Sets the value of :py:attr:`apiKey`.
+        """
+        return self._set(apiKey=value)

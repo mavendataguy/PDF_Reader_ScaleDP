@@ -10,6 +10,10 @@ def image_file(resource_path_root):
     return (resource_path_root / "images/Invoice.png").absolute().as_posix()
 
 @pytest.fixture
+def receipt_file(resource_path_root):
+    return (resource_path_root / "images" / "receipt.jpg").absolute().as_posix()
+
+@pytest.fixture
 def image_pil(image_file):
     return pImage.open(image_file)
 
@@ -60,6 +64,13 @@ def image_df(spark_session, resource_path_root):
 def image_line_df(spark_session, resource_path_root):
     df = spark_session.read.format("binaryFile").load(
         (resource_path_root / "images/text_line.png").absolute().as_posix())
+    bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
+    return bin_to_image.transform(df)
+
+@pytest.fixture
+def image_receipt_df(spark_session, resource_path_root):
+    df = spark_session.read.format("binaryFile").load(
+        (resource_path_root / "images" / "receipt.jpg").absolute().as_posix())
     bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
     return bin_to_image.transform(df)
 

@@ -10,10 +10,15 @@ from scaledp.pdf.PdfDataToImage import PdfDataToImage
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 from scaledp.models.ner.Ner import Ner
 from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
+from scaledp.image.ImageCropBoxes import ImageCropBoxes
 from scaledp.text.TextToDocument import TextToDocument
 from scaledp.models.recognizers.SuryaOcr import SuryaOcr
 from scaledp.models.recognizers.EasyOcr import EasyOcr
 from scaledp.models.recognizers.DocTROcr import DocTROcr
+from scaledp.models.detectors.YoloDetector import YoloDetector
+from scaledp.models.extractors.DSPyExtractor import DSPyExtractor
+from scaledp.models.recognizers.TesseractRecognizer import TesseractRecognizer
+from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 from  importlib import resources
 from scaledp import enums
 from scaledp.enums import *
@@ -48,6 +53,11 @@ __all__ = ['ScaleDPSession',
            'SuryaOcr',
            'EasyOcr',
            'DocTROcr',
+           'YoloDetector',
+           'ImageCropBoxes',
+           'DSPyExtractor',
+           'TesseractRecognizer',
+           'DocTRTextDetector',
            '__version__',
            'files',
            ] + dir(enums)
