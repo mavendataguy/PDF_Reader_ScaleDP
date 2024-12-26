@@ -10,6 +10,7 @@ from typing import Any
 from scaledp.schemas.Box import Box
 from scaledp.schemas.DetectorOutput import DetectorOutput
 
+
 class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
 
     defaultParams = {
@@ -20,7 +21,11 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
         "scoreThreshold": 0.1,
         "device": Device.CPU,
         "batchSize": 2,
-        "model": "db_resnet50"
+        "model": "db_resnet50",
+        "partitionMap": False,
+        "numPartitions": 0,
+        "pageCol": "page",
+        "pathCol": "path",
     }
 
     @keyword_only
@@ -38,26 +43,27 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
 
         predictor = ocr_predictor(pretrained=True, det_arch=params["model"])
 
-        predictor.det_predictor.model.postprocessor.box_thresh = params['scoreThreshold']
+        predictor.det_predictor.model.postprocessor.box_thresh = params["scoreThreshold"]
 
         detector = predictor.det_predictor
 
-        if int(params['device']) == Device.CPU.value:
+        if int(params["device"]) == Device.CPU.value:
             device = "cpu"
         else:
             device = "cuda"
 
-
-
         def resolve_geometry(
-                geom: Any,
-        ) -> tuple[float, float, float, float] | tuple[float, float, float, float, float, float, float, float]:
+            geom: Any,
+        ) -> (
+            tuple[float, float, float, float]
+            | tuple[float, float, float, float, float, float, float, float]
+        ):
             if len(geom) == 4:
                 return (*geom[0], *geom[1], *geom[2], *geom[3])
             return (*geom[0], *geom[1])
 
         docs = []
-        for (image, image_path) in images:
+        for image, image_path in images:
             buff = io.BytesIO()
             image.save(buff, "png")
             docs.extend(DocumentFile.from_images(buff.getvalue()))
@@ -69,14 +75,18 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
             boxes = []
             w, h = image.size
             for geom in result[CLASS_NAME]:
-                g = geom[:-1].tolist() if geom.shape == (5,) else resolve_geometry(geom[:4].tolist())
-                boxes.append(Box.fromBBox([g[0] * w, g[1] * h, g[2] * w, g[3] * h], score=geom[-1]))
-            results_final.append(DetectorOutput(path=image_path,
-                                                type="doctr",
-                                                bboxes=boxes))
+                g = (
+                    geom[:-1].tolist()
+                    if geom.shape == (5,)
+                    else resolve_geometry(geom[:4].tolist())
+                )
+                boxes.append(
+                    Box.fromBBox([g[0] * w, g[1] * h, g[2] * w, g[3] * h], score=geom[-1])
+                )
+            results_final.append(DetectorOutput(path=image_path, type="doctr", bboxes=boxes))
 
         gc.collect()
-        if int(params['device']) == Device.CUDA.value:
+        if int(params["device"]) == Device.CUDA.value:
             torch.cuda.empty_cache()
 
         return results_final
