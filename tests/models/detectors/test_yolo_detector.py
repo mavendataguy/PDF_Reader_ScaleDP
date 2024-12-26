@@ -1,4 +1,3 @@
-import pytest
 import tempfile
 from scaledp import DataToImage, ImageDrawBoxes
 from scaledp.models.detectors.YoloDetector import YoloDetector
@@ -6,8 +5,8 @@ from scaledp.enums import Device
 
 
 def test_yolo_detector(image_receipt_df):
-    detector = YoloDetector(device=Device.CPU, keepInputData=True,
-                       model="/Users/nmelnyk/PycharmProjects/daymeai/apiserver/resources/models/detectors/reciept_segmentation_15.12.2024.pt")
+    detector = YoloDetector(device=Device.CPU, keepInputData=True, partitionMap=True, numPartitions=1,
+                       model="StabRise/receipt-detector-25-12-2024")
 
     draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "boxes"],
                           filled=False, color="green", lineWidth=5,
@@ -41,7 +40,7 @@ def test_yolo_detector_local_pipeline(receipt_file):
     # Initialize the pipeline stages
     data_to_image = DataToImage()
     detector = YoloDetector(device=Device.CPU,
-                            model="/Users/nmelnyk/PycharmProjects/daymeai/apiserver/resources/models/detectors/reciept_segmentation_15.12.2024.pt")
+                            model="StabRise/receipt-detector-25-12-2024")
     draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "boxes"],
                           filled=False, color="green", lineWidth=5,
                           displayDataList=['score'])
@@ -57,13 +56,14 @@ def test_yolo_detector_local_pipeline(receipt_file):
     assert "image_with_boxes" in result.columns
     assert "boxes" in result.columns
 
+    # Verify the draw stage output
+    draw_result = result["image_with_boxes"][0]
+    assert draw_result.exception == ""
+
     # Verify the Detector stage output
     bboxes = result["boxes"][0].bboxes
     assert len(bboxes) > 0
 
-    # Verify the draw stage output
-    draw_result = result["image_with_boxes"][0]
-    assert draw_result.exception is ""
 
     # Save the output image to a temporary file for verification
     temp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
