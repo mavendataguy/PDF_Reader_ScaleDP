@@ -1,4 +1,3 @@
-import pytest
 import io
 from scaledp import ImageType
 from scaledp.schemas.Image import Image

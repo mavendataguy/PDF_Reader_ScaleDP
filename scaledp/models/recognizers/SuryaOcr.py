@@ -1,15 +1,12 @@
-import json
 from pyspark import keyword_only
 
 from ...enums import Device
 from scaledp.params import *
-from scaledp.schemas.Image import Image
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
 from scaledp.models.recognizers.BaseOcr import BaseOcr
-import pandas as pd
 import gc
-import torch
+
 
 class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
 
@@ -38,13 +35,19 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
 
     @classmethod
     def call_ocr(cls, images, params):
+        import torch
         from surya.ocr import run_ocr
-        from surya.model.detection.model import load_model as load_det_model, load_processor as load_det_processor
+        from surya.model.detection.model import (
+            load_model as load_det_model,
+            load_processor as load_det_processor,
+        )
         from surya.model.recognition.model import load_model as load_rec_model
-        from surya.model.recognition.processor import load_processor as load_rec_processor
+        from surya.model.recognition.processor import (
+            load_processor as load_rec_processor,
+        )
         from surya.settings import settings
 
-        if int(params['device']) == Device.CPU.value:
+        if int(params["device"]) == Device.CPU.value:
             device = "cpu"
         else:
             device = "cuda"
@@ -58,26 +61,39 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
         rec_model, rec_processor = load_rec_model(device=device), load_rec_processor()
 
         results = []
-        predictions = run_ocr([image[0] for image in images], [langs] * len(images), det_model, det_processor, rec_model,
-                              rec_processor)
+        predictions = run_ocr(
+            [image[0] for image in images],
+            [langs] * len(images),
+            det_model,
+            det_processor,
+            rec_model,
+            rec_processor,
+        )
 
         for prediction, (image, image_path) in zip(predictions, images):
-            boxes = [Box(text=x.text, score=x.confidence, x=x.bbox[0],
-                         y=x.bbox[1], width=x.bbox[2] - x.bbox[0], height=x.bbox[3] - x.bbox[1])
-                     .toString().scale(1 / params["scaleFactor"]) for x in prediction.text_lines]
+            boxes = [
+                Box(
+                    text=x.text,
+                    score=x.confidence,
+                    x=x.bbox[0],
+                    y=x.bbox[1],
+                    width=x.bbox[2] - x.bbox[0],
+                    height=x.bbox[3] - x.bbox[1],
+                )
+                .toString()
+                .scale(1 / params["scaleFactor"])
+                for x in prediction.text_lines
+            ]
 
             if params["keepFormatting"]:
                 text = SuryaOcr.box_to_formatted_text(boxes, params["lineTolerance"])
             else:
                 text = "\n".join([str(w.text) for w in boxes])
 
-            results.append(Document(path=image_path,
-                                    text=text,
-                                    type="text",
-                                    bboxes=boxes))
+            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
 
         gc.collect()
-        if int(params['device']) == Device.CUDA.value:
+        if int(params["device"]) == Device.CUDA.value:
             torch.cuda.empty_cache()
 
         return results

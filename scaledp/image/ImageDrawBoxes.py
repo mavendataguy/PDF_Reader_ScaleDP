@@ -1,4 +1,3 @@
-
 import traceback
 import logging
 import random
@@ -17,37 +16,51 @@ from ..enums import ImageType
 from scaledp.params import *
 
 
-class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, HasImageType, HasPageCol,
-                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions, HasColumnValidator,
-                     HasDefaultEnum, metaclass=AutoParamsMeta):
+class ImageDrawBoxes(
+    Transformer,
+    HasInputCols,
+    HasOutputCol,
+    HasKeepInputData,
+    HasImageType,
+    HasPageCol,
+    DefaultParamsReadable,
+    DefaultParamsWritable,
+    HasColor,
+    HasNumPartitions,
+    HasColumnValidator,
+    HasDefaultEnum,
+    metaclass=AutoParamsMeta,
+):
     """
     Draw boxes on image
     """
 
-    filled = Param(Params._dummy(), "filled",
-                      "Fill rectangle.",
-                      typeConverter=TypeConverters.toBoolean)
+    filled = Param(
+        Params._dummy(),
+        "filled",
+        "Fill rectangle.",
+        typeConverter=TypeConverters.toBoolean,
+    )
 
-    lineWidth = Param(Params._dummy(), "lineWidth",
-                      "Line width.",
-                      typeConverter=TypeConverters.toInt)
+    lineWidth = Param(
+        Params._dummy(), "lineWidth", "Line width.", typeConverter=TypeConverters.toInt
+    )
 
-    textSize = Param(Params._dummy(),"textSize",
-                     "Text size.",
-                     typeConverter=TypeConverters.toInt)
+    textSize = Param(Params._dummy(), "textSize", "Text size.", typeConverter=TypeConverters.toInt)
 
-    padding = Param(Params._dummy(), "padding",
-                     "Padding.",
-                     typeConverter=TypeConverters.toInt)
+    padding = Param(Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt)
 
-    displayDataList = Param(Params._dummy(), "displayDataList",
-                      "Display data list.",
-                      typeConverter=TypeConverters.toListString)
+    displayDataList = Param(
+        Params._dummy(),
+        "displayDataList",
+        "Display data list.",
+        typeConverter=TypeConverters.toListString,
+    )
 
     defaultParams = {
-        "inputCols": ['image', 'boxes'],
-        "outputCol": 'image_with_boxes',
-        "keepInputData":False,
+        "inputCols": ["image", "boxes"],
+        "outputCol": "image_with_boxes",
+        "keepInputData": False,
         "imageType": ImageType.FILE,
         "filled": False,
         "color": None,
@@ -56,7 +69,7 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
         "displayDataList": [],
         "numPartitions": 0,
         "padding": 0,
-        "pageCol": "page"
+        "pageCol": "page",
     }
 
     @keyword_only
@@ -89,10 +102,15 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
             image = Image(**image.asDict())
         try:
             if image.exception != "":
-                return Image(image.origin, image.imageType, data=bytes(), exception=image.exception)
+                return Image(
+                    image.origin,
+                    image.imageType,
+                    data=bytes(),
+                    exception=image.exception,
+                )
             img = image.to_pil()
             img1 = ImageDraw.Draw(img)
-            fill = self.getColor() if self.getFilled()  else None
+            fill = self.getColor() if self.getFilled() else None
 
             if hasattr(data, "entities"):
                 if not isinstance(data, NerOutput):
@@ -113,18 +131,39 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                         if not isinstance(box, Box):
                             box = Box(**box.asDict())
                         text = self.getDisplayText(ner)
-                        img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4,
-                                               fill=fill, width=self.getLineWidth())
+                        img1.rounded_rectangle(
+                            box.shape(self.getPadding()),
+                            outline=color,
+                            radius=4,
+                            fill=fill,
+                            width=self.getLineWidth(),
+                        )
                         if text:
-                            tbox = list(img1.textbbox((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()),
-                                                      text , font_size=self.getTextSize()))
-                            tbox[3] = tbox[3] + self.getTextSize()/4
+                            tbox = list(
+                                img1.textbbox(
+                                    (
+                                        box.x,
+                                        box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                                    ),
+                                    text,
+                                    font_size=self.getTextSize(),
+                                )
+                            )
+                            tbox[3] = tbox[3] + self.getTextSize() / 4
                             tbox[2] = tbox[2] + self.getTextSize() / 4
                             tbox[0] = box.x - self.getPadding()
                             tbox[1] = box.y - self.getTextSize() * 1.2 - self.getPadding()
                             img1.rounded_rectangle(tbox, outline=color, radius=2, fill=color)
-                            img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text,
-                                      stroke_width=0, fill="white", font_size=self.getTextSize())
+                            img1.text(
+                                (
+                                    box.x,
+                                    box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                                ),
+                                text,
+                                stroke_width=0,
+                                fill="white",
+                                font_size=self.getTextSize(),
+                            )
             else:
                 if self.getColor() is None:
                     color = "green"
@@ -133,14 +172,26 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
                 for box in data.bboxes:
                     if not isinstance(box, Box):
                         box = Box(**box.asDict())
-                    img1.rounded_rectangle(box.shape(self.getPadding()), outline=color, radius=4,
-                                           fill=fill, width=self.getLineWidth())
+                    img1.rounded_rectangle(
+                        box.shape(self.getPadding()),
+                        outline=color,
+                        radius=4,
+                        fill=fill,
+                        width=self.getLineWidth(),
+                    )
                     text = self.getDisplayText(box)
                     if text:
-                        img1.text((box.x, box.y - self.getTextSize() * 1.2 - self.getPadding()), text,
-                                  fill=color, font_size=self.getTextSize())
+                        img1.text(
+                            (
+                                box.x,
+                                box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                            ),
+                            text,
+                            fill=color,
+                            font_size=self.getTextSize(),
+                        )
 
-        except Exception as e:
+        except Exception:
             exception = traceback.format_exc()
             exception = f"ImageDrawBoxes: {exception}, {image.exception}"
             logging.warning(exception)
@@ -154,7 +205,9 @@ class ImageDrawBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())
-        result = dataset.withColumn(out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col))
+        result = dataset.withColumn(
+            out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
+        )
 
         if not self.getKeepInputData():
             result = result.drop(image_col)

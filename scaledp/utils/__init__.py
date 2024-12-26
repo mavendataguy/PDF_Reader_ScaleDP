@@ -2,9 +2,9 @@ import statistics
 
 
 def cluster(items, maxgap, key=lambda x: x):
-    '''Arrange data into groups where successive elements
-       differ by no more than *maxgap*
-    '''
+    """Arrange data into groups where successive elements
+    differ by no more than *maxgap*
+    """
     if not items:
         return []
     items.sort(key=key)
@@ -15,6 +15,7 @@ def cluster(items, maxgap, key=lambda x: x):
         else:
             groups.append([x])
     return groups
+
 
 def get_size(items, key=lambda x: x):
     if not items:
@@ -27,4 +28,4 @@ def get_size(items, key=lambda x: x):
         return int(statistics.mean(items))
     else:
         l = int(len(items) / 4)
-        return int(statistics.mode(items[l: -l]))
+        return int(statistics.mode(items[l:-l]))

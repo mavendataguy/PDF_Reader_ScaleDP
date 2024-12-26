@@ -1,38 +1,38 @@
-
 from pyspark.sql import DataFrame
 from scaledp import DataToImage, PdfDataToImage, TesseractOcr, TextToDocument
 import pyspark.sql.functions as f
 import random
 import base64
+import json
+import logging
+
 
 def _show_image(image, width=600, show_meta=True, index=0):
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
+
     if image is None:
         print("Empty image")
         return
 
     img_base64 = base64.b64encode(image.data).decode("utf-8")
 
-    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader("scaledp.utils", "templates"))
     template = templateEnv.get_template("image.html")
     metadata = {
         "Image#": index,
         "Path": image.path.split("/")[-1],
         "Size": f"{image.width} x {image.height} px",
-        "Resolution": f"{image.resolution} dpi"
+        "Resolution": f"{image.resolution} dpi",
     }
 
     if image.exception != "":
         metadata["Exception"] = image.exception
 
-    rendered_html = template.render(
-        width=width,
-        metadata=metadata,
-        image=img_base64
-    )
+    rendered_html = template.render(width=width, metadata=metadata, image=img_base64)
 
     display(HTML(rendered_html))
+
 
 def get_column_type(df: DataFrame, column_name: str) -> str:
     for name, dtype in df.dtypes:
@@ -58,11 +58,11 @@ def show_image(df, column="", limit=5, width=600, show_meta=True):
         _show_image(image, width, show_meta, id_)
 
 
-def show_text(df, column="", limit=5, width=800):
+def show_text(df, column="", field="text", limit=5, width=800):
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
 
-    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader("scaledp.utils", "templates"))
     template = templateEnv.get_template("text.html")
     df = df.limit(limit)
     if column == "":
@@ -84,17 +84,44 @@ def show_text(df, column="", limit=5, width=800):
         metadata = {
             "Id": id,
             "Path": text.path.split("/")[-1],
-            "Exception": text.exception
+            "Exception": text.exception,
         }
 
-        rendered_html = template.render(
-            width=width,
-            metadata=metadata,
-            text=text.text
-        )
+        rendered_html = template.render(width=width, metadata=metadata, text=getattr(text, field))
 
         display(HTML(rendered_html))
 
+def show_json(df, column="", field="data", limit=5, width=800):
+    from IPython.display import display, HTML
+    from jinja2 import PackageLoader, Environment
+
+    templateEnv = Environment(loader=PackageLoader("scaledp.utils", "templates"))
+    template = templateEnv.get_template("json.html")
+    df = df.limit(limit)
+    if column == "":
+        if "data" in df.columns:
+            column = "data"
+        elif "text" in df.columns:
+            column = "text"
+        else:
+            raise ValueError("Please specify column name")
+    for id, text in enumerate(df.select(f"{column}.*").collect()):
+        metadata = {
+            "Id": id,
+            "Path": text.path.split("/")[-1],
+            "Exception": text.exception,
+        }
+        data = getattr(text, field)
+        try:
+            data = json.dumps(json.loads(data), indent=4, ensure_ascii=False)
+        except:
+            logging.warning("Failed to parse json")
+
+        from IPython.display import Code
+        data = Code(data, language='json')._repr_html_()
+        rendered_html = template.render(width=width, metadata=metadata, text=data)
+
+        display(HTML(rendered_html))
 
 def show_pdf(df, column="", limit=5, width=600, show_meta=True):
     if column == "":
@@ -116,14 +143,16 @@ def show_pdf(df, column="", limit=5, width=600, show_meta=True):
 
 
 def show_ner(df, column="ner", limit=20, truncate=False):
-    df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").show(limit, truncate=truncate)
+    df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").show(
+        limit, truncate=truncate
+    )
 
 
 def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, labels_list=None):
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
 
-    templateEnv = Environment(loader=PackageLoader('scaledp.utils', 'templates'))
+    templateEnv = Environment(loader=PackageLoader("scaledp.utils", "templates"))
     template = templateEnv.get_template("ner.html")
 
     df = df.limit(limit).select(column, text_column).cache()
@@ -142,28 +171,26 @@ def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, lab
             entity_colors[entity_name] = "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
         if current_position < start:
-            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[
-                                                                         current_position:start] + "</span>"
+            html += (
+                "<span style='font-size:16px;line-height: 25px;'>"
+                + original_text[current_position:start]
+                + "</span>"
+            )
         if entity_name in entity_colors:
             html += f"""<span style='border-radius:4px;padding:2px;color:white;line-height:25px;margin:1px;
             background-color:{entity_colors[entity_name]};font-size:16px;white-space: nowrap;'>
             <span style="color:black;background-color:white;border-radius: 2px;padding: 0 1px 0 1px;">
             {original_text[start:end]}</span><span style='font-weight:500;padding: 4px;'>{entity.entity_group}</span></span>"""
         else:
-            html += "<span style='font-size:16px;line-height: 25px;'>" + original_text[start:end] + "</span>"
+            html += (
+                "<span style='font-size:16px;line-height: 25px;'>"
+                + original_text[start:end]
+                + "</span>"
+            )
         current_position = end
 
-    metadata = {
-        "Id": 0,
-        "Path": text.path.split("/")[-1],
-        "Exception": text.exception
-    }
+    metadata = {"Id": 0, "Path": text.path.split("/")[-1], "Exception": text.exception}
 
-    rendered_html = template.render(
-        width=width,
-        metadata=metadata,
-        ner=html
-    )
+    rendered_html = template.render(width=width, metadata=metadata, ner=html)
 
     display(HTML(rendered_html))
-

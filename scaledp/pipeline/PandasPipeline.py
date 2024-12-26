@@ -1,10 +1,7 @@
+from typing import Any
 
-from pyspark.ml import PipelineModel, Pipeline
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast, TYPE_CHECKING
-
-import pyspark
 import itertools
-from  pyspark.sql import DataFrame
+
 
 class UserDefinedFunction:
     """
@@ -50,18 +47,24 @@ def _invoke_function(name: str, *args: Any):
     else:
         raise ValueError("Invalid function name: %s" % name)
 
+
 temp_functions = {}
+
+
 def pathSparkFunctions(pyspark):
     temp_functions["udf"] = pyspark.sql.udf.UserDefinedFunction
     pyspark.sql.udf.UserDefinedFunction = UserDefinedFunction
     temp_functions["invoke_function"] = pyspark.sql.functions._invoke_function
     pyspark.sql.functions._invoke_function = _invoke_function
 
+
 def unpathSparkFunctions(pyspark):
     pyspark.sql.udf.UserDefinedFunction = temp_functions["udf"]
     pyspark.sql.functions._invoke_function = temp_functions["invoke_function"]
 
+
 import pandas as pd
+
 
 class DatasetPd(pd.DataFrame):
 
@@ -79,8 +82,9 @@ class DatasetPd(pd.DataFrame):
         return self
 
 
-class PandasPipeline():
+class PandasPipeline:
     stages = []
+
     def setStages(self, value):
         self.stages = value
         return self
@@ -92,7 +96,7 @@ class PandasPipeline():
         with open(filename, "rb") as f:
             data = f.read()
 
-        #input = Dataset(data = [dict(content=data, path=filename)])
+        # input = Dataset(data = [dict(content=data, path=filename)])
 
         input = DatasetPd(dict(content=[data], path=[filename], resolution=[0]))
 
@@ -109,4 +113,3 @@ class PandasPipeline():
             data = stage._transform(data)
 
         return data
-

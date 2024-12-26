@@ -7,8 +7,18 @@ from scaledp.params import *
 from scaledp.enums import ImageType
 
 
-class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasImageType, HasDefaultEnum,
-                  HasPathCol, DefaultParamsReadable, DefaultParamsWritable, HasColumnValidator):
+class DataToImage(
+    Transformer,
+    HasInputCol,
+    HasOutputCol,
+    HasKeepInputData,
+    HasImageType,
+    HasDefaultEnum,
+    HasPathCol,
+    DefaultParamsReadable,
+    DefaultParamsWritable,
+    HasColumnValidator,
+):
     """
     Transform Binary Content to Image
     """
@@ -18,7 +28,7 @@ class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasI
         "outputCol": "image",
         "pathCol": "path",
         "keepInputData": False,
-        "imageType": ImageType.FILE
+        "imageType": ImageType.FILE,
     }
 
     @keyword_only
@@ -38,7 +48,10 @@ class DataToImage(Transformer, HasInputCol, HasOutputCol, HasKeepInputData, HasI
             resolution = dataset["resolution"]
         else:
             resolution = lit(0)
-        result = dataset.withColumn(out_col, udf(self.transform_udf, Image.get_schema())(input_col, path_col, resolution))
+        result = dataset.withColumn(
+            out_col,
+            udf(self.transform_udf, Image.get_schema())(input_col, path_col, resolution),
+        )
         if not self.getKeepInputData():
             result = result.drop(input_col)
         return result

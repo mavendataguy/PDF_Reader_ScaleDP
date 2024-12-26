@@ -81,7 +81,7 @@ def test_ner_local_pipeline(image_file):
 
     # Verify the draw stage output
     draw_result = result["image_with_boxes"][0]
-    assert draw_result.exception is ""
+    assert draw_result.exception == ""
 
     unpathSparkFunctions(pyspark)
 

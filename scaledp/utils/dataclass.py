@@ -18,11 +18,13 @@ type_mapping = {
     datetime.datetime: TimestampType,
     datetime.date: DateType,
     bool: BooleanType,
-    BinaryT: BinaryType
+    BinaryT: BinaryType,
 }
+
 
 def register_type(new_type, spark_type):
     type_mapping[new_type] = spark_type
+
 
 def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
     """
@@ -50,9 +52,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                 # Handle lists of data classes
                 sub_struct = map_dataclass_to_struct(elem_type)
                 nullable = is_field_nullable(field_name, hints)
-                fields_list.append(
-                    StructField(field_name, ArrayType(sub_struct), nullable)
-                )
+                fields_list.append(StructField(field_name, ArrayType(sub_struct), nullable))
             else:
                 # Handle lists of primitive types and dicts
                 spark_type = get_spark_type(elem_type)
@@ -61,9 +61,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                     # Special case for dictionaries with any value type
                     fields_list.append(StructField(field_name, spark_type, nullable))
                 else:
-                    fields_list.append(
-                        StructField(field_name, ArrayType(spark_type), nullable)
-                    )
+                    fields_list.append(StructField(field_name, ArrayType(spark_type), nullable))
         elif hasattr(field_type, "__origin__") and field_type.__origin__ is dict:
             # Handle dictionaries
             key_type, value_type = field_type.__args__
@@ -95,6 +93,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
 
     return StructType(fields_list)
 
+
 def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
     """
     Creates a mapping from a python type to a pyspark data type
@@ -104,7 +103,9 @@ def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
     # Check if the type exists in the mapping
     if py_type in type_mapping:
         # If it's a function, call it (e.g., for Box.getSchema())
-        return type_mapping[py_type]() if callable(type_mapping[py_type]) else type_mapping[py_type]()
+        return (
+            type_mapping[py_type]() if callable(type_mapping[py_type]) else type_mapping[py_type]()
+        )
 
     # Handle BoundDecimal separately as it needs specific attributes
     if isinstance(py_type, type) and issubclass(py_type, BoundDecimal):
@@ -117,6 +118,7 @@ def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
 
     raise Exception(f"Type {py_type} is not supported by PySpark")
 
+
 def is_field_nullable(field_name: str, hints: dict) -> bool:
     """
     Returns True if the given field name is nullable, based on the type hint for the field in the given hints dictionary.
@@ -127,6 +129,7 @@ def is_field_nullable(field_name: str, hints: dict) -> bool:
     if is_optional_type(field_type):
         return True
     return False
+
 
 def apply_nullability(dtype: DataType, is_nullable: bool) -> DataType:
     """
@@ -142,6 +145,7 @@ def apply_nullability(dtype: DataType, is_nullable: bool) -> DataType:
             raise TypeError(f"Type {dtype} does not support nullability")
     else:
         return dtype
+
 
 def is_optional_type(py_type: Type) -> bool:
     """

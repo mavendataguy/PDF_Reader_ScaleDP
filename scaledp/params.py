@@ -1,6 +1,11 @@
 from pyspark.ml.param import Param, Params, TypeConverters
-from enum import IntEnum, Enum
+from enum import Enum
+
+from .utils.pydantic_shema_utils import json_schema_to_model
 from .langs import *
+from pydantic import BaseModel
+import json
+
 
 class AutoParamsMeta(type(Params), type):
     def __new__(cls, name, bases, dct):
@@ -21,11 +26,15 @@ class AutoParamsMeta(type(Params), type):
 
         return super(AutoParamsMeta, cls).__new__(cls, name, bases, dct)
 
+
 class HasImageType(Params):
 
-    imageType = Param(Params._dummy(), "imageType",
-                      "Image type.",
-                      typeConverter=TypeConverters.toString)
+    imageType = Param(
+        Params._dummy(),
+        "imageType",
+        "Image type.",
+        typeConverter=TypeConverters.toString,
+    )
 
     def setImageType(self, value):
         """
@@ -39,11 +48,15 @@ class HasImageType(Params):
         """
         return self.getOrDefault(self.imageType)
 
+
 class HasKeepInputData(Params):
 
-    keepInputData = Param(Params._dummy(), "keepInputData",
-                        "Keep input data column in output.",
-                        typeConverter=TypeConverters.toBoolean)
+    keepInputData = Param(
+        Params._dummy(),
+        "keepInputData",
+        "Keep input data column in output.",
+        typeConverter=TypeConverters.toBoolean,
+    )
 
     def setKeepInputData(self, value):
         """
@@ -62,9 +75,13 @@ class HasPathCol(Params):
     """
     Mixin for param pathCol: path column name.
     """
-    pathCol = Param(Params._dummy(), "pathCol",
-                      "Input column name with path of file.",
-                      typeConverter=TypeConverters.toString)
+
+    pathCol = Param(
+        Params._dummy(),
+        "pathCol",
+        "Input column name with path of file.",
+        typeConverter=TypeConverters.toString,
+    )
 
     def setPathCol(self, value):
         """
@@ -77,6 +94,7 @@ class HasPathCol(Params):
         Gets the value of pathCol or its default value.
         """
         return self.getOrDefault(self.pathCol)
+
 
 class HasInputCols(Params):
     """
@@ -105,6 +123,7 @@ class HasInputCols(Params):
         """
         return self._set(inputCols=value)
 
+
 class HasInputCol(Params):
     """
     Mixin for param inputCol: input column name.
@@ -131,6 +150,7 @@ class HasInputCol(Params):
         Sets the value of :py:attr:`inputCol`.
         """
         return self._set(inputCol=value)
+
 
 class HasOutputCol(Params):
     """
@@ -162,9 +182,12 @@ class HasOutputCol(Params):
 
 
 class HasResolution(Params):
-    resolution = Param(Params._dummy(), "resolution",
-                          "Resolution of image.",
-                          typeConverter=TypeConverters.toInt)
+    resolution = Param(
+        Params._dummy(),
+        "resolution",
+        "Resolution of image.",
+        typeConverter=TypeConverters.toInt,
+    )
 
     POINTS_PER_INCH = 72
 
@@ -180,13 +203,18 @@ class HasResolution(Params):
         """
         return self.getOrDefault(self.resolution)
 
+
 class HasPageCol(Params):
     """
     Mixin for param pageCol: path column name.
     """
-    pageCol = Param(Params._dummy(), "pageCol",
-                      "Page column name.",
-                      typeConverter=TypeConverters.toString)
+
+    pageCol = Param(
+        Params._dummy(),
+        "pageCol",
+        "Page column name.",
+        typeConverter=TypeConverters.toString,
+    )
 
     def setPageCol(self, value):
         """
@@ -200,10 +228,14 @@ class HasPageCol(Params):
         """
         return self.getOrDefault(self.pageCol)
 
+
 class HasNumPartitions:
-    numPartitions = Param(Params._dummy(), "numPartitions",
-                          "Number of partitions.",
-                          typeConverter=TypeConverters.toInt)
+    numPartitions = Param(
+        Params._dummy(),
+        "numPartitions",
+        "Number of partitions.",
+        typeConverter=TypeConverters.toInt,
+    )
 
     def setNumPartitions(self, value):
         """
@@ -217,10 +249,9 @@ class HasNumPartitions:
         """
         return self.getOrDefault(self.numPartitions)
 
+
 class HasDevice(Params):
-    device = Param(Params._dummy(), "device",
-                      "Device.",
-                      typeConverter=TypeConverters.toInt)
+    device = Param(Params._dummy(), "device", "Device.", typeConverter=TypeConverters.toInt)
 
     def setDevice(self, value):
         """
@@ -234,10 +265,11 @@ class HasDevice(Params):
         """
         return self.getOrDefault(self.device)
 
+
 class HasBatchSize(Params):
-    batchSize = Param(Params._dummy(), "batchSize",
-                      "Batch size.",
-                      typeConverter=TypeConverters.toInt)
+    batchSize = Param(
+        Params._dummy(), "batchSize", "Batch size.", typeConverter=TypeConverters.toInt
+    )
 
     def setBatchSize(self, value):
         """
@@ -250,6 +282,7 @@ class HasBatchSize(Params):
         Gets the value of batchSize or its default value.
         """
         return self.getOrDefault(self.batchSize)
+
 
 class HasWhiteList(Params):
     """
@@ -284,9 +317,12 @@ class HasScoreThreshold(Params):
     Mixin for param scoreThreshold.
     """
 
-    scoreThreshold = Param(Params._dummy(), "scoreThreshold",
-                           "Score threshold.",
-                           typeConverter=TypeConverters.toFloat)
+    scoreThreshold = Param(
+        Params._dummy(),
+        "scoreThreshold",
+        "Score threshold.",
+        typeConverter=TypeConverters.toFloat,
+    )
 
     def __init__(self) -> None:
         super(HasScoreThreshold, self).__init__()
@@ -309,9 +345,7 @@ class HasModel(Params):
     Mixin for param model.
     """
 
-    model = Param(Params._dummy(), "model",
-                           "Model.",
-                           typeConverter=TypeConverters.toString)
+    model = Param(Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString)
 
     def __init__(self) -> None:
         super(HasModel, self).__init__()
@@ -330,9 +364,7 @@ class HasModel(Params):
 
 
 class HasColor(Params):
-    color = Param(Params._dummy(), "color",
-                      "Color.",
-                      typeConverter=TypeConverters.toString)
+    color = Param(Params._dummy(), "color", "Color.", typeConverter=TypeConverters.toString)
 
     def setColor(self, value):
         """
@@ -374,6 +406,9 @@ class HasDefaultEnum(Params):
                     raise TypeError(
                         'Invalid default param value given for param "%s". %s' % (param, e)
                     )
+            validator = "validate" + param[0].upper() + param[1:]
+            if hasattr(self, validator):
+                value = getattr(self, validator)(value)
             super(HasDefaultEnum, self)._setDefault(**{param: value})
         return self
 
@@ -388,6 +423,9 @@ class HasDefaultEnum(Params):
                     value = [self._any_lang_to_code(lang) for lang in value]
                 if isinstance(value, Enum):
                     value = value.value
+                validator = "validate" + param[0].upper() + param[1:]
+                if hasattr(self, validator):
+                    value = getattr(self, validator)(value)
                 try:
                     value = p.typeConverter(value)
                 except TypeError as e:
@@ -396,22 +434,27 @@ class HasDefaultEnum(Params):
         return self
 
 
-class HasColumnValidator():
+class HasColumnValidator:
 
     def _validate(self, column_name, dataset):
         """
         Validate input schema.
         """
         if column_name not in dataset.columns:
-            raise ValueError(f"Missing input column in transformer {self.uid}: Column '{column_name}' is not present.")
+            raise ValueError(
+                f"Missing input column in transformer {self.uid}: Column '{column_name}' is not present."
+            )
         return dataset[column_name]
 
 
 class HasPartitionMap(Params):
 
-    partitionMap = Param(Params._dummy(), "partitionMap",
-                          "Force use pandas udf.",
-                          typeConverter=TypeConverters.toBoolean)
+    partitionMap = Param(
+        Params._dummy(),
+        "partitionMap",
+        "Force use pandas udf.",
+        typeConverter=TypeConverters.toBoolean,
+    )
 
     def setPartitionMap(self, value):
         """
@@ -425,10 +468,9 @@ class HasPartitionMap(Params):
         """
         return self.getOrDefault(self.partitionMap)
 
+
 class HasLang(Params):
-    lang = Param(Params._dummy(), "lang",
-                      "Language.",
-                      typeConverter=TypeConverters.toListString)
+    lang = Param(Params._dummy(), "lang", "Language.", typeConverter=TypeConverters.toListString)
 
     def setLang(self, value):
         """
@@ -446,4 +488,143 @@ class HasLang(Params):
         """
         Gets the value of lang or its default value.
         """
-        return "+".join(LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in self.getOrDefault(self.lang))
+        return "+".join(
+            LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]]
+            for lang in self.getOrDefault(self.lang)
+        )
+
+
+class HasSchema(Params):
+
+    schema = Param(
+        Params._dummy(),
+        "schema",
+        "Output schema.",
+        typeConverter=TypeConverters.toString,
+    )
+
+    @staticmethod
+    def toPydanticSchema(schema):
+        schema = json.loads(schema)
+        return json_schema_to_model(schema, schema.get("$defs", {}))
+
+    def getPaydanticSchema(self):
+        return self.toPydanticSchema(self.getSchema())
+
+    def validateSchema(self, value):
+        """
+        Validate schema.
+        """
+        if isinstance(value, str):
+            return value
+        if issubclass(value, BaseModel):
+            value = json.dumps(value.model_json_schema())
+        return value
+
+    def getSchema(self):
+        """
+        Gets the value of schema or its default value.
+        """
+        return self.getOrDefault(self.schema)
+
+    def setSchema(self, value):
+        """
+        Sets the value of :py:attr:`schema`.
+        """
+        return self._set(schema=value)
+
+
+class HasPrompt(Params):
+
+    prompt = Param(
+        Params._dummy(),
+        "prompt",
+        "Prompt.",
+        typeConverter=TypeConverters.toString,
+    )
+    def getPrompt(self):
+        """
+        Gets the value of prompt or its default value.
+        """
+        return self.getOrDefault(self.prompt)
+
+    def setPrompt(self, value):
+        """
+        Sets the value of :py:attr:`prompt`.
+        """
+        return self._set(prompt=value)
+
+
+class HasLLM(Params):
+    """
+    Mixin for param model.
+    """
+
+    model = Param(Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString)
+    apiBase = Param(Params._dummy(), "apiBase", "apiBase.", typeConverter=TypeConverters.toString)
+    apiKey = Param(Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString)
+    systemPrompt = Param(
+        Params._dummy(),
+        "systemPrompt",
+        "System prompt.",
+        typeConverter=TypeConverters.toString,
+    )
+    def __init__(self) -> None:
+        super(HasLLM, self).__init__()
+
+    def getOIClient(self):
+        from openai import OpenAI
+        kwargs = {}
+        if self.getApiKey():
+            kwargs["api_key"] = self.getApiKey()
+        if self.getApiBase():
+            kwargs["base_url"] = self.getApiBase()
+        return OpenAI(**kwargs)
+
+    def getModel(self):
+        """
+        Gets the value of model or its default value.
+        """
+        return self.getOrDefault(self.model)
+
+    def setModel(self, value):
+        """
+        Sets the value of :py:attr:`model`.
+        """
+        return self._set(model=value)
+
+    def getApiBase(self):
+        """
+        Gets the value of apiBase or its default value.
+        """
+        return self.getOrDefault(self.apiBase)
+
+    def setApiBase(self, value):
+        """
+        Sets the value of :py:attr:`model`.
+        """
+        return self._set(apiBase=value)
+
+    def getApiKey(self):
+        """
+        Gets the value of apiKey or its default value.
+        """
+        return self.getOrDefault(self.apiKey)
+
+    def setApiKey(self, value):
+        """
+        Sets the value of :py:attr:`apiKey`.
+        """
+        return self._set(apiKey=value)
+
+    def getSystemPrompt(self):
+        """
+        Gets the value of systemPrompt or its default value.
+        """
+        return self.getOrDefault(self.systemPrompt)
+
+    def setSystemPrompt(self, value):
+        """
+        Sets the value of :py:attr:`systemPrompt`.
+        """
+        return self._set(systemPrompt=value)
