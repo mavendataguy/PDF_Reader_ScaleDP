@@ -1,41 +1,46 @@
-
 import traceback
 import logging
-import random
 
-from PIL import ImageDraw
 from pyspark import keyword_only
 from pyspark.sql.functions import udf
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 
 from scaledp.schemas.Box import Box
-from scaledp.schemas.Entity import Entity
 from scaledp.schemas.Image import Image
-from scaledp.schemas.NerOutput import NerOutput
 from ..enums import ImageType
 from scaledp.params import *
 
 
-class ImageCropBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, HasImageType, HasPageCol,
-                     DefaultParamsReadable, DefaultParamsWritable, HasColor, HasNumPartitions, HasColumnValidator,
-                     HasDefaultEnum, metaclass=AutoParamsMeta):
+class ImageCropBoxes(
+    Transformer,
+    HasInputCols,
+    HasOutputCol,
+    HasKeepInputData,
+    HasImageType,
+    HasPageCol,
+    DefaultParamsReadable,
+    DefaultParamsWritable,
+    HasColor,
+    HasNumPartitions,
+    HasColumnValidator,
+    HasDefaultEnum,
+    metaclass=AutoParamsMeta,
+):
     """
-    Crop image by bounding boces
+    Crop image by bounding boxes
     """
 
-    padding = Param(Params._dummy(), "padding",
-                     "Padding.",
-                     typeConverter=TypeConverters.toInt)
+    padding = Param(Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt)
 
     defaultParams = {
-        "inputCols": ['image', 'boxes'],
-        "outputCol": 'cropped_image',
+        "inputCols": ["image", "boxes"],
+        "outputCol": "cropped_image",
         "keepInputData": False,
         "imageType": ImageType.FILE,
         "numPartitions": 0,
         "padding": 0,
-        "pageCol": "page"
+        "pageCol": "page",
     }
 
     @keyword_only
@@ -49,15 +54,25 @@ class ImageCropBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
             image = Image(**image.asDict())
         try:
             if image.exception != "":
-                return Image(image.origin, image.imageType, data=bytes(), exception=image.exception)
+                return Image(
+                    image.origin,
+                    image.imageType,
+                    data=bytes(),
+                    exception=image.exception,
+                )
             img = image.to_pil()
             results = []
             for box in data.bboxes:
                 if not isinstance(box, Box):
                     box = Box(**box.asDict())
-                results.append(img.crop(box.bbox(self.getPadding())))
+                if box.width > box.height:
+                    results.append(img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True))
+                else:
+                    results.append(img.crop(box.bbox(self.getPadding())))
+            if len(results) == 0:
+                results.append(img)
 
-        except Exception as e:
+        except Exception:
             exception = traceback.format_exc()
             exception = f"ImageCropBoxes: {exception}, {image.exception}"
             logging.warning(exception)
@@ -71,7 +86,9 @@ class ImageCropBoxes(Transformer, HasInputCols, HasOutputCol, HasKeepInputData, 
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())
-        result = dataset.withColumn(out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col))
+        result = dataset.withColumn(
+            out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
+        )
 
         if not self.getKeepInputData():
             result = result.drop(image_col)

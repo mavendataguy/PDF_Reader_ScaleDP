@@ -8,11 +8,13 @@ from dataclasses import dataclass
 from ..enums import ImageType
 from scaledp.utils.dataclass import map_dataclass_to_struct, register_type, BinaryT
 
+
 @dataclass(order=True)
 class Image(object):
     """
     Image object for represent image data in Spark Dataframe
     """
+
     path: str
     resolution: int = 0
     data: BinaryT = bytes()
@@ -71,7 +73,14 @@ class Image(object):
             data.save(buff, "webp")
         else:
             data.save(buff, "png")
-        img = Image(path=path, data=buff.getvalue(), imageType=ImageType.FILE.value, width=data.width, height=data.height, resolution=resolution)
+        img = Image(
+            path=path,
+            data=buff.getvalue(),
+            imageType=ImageType.FILE.value,
+            width=data.width,
+            height=data.height,
+            resolution=resolution,
+        )
         return img
 
     @staticmethod
@@ -83,5 +92,6 @@ class Image(object):
 
     def __repr__(self):
         return self.__str__()
+
 
 register_type(Image, Image.get_schema)
