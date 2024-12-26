@@ -1,12 +1,9 @@
-import json
-import pandas as pd
 import gc
 from pyspark import keyword_only
 import numpy as np
 
 from scaledp.enums import Device
 from scaledp.params import *
-from scaledp.schemas.Image import Image
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
 from scaledp.models.recognizers.BaseOcr import BaseOcr
@@ -56,41 +53,40 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
         width = max(x_coords) - x
         height = max(y_coords) - y
 
-        return Box(text=text, score=score, x=x,
-                   y=y, width=width, height=height)
+        return Box(text=text, score=score, x=x, y=y, width=width, height=height)
 
     @classmethod
     def call_ocr(cls, images, params):
         import easyocr
         import torch
-        if int(params['device']) == Device.CPU.value:
+
+        if int(params["device"]) == Device.CPU.value:
             device = False
         else:
             device = True
 
         langs = params["lang"]
-        scale_factor = params['scaleFactor']
+        scale_factor = params["scaleFactor"]
         reader = easyocr.Reader(langs, device)
         results = []
-        for (image, image_path) in images:
+        for image, image_path in images:
 
-            image = np.array(image.convert('RGB'))[:, :, ::-1].copy()
+            image = np.array(image.convert("RGB"))[:, :, ::-1].copy()
             result = reader.readtext(image)
-            boxes = [ EasyOcr.points_to_box(box, text, float(score)).toString().scale(1 / scale_factor)
-                      for box, text, score in result]
+            boxes = [
+                EasyOcr.points_to_box(box, text, float(score)).toString().scale(1 / scale_factor)
+                for box, text, score in result
+            ]
 
             if params["keepFormatting"]:
                 text = EasyOcr.box_to_formatted_text(boxes, params["lineTolerance"])
             else:
                 text = "\n".join([str(w.text) for w in boxes])
 
-            results.append(Document(path=image_path,
-                        text=text,
-                        type="text",
-                        bboxes=boxes))
+            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
 
         gc.collect()
-        if int(params['device']) == Device.CUDA.value:
+        if int(params["device"]) == Device.CUDA.value:
             torch.cuda.empty_cache()
 
         return results

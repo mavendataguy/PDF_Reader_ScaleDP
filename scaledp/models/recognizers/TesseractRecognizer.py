@@ -2,7 +2,6 @@ from pyspark import keyword_only
 
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
-from scaledp.models.recognizers.BaseOcr import BaseOcr
 from scaledp.params import *
 from .BaseRecognizer import BaseRecognizer
 from ...enums import PSM, OEM, TessLib
@@ -12,17 +11,27 @@ class TesseractRecognizer(BaseRecognizer):
     """
     Run Tesseract text recognition on images.
     """
-    oem = Param(Params._dummy(), "oem",
-                "OCR engine mode. Defaults to :attr:`OEM.DEFAULT`.",
-                typeConverter=TypeConverters.toInt)
 
-    tessDataPath = Param(Params._dummy(), "tessDataPath",
-                         "Path to tesseract data folder.",
-                         typeConverter=TypeConverters.toString)
+    oem = Param(
+        Params._dummy(),
+        "oem",
+        "OCR engine mode. Defaults to :attr:`OEM.DEFAULT`.",
+        typeConverter=TypeConverters.toInt,
+    )
 
-    tessLib = Param(Params._dummy(), "tessLib",
-                    "The desired Tesseract library to use. Defaults to :attr:`TESSEROCR`",
-                    typeConverter=TypeConverters.toInt)
+    tessDataPath = Param(
+        Params._dummy(),
+        "tessDataPath",
+        "Path to tesseract data folder.",
+        typeConverter=TypeConverters.toString,
+    )
+
+    tessLib = Param(
+        Params._dummy(),
+        "tessLib",
+        "The desired Tesseract library to use. Defaults to :attr:`TESSEROCR`",
+        typeConverter=TypeConverters.toInt,
+    )
 
     defaultParams = {
         "inputCols": ["image", "boxes"],
@@ -36,7 +45,10 @@ class TesseractRecognizer(BaseRecognizer):
         "keepFormatting": False,
         "tessDataPath": "/usr/share/tesseract-ocr/5/tessdata/",
         "tessLib": TessLib.PYTESSERACT,
-        "partitionMap": False
+        "partitionMap": False,
+        "numPartitions": 0,
+        "pageCol": "page",
+        "pathCol": "path",
     }
 
     @keyword_only
@@ -77,7 +89,9 @@ class TesseractRecognizer(BaseRecognizer):
 
     @staticmethod
     def getLangTess(params):
-        return "+".join([LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in params['lang']])
+        return "+".join(
+            [LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in params["lang"]]
+        )
 
     @classmethod
     def call_tesserocr(cls, images, detected_boxes, params):  # pragma: no cover
@@ -85,38 +99,53 @@ class TesseractRecognizer(BaseRecognizer):
 
         results = []
         lang = cls.getLangTess(params)
-        print(lang)
-        with PyTessBaseAPI(path=params['tessDataPath'], psm=PSM.SINGLE_WORD, oem=params['oem'],
-                           lang=lang) as api:
+        with PyTessBaseAPI(
+            path=params["tessDataPath"],
+            psm=PSM.SINGLE_WORD,
+            oem=params["oem"],
+            lang=lang,
+        ) as api:
             api.SetVariable("debug_file", "ocr.log")
-            api.SetVariable("save_blob_choices", "T")
+            #api.SetVariable("tessedit_char_whitelist", "1234567890.,-:")
 
             for (image, image_path), detected_box in zip(images, detected_boxes):
                 api.SetImage(image)
 
                 boxes = []
                 texts = []
+                # if not isinstance(detected_box, DetectorOutput):
+                #     detected_box = DetectorOutput(**detected_box.to_dict())
 
                 for box in detected_box.bboxes:
+                    if isinstance(box, dict):
+                        box = Box(**box)
                     if not isinstance(box, Box):
                         box = Box(**box.asDict())
-                    scaled_box = box.scale(params['scaleFactor'])
-                    api.SetRectangle(scaled_box.x, scaled_box.y, scaled_box.width, scaled_box.height)
+                    scaled_box = box.scale(params["scaleFactor"], padding=0)
+                    api.SetRectangle(
+                        scaled_box.x, scaled_box.y, scaled_box.width, scaled_box.height
+                    )
                     box.text = api.GetUTF8Text().replace("\n", "")
                     box.score = api.MeanTextConf() / 100
-                    if box.score > params['scoreThreshold']:
+                    if box.score > params["scoreThreshold"]:
                         boxes.append(box)
                         texts.append(box.text)
                 if params["keepFormatting"]:
-                    text = TesseractRecognizer.box_to_formatted_text(boxes, params["lineTolerance"])
+                    text = TesseractRecognizer.box_to_formatted_text(
+                        boxes, params["lineTolerance"]
+                    )
                 else:
                     text = " ".join(texts)
 
-                results.append(Document(path=image_path,
-                                        text=text,
-                                        bboxes=boxes,
-                                        type="text",
-                                        exception=""))
+                results.append(
+                    Document(
+                        path=image_path,
+                        text=text,
+                        bboxes=boxes,
+                        type="text",
+                        exception="",
+                    )
+                )
         return results
 
     @classmethod
