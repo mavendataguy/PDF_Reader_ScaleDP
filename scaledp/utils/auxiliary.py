@@ -1,4 +1,3 @@
-
 ## Form the https://github.com/xdanny/pyspark_types/blob/main/pyspark_types/auxiliary.py
 ## with some changes
 

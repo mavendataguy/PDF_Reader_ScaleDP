@@ -7,11 +7,11 @@ from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import lit, udf
 
 from scaledp.params import *
-from scaledp.schemas.Document import Document
+from scaledp.schemas.Image import Image
 from scaledp.schemas.ExtractorOutput import ExtractorOutput
 
 
-class BaseExtractor(
+class BaseVisualExtractor(
     Transformer,
     HasInputCol,
     HasOutputCol,
@@ -29,43 +29,42 @@ class BaseExtractor(
         return json.dumps({k.name: v for k, v in self.extractParamMap().items()})
 
     @classmethod
-    def call_extractor(cls, documents, params):
+    def call_extractor(cls, images, params):
         raise NotImplementedError("Subclasses should implement this method")
 
-    def transform_udf(self, document, params=None):
-        logging.info("Run Data Extractor")
+    def transform_udf(self, image, params=None):
+        logging.info("Run Image Data Extractor")
         if params is None:
             params = self.get_params()
         params = json.loads(params)
-        if not isinstance(document, Document):
-            document = Document(**document.asDict())
-        if document.exception != "":
+        if not isinstance(image, Image):
+            image = Image(**image.asDict())
+        if image.exception != "":
             return ExtractorOutput(
-                path=document.path,
+                path=image.path,
                 data="",
                 type="extractor",
-                exception=document.exception,
+                exception=image.exception,
             )
         try:
 
-            result = self.call_extractor([document], params)
+            result = self.call_extractor([image], params)
         except Exception:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error in data extraction: {exception}, {document.exception}"
+            exception = f"{self.uid}: Error in data extraction: {exception}, {image.exception}"
             logging.warning(f"{self.uid}: Error in data extraction.")
             return ExtractorOutput(
-                path=document.path, data="", type="detector", exception=exception
+                path=image.path, data="", type="detector", exception=exception
             )
         return result[0]
 
     def _transform(self, dataset):
-        params = self.get_params()
         out_col = self.getOutputCol()
         in_col = self._validate(self.getInputCol(), dataset)
 
         result = dataset.withColumn(
             out_col,
-            udf(self.transform_udf, ExtractorOutput.get_schema())(in_col, lit(params)),
+            udf(self.transform_udf, ExtractorOutput.get_schema())(in_col, lit(self.get_params())),
         )
         if not self.getKeepInputData():
             result = result.drop(in_col)

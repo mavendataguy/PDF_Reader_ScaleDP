@@ -1,33 +1,26 @@
 import json
-
-import pydantic
-from pyspark.ml.param import Param, Params, TypeConverters
+import os
 
 from .BaseExtractor import BaseExtractor
-from ...enums import Device
 from pyspark import keyword_only
 
-from ...params import HasLLM
+from ...params import HasLLM, HasSchema
 from ...schemas.ExtractorOutput import ExtractorOutput
 from ...utils.pydantic_shema_utils import json_schema_to_model
 
 
-class DSPyExtractor(BaseExtractor, HasLLM):
-
-    schema = Param(Params._dummy(), "schema",
-                  "Output schema.",
-                  typeConverter=TypeConverters.toString)
+class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
 
     defaultParams = {
         "inputCol": "text",
         "outputCol": "data",
         "keepInputData": True,
         "model": "llama3-8b-8192",
-        "apiBase": "https://api.groq.com/openai/v1",
-        "apiKey": "",
+        "apiBase": None,
+        "apiKey": None,
         "numPartitions": 1,
         "pageCol": "page",
-        "pathCol": "path"
+        "pathCol": "path",
     }
 
     @keyword_only
@@ -40,48 +33,36 @@ class DSPyExtractor(BaseExtractor, HasLLM):
     def call_extractor(self, documents, params):
         import dspy
         lm = dspy.LM(
-            params['model'],
-            api_base=params['apiBase'],
-            api_key=params['apiKey'],
+            params["model"],
+            api_base=params["apiBase"] or os.environ["OPENAI_BASE_URL"],
+            api_key=params["apiKey"] or os.environ["OPENAI_API_KEY"],
         )
         dspy.configure(lm=lm)
 
-        schema = json.loads(params['schema'])
-        schema = json_schema_to_model(schema, schema.get('$defs', {}))
+        schema = json.loads(params["schema"])
+        schema = json_schema_to_model(schema, schema.get("$defs", {}))
 
         class ExtractData(dspy.Signature):
             """improve a recognized text and Extract structured information from the receipt."""
 
             text: str = dspy.InputField(
-                desc="""text representation of the receipt""",
+                desc="""OCR recognized text of the receipt from the Ukrainian store""",
             )
             data: schema = dspy.OutputField(
-                desc="improve a recognized text and extract a structured representation of the receipt",
+                desc="Structured data from the receipt with fixes and improvements of OCR recognition."
             )
-
 
         module = dspy.ChainOfThought(ExtractData)
 
-
         results = []
         for document in documents:
-            print(document.text)
-
             data = module(text=document.text).data
-            results.append(ExtractorOutput(path=document.path,
-                               data=data.json(),
-                               type="DSPyExtractor",
-                               exception=""))
+            results.append(
+                ExtractorOutput(
+                    path=document.path,
+                    data=data.json(),
+                    type="DSPyExtractor",
+                    exception="",
+                )
+            )
         return results
-
-    def getSchema(self):
-        """
-        Gets the value of schema or its default value.
-        """
-        return self.getOrDefault(self.schema)
-
-    def setSchema(self, value):
-        """
-        Sets the value of :py:attr:`schema`.
-        """
-        return self._set(schema=value)

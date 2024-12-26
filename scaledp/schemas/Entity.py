@@ -1,6 +1,9 @@
-
 from dataclasses import dataclass
-from scaledp.utils.dataclass import map_dataclass_to_struct, register_type, apply_nullability
+from scaledp.utils.dataclass import (
+    map_dataclass_to_struct,
+    register_type,
+    apply_nullability,
+)
 from scaledp.schemas.Box import Box
 
 
@@ -16,5 +19,6 @@ class Entity:
     @staticmethod
     def get_schema():
         return apply_nullability(map_dataclass_to_struct(Entity), True)
+
 
 register_type(Entity, Entity.get_schema)

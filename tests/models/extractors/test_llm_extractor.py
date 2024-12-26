@@ -1,4 +1,4 @@
-from scaledp.models.extractors.DSPyExtractor import DSPyExtractor
+from scaledp.models.extractors.LLMExtractor import LLMExtractor
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 from pydantic import BaseModel, Field
 import json
@@ -24,13 +24,12 @@ class ReceiptSchema(BaseModel):
     items: list[ReceiptItem]
 
 
-def test_dspy_extractor(image_receipt_df):
+def test_llm_extractor(image_receipt_df):
     # Initialize the OCR stage
     ocr = TesseractOcr(keepInputData=True, lang=["ukr", "eng"], keepFormatting=True)
 
     # Initialize the NER stage with the specified model and device
-    extractor = DSPyExtractor(model="openai/gemini-1.5-flash",
-                              schema=json.dumps(ReceiptSchema.model_json_schema()))
+    extractor = LLMExtractor(model="gemini-1.5-flash", schema=ReceiptSchema)
 
     # Transform the image dataframe through the OCR and NER stages
     result_df = extractor.transform(ocr.transform(image_receipt_df))
