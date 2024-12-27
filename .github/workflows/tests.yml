@@ -64,6 +64,9 @@ jobs:
       #              run test suite
       #----------------------------------------------
       - name: Run tests
+        with:
+          envkey_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          envkey_OPENAI_BASE_URL: 'https://generativelanguage.googleapis.com/v1beta/'
         run:
           poetry run pytest --cov-report=xml  --cov=scaledp tests/
 
