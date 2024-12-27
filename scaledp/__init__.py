@@ -19,6 +19,8 @@ from scaledp.models.detectors.YoloDetector import YoloDetector
 from scaledp.models.extractors.DSPyExtractor import DSPyExtractor
 from scaledp.models.recognizers.TesseractRecognizer import TesseractRecognizer
 from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
+from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
+from scaledp.models.extractors.LLMExtractor import LLMExtractor
 from importlib import resources
 from scaledp import enums
 from scaledp.enums import *
@@ -80,6 +82,8 @@ __all__ = [
     "DSPyExtractor",
     "TesseractRecognizer",
     "DocTRTextDetector",
+    "LLMVisualExtractor",
+    "LLMExtractor",
     "__version__",
     "files",
 ] + dir(enums)

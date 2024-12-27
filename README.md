@@ -29,13 +29,27 @@
 
 ScaleDP is library allows you to process documents using Apache Spark.  Discover pre-trained models for your projects or play with the thousands of machine learning apps hosted on the [Hugging Face Hub](https://huggingface.co/).
 
-## Key features:
+## Key features
 
+### Document processing:
 - Load PDF documents/Images to the Spark DataFrame
 - Extract text from PDF documents/Images
 - Extract images from PDF documents
+- Create document processing pipelines
+
+### OCR:
 - OCR Images/PDF documents using various OCR engines
-- Run NLP models from the Hugging Face Hub on text extracted from PDF documents/Images
+- OCR Images/PDF documents using Vision LLM models
+
+### CV:
+- Object detection on images
+- Text detection on images
+
+### NLP and LLM:
+- Extract data from the image using Vision LLM models
+- Extract data from the text/images using LLM models
+- Extract data from using DSPy framework
+- Extract data from the text/images using NLP models from the Hugging Face Hub
 - Visualize results
 
 Support various open-source OCR engines:

@@ -5,6 +5,8 @@ from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from scaledp.schemas.Image import Image
 from scaledp.params import *
 from scaledp.enums import ImageType
+import logging
+import traceback
 
 
 class DataToImage(
@@ -38,7 +40,14 @@ class DataToImage(
         self._set(**kwargs)
 
     def transform_udf(self, input, path, resolution):
-        return Image.from_binary(input, path, self.getImageType(), resolution=resolution)
+        try:
+            return Image.from_binary(input, path, self.getImageType(), resolution=resolution)
+        except Exception:
+            exception = traceback.format_exc()
+            exception = f"DataToImage: {exception}"
+            logging.warning(exception)
+            return Image(path, self.getImageType(), data=bytes(), exception=exception)
+
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
