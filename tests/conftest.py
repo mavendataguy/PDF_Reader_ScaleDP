@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from PIL import Image as pImage
 
@@ -73,6 +75,14 @@ def image_receipt_df(spark_session, resource_path_root):
         (resource_path_root / "images" / "receipt.jpg").absolute().as_posix())
     bin_to_image = DataToImage().setImageType(ImageType.WEBP.value)
     return bin_to_image.transform(df)
+
+@pytest.fixture
+def receipt_json(receipt_json_path: Path) -> Path:
+    return receipt_json_path.open("r").read()
+
+@pytest.fixture
+def receipt_json_path(resource_path_root: Path) -> Path:
+    return (resource_path_root / "images" / "receipt.json")
 
 @pytest.fixture
 def text_df(spark_session, resource_path_root):

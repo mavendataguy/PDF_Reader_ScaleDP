@@ -1,3 +1,4 @@
+from scaledp import TessLib
 from scaledp.models.extractors.LLMExtractor import LLMExtractor
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 from pydantic import BaseModel, Field
@@ -26,7 +27,10 @@ class ReceiptSchema(BaseModel):
 
 def test_llm_extractor(image_receipt_df):
     # Initialize the OCR stage
-    ocr = TesseractOcr(keepInputData=True, lang=["ukr", "eng"], keepFormatting=True)
+    ocr = TesseractOcr(keepInputData=True,
+                       lang=["ukr", "eng"],
+                       keepFormatting=True,
+                       tessLib=TessLib.PYTESSERACT)
 
     # Initialize the NER stage with the specified model and device
     extractor = LLMExtractor(model="gemini-1.5-flash", schema=ReceiptSchema)

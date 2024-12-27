@@ -52,6 +52,8 @@ def _calculate_value_similarity(value1: Any, value2: Any) -> float:
     elif isinstance(value1, (int, float)):
         return 1 - abs(value1 - value2) / max(abs(value1), abs(value2), 1)
     elif isinstance(value1, str):
+        if value1 == "" and value2 == "":
+            return 1.0
         return 1 - distance(value1, value2) / max(len(value1), len(value2))
     else:
         # Handle other data types (e.g., booleans, dates) as needed

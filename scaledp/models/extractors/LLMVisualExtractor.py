@@ -20,7 +20,7 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
         "numPartitions": 1,
         "pageCol": "page",
         "pathCol": "path",
-        "prompt": """Please extract data from the scanned image as json.""",
+        "prompt": """Please extract data from the scanned image as json. Date format is yyyy-mm-dd""",
         "systemPrompt": "You are data extractor from the scanned images.",
     }
 
