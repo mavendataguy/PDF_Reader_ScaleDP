@@ -15,6 +15,9 @@ from scaledp.schemas.Image import Image
 from scaledp.schemas.DetectorOutput import DetectorOutput
 
 
+class DetectionError(Exception):
+    pass
+
 class BaseDetector(
     Transformer,
     HasInputCol,
@@ -30,6 +33,7 @@ class BaseDetector(
     HasNumPartitions,
     HasPageCol,
     HasPathCol,
+    HasPropagateError
 ):
 
     scaleFactor = Param(
@@ -78,7 +82,6 @@ class BaseDetector(
         if image.exception != "":
             return DetectorOutput(
                 path=image.path,
-                text="",
                 bboxes=[],
                 type="detector",
                 exception=image.exception,
@@ -97,10 +100,12 @@ class BaseDetector(
                 resized_image = image_pil
 
             result = self.call_detector([(resized_image, image.path)], params)
-        except Exception:
+        except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in object detection: {exception}, {image.exception}"
             logging.warning(f"{self.uid}: Error in object detection.")
+            if self.getPropagateError():
+                raise DetectionError() from e
             return DetectorOutput(path=image.path, bboxes=[], type="detector", exception=exception)
         return result[0]
 

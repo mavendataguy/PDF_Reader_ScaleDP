@@ -9,6 +9,10 @@ import logging
 import traceback
 
 
+class ImageError(Exception):
+    pass
+
+
 class DataToImage(
     Transformer,
     HasInputCol,
@@ -20,6 +24,7 @@ class DataToImage(
     DefaultParamsReadable,
     DefaultParamsWritable,
     HasColumnValidator,
+    HasPropagateError,
 ):
     """
     Transform Binary Content to Image
@@ -31,6 +36,7 @@ class DataToImage(
         "pathCol": "path",
         "keepInputData": False,
         "imageType": ImageType.FILE,
+        "propagateError": False,
     }
 
     @keyword_only
@@ -42,10 +48,12 @@ class DataToImage(
     def transform_udf(self, input, path, resolution):
         try:
             return Image.from_binary(input, path, self.getImageType(), resolution=resolution)
-        except Exception:
+        except Exception as ex:
             exception = traceback.format_exc()
             exception = f"DataToImage: {exception}"
             logging.warning(exception)
+            if self.getPropagateError():
+                raise ImageError(exception) from ex
             return Image(path, self.getImageType(), data=bytes(), exception=exception)
 
 

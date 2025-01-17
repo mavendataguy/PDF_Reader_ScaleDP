@@ -45,26 +45,19 @@ class Image(object):
     @staticmethod
     def from_binary(data, path, imageType, resolution=None, width=None, height=None):
         img = Image(path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution)
-        try:
-            if data is None or len(data) == 0:
-                raise Exception("Empty image data.")
-            if imageType in (ImageType.FILE.value, ImageType.WEBP.value):
-                if height is not None:
-                    img.height = height
-                if width is not None:
-                    img.width = width
-                if width is None and height is None:
-                    img.width, img.height = imagesize.get(io.BytesIO(img.data))
-                    if img.width == -1:
-                        raise Exception("Unable to read image.")
-                    logging.info(f"Image size: {img.width}x{img.height}")
-            return img
-        except Exception:
-            exception = traceback.format_exc()
-            exception = f"Error during image extraction: Image from binary data: {exception}"
-            logging.error(f"ImageFromBinaryData: {exception}")
-            img.exception = exception
-            return img
+        if data is None or len(data) == 0:
+            raise ValueError("Empty image data.")
+        if imageType in (ImageType.FILE.value, ImageType.WEBP.value):
+            if height is not None:
+                img.height = height
+            if width is not None:
+                img.width = width
+            if width is None and height is None:
+                img.width, img.height = imagesize.get(io.BytesIO(img.data))
+                if img.width == -1:
+                    raise Exception("Unable to read image.")
+                logging.info(f"Image size: {img.width}x{img.height}")
+        return img
 
     @staticmethod
     def from_pil(data, path, imageType, resolution):
