@@ -29,6 +29,8 @@ class ImageDrawBoxes(
     HasNumPartitions,
     HasColumnValidator,
     HasDefaultEnum,
+    HasWhiteList,
+    HasBlackList,
     metaclass=AutoParamsMeta,
 ):
     """
@@ -70,6 +72,8 @@ class ImageDrawBoxes(
         "numPartitions": 0,
         "padding": 0,
         "pageCol": "page",
+        "whiteList": [],
+        "blackList": [],
     }
 
     @keyword_only
@@ -112,6 +116,9 @@ class ImageDrawBoxes(
             img1 = ImageDraw.Draw(img)
             fill = self.getColor() if self.getFilled() else None
 
+            black_list = self.getBlackList()
+            white_list = self.getWhiteList()
+
             if hasattr(data, "entities"):
                 if not isinstance(data, NerOutput):
                     data = NerOutput(**data.asDict())
@@ -120,6 +127,11 @@ class ImageDrawBoxes(
 
                     if not isinstance(ner, Entity):
                         ner = Entity(**ner.asDict())
+
+                    if ner.entity_group in black_list:
+                        continue
+                    if white_list and ner.entity_group not in white_list:
+                        continue
 
                     if ner.entity_group not in colors:
                         colors[ner.entity_group] = get_color()
@@ -198,10 +210,15 @@ class ImageDrawBoxes(
             return Image(image.path, image.imageType, data=bytes(), exception=exception)
         return Image.from_pil(img, image.path, image.imageType, image.resolution)
 
+    def _preprocessing(self, dataset):
+        return dataset
+
     def _transform(self, dataset):
         out_col = self.getOutputCol()
         image_col = self._validate(self.getInputCols()[0], dataset)
         box_col = self._validate(self.getInputCols()[1], dataset)
+
+        dataset = self._preprocessing(dataset)
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())
