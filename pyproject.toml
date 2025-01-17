@@ -49,6 +49,7 @@ url = "https://download.pytorch.org/whl/cpu"
 priority = "explicit"
 
 [project]
+name = "scaledp"
 dependencies = [
     "pytest"
 ]
