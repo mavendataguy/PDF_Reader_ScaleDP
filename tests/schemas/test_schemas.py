@@ -1,11 +1,12 @@
 import io
+import pytest
 from scaledp import ImageType
 from scaledp.schemas.Image import Image
 
 def test_image(image_pil_1x1):
     # Test with invalid image data
-    img = Image.from_binary(data=None, path='path', imageType=ImageType.FILE.value)
-    assert 'Empty image data.' in img.exception
+    with pytest.raises(ValueError):
+        img = Image.from_binary(data=None, path='path', imageType=ImageType.FILE.value)
 
     image = Image.from_pil(image_pil_1x1, 'path', ImageType.FILE.value, 300)
     # Test to_webp method
