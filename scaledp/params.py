@@ -312,6 +312,30 @@ class HasWhiteList(Params):
         return self._set(whiteList=value)
 
 
+class HasBlackList(Params):
+    """
+    Mixin for param blackList.
+    """
+
+    blackList: "Param[List[str]]" = Param(
+        Params._dummy(),
+        "blackList",
+        "Black list.",
+        typeConverter=TypeConverters.toListString,
+    )
+
+    def getBlackList(self):
+        """
+        Gets the value of whiteList or its default value.
+        """
+        return self.getOrDefault(self.blackList)
+
+    def setBlackList(self, value):
+        """
+        Sets the value of :py:attr:`blackList`.
+        """
+        return self._set(blackList=value)
+
 class HasScoreThreshold(Params):
     """
     Mixin for param scoreThreshold.
@@ -563,23 +587,42 @@ class HasLLM(Params):
     model = Param(Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString)
     apiBase = Param(Params._dummy(), "apiBase", "apiBase.", typeConverter=TypeConverters.toString)
     apiKey = Param(Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString)
+    delay = Param(Params._dummy(), "delay", "Delay.", typeConverter=TypeConverters.toInt)
+    maxRetry = Param(Params._dummy(), "maxRetry", "Max retry.", typeConverter=TypeConverters.toInt)
     systemPrompt = Param(
         Params._dummy(),
         "systemPrompt",
         "System prompt.",
         typeConverter=TypeConverters.toString,
     )
+
+    openAiClient = None
     def __init__(self) -> None:
         super(HasLLM, self).__init__()
 
     def getOIClient(self):
         from openai import OpenAI
+        if self.openAiClient:
+            return self.openAiClient
         kwargs = {}
         if self.getApiKey():
             kwargs["api_key"] = self.getApiKey()
         if self.getApiBase():
             kwargs["base_url"] = self.getApiBase()
-        return OpenAI(**kwargs)
+        self.openAiClient = OpenAI(**kwargs)
+        return self.openAiClient
+
+    def getDelay(self):
+        """
+        Gets the value of delay or its default value.
+        """
+        return self.getOrDefault(self.delay)
+
+    def getMaxRetry(self):
+        """
+        Gets the value of maxRetry or its default value.
+        """
+        return self.getOrDefault(self.maxRetry)
 
     def getModel(self):
         """
@@ -628,3 +671,25 @@ class HasLLM(Params):
         Sets the value of :py:attr:`systemPrompt`.
         """
         return self._set(systemPrompt=value)
+
+
+class HasPropagateError(Params):
+
+    propagateError = Param(
+        Params._dummy(),
+        "propagateError",
+        "propagateError.",
+        typeConverter=TypeConverters.toBoolean,
+    )
+
+    def getPropagateError(self):
+        """
+        Gets the value of propagateError or its default value.
+        """
+        return self.getOrDefault(self.propagateError)
+
+    def setPropagateError(self, value):
+        """
+        Sets the value of :py:attr:`propagateError`.
+        """
+        return self._set(propagateError=value)

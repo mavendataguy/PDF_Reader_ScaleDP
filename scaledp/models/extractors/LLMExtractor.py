@@ -1,4 +1,5 @@
 import json
+import time
 
 from .BaseExtractor import BaseExtractor
 from pyspark import keyword_only
@@ -20,6 +21,7 @@ class LLMExtractor(BaseExtractor, HasLLM, HasSchema, HasPrompt):
         "pageCol": "page",
         "pathCol": "path",
         "prompt": """Please extract data from the text as json.""",
+        "delay": 0,
     }
 
     @keyword_only
@@ -46,6 +48,8 @@ class LLMExtractor(BaseExtractor, HasLLM, HasSchema, HasPrompt):
                 ],
                 response_format=self.getPaydanticSchema(),
             )
+            if self.getDelay():
+                time.sleep(self.getDelay())
             results.append(
                 ExtractorOutput(
                     path=document.path,
