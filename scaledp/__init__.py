@@ -65,30 +65,6 @@ def version():
 __version__ = version()
 
 
-__all__ = [
-    "ScaleDPSession",
-    "DataToImage",
-    "ImageDrawBoxes",
-    "PdfDataToImage",
-    "TesseractOcr",
-    "Ner",
-    "TextToDocument",
-    "PipelineModel",
-    "SuryaOcr",
-    "EasyOcr",
-    "DocTROcr",
-    "YoloDetector",
-    "ImageCropBoxes",
-    "DSPyExtractor",
-    "TesseractRecognizer",
-    "DocTRTextDetector",
-    "LLMVisualExtractor",
-    "LLMExtractor",
-    "__version__",
-    "files",
-] + dir(enums)
-
-
 files = lambda path: resources.files("scaledp").joinpath(path).as_posix()
 
 
@@ -119,10 +95,10 @@ def ScaleDPSession(
 
     if with_pro:
         try:
-            import sparkpdf_pro
+            import scaledp_pro
         except ImportError:
             raise ImportError(
-                "ScaleDP Pro Pro is not installed. Please install it using 'pip install scaledp-pro'"
+                "ScaleDP Pro is not installed. Please install it using 'pip install scaledp-pro'"
             )
 
     jars = []
@@ -158,3 +134,27 @@ def ScaleDPSession(
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel(logLevel=logLevel)
     return spark
+
+
+__all__ = [
+    "ScaleDPSession",
+    "DataToImage",
+    "ImageDrawBoxes",
+    "PdfDataToImage",
+    "TesseractOcr",
+    "Ner",
+    "TextToDocument",
+    "PipelineModel",
+    "SuryaOcr",
+    "EasyOcr",
+    "DocTROcr",
+    "YoloDetector",
+    "ImageCropBoxes",
+    "DSPyExtractor",
+    "TesseractRecognizer",
+    "DocTRTextDetector",
+    "LLMVisualExtractor",
+    "LLMExtractor",
+    "__version__",
+    "files",
+] + dir(enums)

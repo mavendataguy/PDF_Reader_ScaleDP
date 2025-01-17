@@ -26,6 +26,7 @@ class YoloDetector(BaseDetector, HasDevice, HasBatchSize):
         "numPartitions": 0,
         "pageCol": "page",
         "pathCol": "path",
+        "propagateError": False,
     }
 
     @keyword_only

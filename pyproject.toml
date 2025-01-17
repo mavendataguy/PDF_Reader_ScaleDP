@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scaledp"
-version = "0.2.0rc7"
+version = "0.2.0rc27"
 description = "ScaleDP is a library for processing documents using Apache Spark and LLMs"
 authors = ["Mykola Melnyk <mykola@stabrise.com>"]
 repository = "https://github.com/StabRise/scaledp"
@@ -31,11 +31,12 @@ torch =  [
     #{version = "==2.2.0", platform = "darwin", optional = true },
     {version = ">=2.4.1", source = "pytorch_cpu", platform = "linux", optional = true}
 ]
-ultralytics = "^8.3.40"
 dspy = {version = "2.5.43", optional = true}
 levenshtein = "^0.26.1"
 pydantic = ">=1.8.0"
 huggingface-hub = "^0.27.0"
+tenacity = "^9.0.0"
+openai = "^1.58.0"
 
 [tool.poetry.extras]
 ml = ["transformers", "torch"]
@@ -48,6 +49,7 @@ url = "https://download.pytorch.org/whl/cpu"
 priority = "explicit"
 
 [project]
+name = "scaledp"
 dependencies = [
     "pytest"
 ]
@@ -66,10 +68,11 @@ transformers = "^4.36.0"
 torchvision= {version= ">=0.18.0", source = "pytorch_cpu"}
 python-doctr  = "0.10.0"
 surya-ocr = "0.8.1"
-openai = "^1.58.0"
+
+ultralytics = "^8.3.40"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core<2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff.lint]

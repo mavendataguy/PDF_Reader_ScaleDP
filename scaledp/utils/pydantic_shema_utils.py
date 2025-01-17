@@ -1,3 +1,4 @@
+from enum import Enum
 from pydantic import BaseModel, Field, create_model
 from typing import Any, Dict, List, Optional, Type, Union
 from datetime import datetime, date, time
@@ -38,12 +39,28 @@ def json_schema_to_pydantic_field(name: str, json_schema: Dict[str, Any], requir
     type_ = json_schema_to_pydantic_type(json_schema, definitions)
     description = json_schema.get('description')
     examples = json_schema.get('examples')
+    min_length = json_schema.get('minLength')
+    max_length = json_schema.get('maxLength')
+    minimum = json_schema.get('minimum')
+    maximum = json_schema.get('maximum')
+    exclusive_minimum = json_schema.get('exclusiveMinimum')
+    exclusive_maximum = json_schema.get('exclusiveMaximum')
+    pattern = json_schema.get('pattern')
 
     # Handle optional fields (including 'anyOf' with 'null')
     if name not in required or ('anyOf' in json_schema and any(item.get('type') == 'null' for item in json_schema.get('anyOf', []))):
         type_ = Optional[type_]
 
-    return (type_, Field(description=description, examples=examples, default=... if name in required else None))
+    return (type_, Field(description=description,
+                         examples=examples,
+                         min_length=min_length,
+                         max_length=max_length,
+                         ge=minimum,
+                         le=maximum,
+                         gt=exclusive_minimum,
+                         lt=exclusive_maximum,
+                         pattern=pattern,
+                         default=... if name in required else None))
 
 def json_schema_to_pydantic_type(json_schema: Dict[str, Any], definitions: Dict[str, Any] = None) -> Any:
     """
@@ -67,6 +84,8 @@ def json_schema_to_pydantic_type(json_schema: Dict[str, Any], definitions: Dict[
             return time
         elif format_ == 'date-time':
             return datetime
+        if 'enum' in json_schema:
+            return Enum(json_schema.get('title', 'EnumType'), {member: member for member in json_schema['enum']})
         return str
     elif type_ == 'integer':
         return int

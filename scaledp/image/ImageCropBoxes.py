@@ -12,6 +12,10 @@ from ..enums import ImageType
 from scaledp.params import *
 
 
+class ImageCropError(Exception):
+    pass
+
+
 class ImageCropBoxes(
     Transformer,
     HasInputCols,
@@ -25,6 +29,7 @@ class ImageCropBoxes(
     HasNumPartitions,
     HasColumnValidator,
     HasDefaultEnum,
+    HasPropagateError,
     metaclass=AutoParamsMeta,
 ):
     """
@@ -32,6 +37,7 @@ class ImageCropBoxes(
     """
 
     padding = Param(Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt)
+    noCrop = Param(Params._dummy(), "noCrop", "Does not Crop if boxes is empty.", typeConverter=TypeConverters.toBoolean)
 
     defaultParams = {
         "inputCols": ["image", "boxes"],
@@ -41,6 +47,8 @@ class ImageCropBoxes(
         "numPartitions": 0,
         "padding": 0,
         "pageCol": "page",
+        "propagateError": False,
+        "noCrop": True,
     }
 
     @keyword_only
@@ -55,8 +63,8 @@ class ImageCropBoxes(
         try:
             if image.exception != "":
                 return Image(
-                    image.origin,
-                    image.imageType,
+                    path=image.path,
+                    imageType=image.imageType,
                     data=bytes(),
                     exception=image.exception,
                 )
@@ -69,13 +77,17 @@ class ImageCropBoxes(
                     results.append(img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True))
                 else:
                     results.append(img.crop(box.bbox(self.getPadding())))
+            if self.getNoCrop() and len(results) == 0:
+                raise ImageCropError("No boxes to crop")
             if len(results) == 0:
                 results.append(img)
 
-        except Exception:
+        except Exception as e:
             exception = traceback.format_exc()
             exception = f"ImageCropBoxes: {exception}, {image.exception}"
             logging.warning(exception)
+            if self.getPropagateError():
+                raise ImageCropError() from e
             return Image(image.path, image.imageType, data=bytes(), exception=exception)
         return Image.from_pil(results[0], image.path, image.imageType, image.resolution)
 

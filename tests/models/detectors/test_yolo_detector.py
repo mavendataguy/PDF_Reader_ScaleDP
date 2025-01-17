@@ -1,4 +1,6 @@
 import tempfile
+
+from scaledp.models.detectors.BaseDetector import DetectionError
 from scaledp import DataToImage, ImageDrawBoxes
 from scaledp.models.detectors.YoloDetector import YoloDetector
 from scaledp.enums import Device
@@ -40,6 +42,7 @@ def test_yolo_detector_local_pipeline(receipt_file):
     # Initialize the pipeline stages
     data_to_image = DataToImage()
     detector = YoloDetector(device=Device.CPU,
+                            propagateError=True,
                             model="StabRise/receipt-detector-25-12-2024")
     draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "boxes"],
                           filled=False, color="green", lineWidth=5,
@@ -48,7 +51,9 @@ def test_yolo_detector_local_pipeline(receipt_file):
     # Create the pipeline
     pipeline = PandasPipeline(stages=[data_to_image, detector, draw])
 
+    detection = 0
     # Run the pipeline on the input image file
+
     result = pipeline.fromFile(receipt_file)
 
     # Verify the pipeline result

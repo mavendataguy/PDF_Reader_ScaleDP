@@ -11,6 +11,10 @@ from scaledp.schemas.Image import Image
 from scaledp.schemas.ExtractorOutput import ExtractorOutput
 
 
+class VisualExtractorError(Exception):
+    pass
+
+
 class BaseVisualExtractor(
     Transformer,
     HasInputCol,
@@ -23,6 +27,7 @@ class BaseVisualExtractor(
     HasPageCol,
     HasColumnValidator,
     HasDefaultEnum,
+    HasPropagateError,
 ):
 
     def get_params(self):
@@ -49,10 +54,12 @@ class BaseVisualExtractor(
         try:
 
             result = self.call_extractor([image], params)
-        except Exception:
+        except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in data extraction: {exception}, {image.exception}"
             logging.warning(f"{self.uid}: Error in data extraction.")
+            if self.getPropagateError():
+                raise VisualExtractorError() from e
             return ExtractorOutput(
                 path=image.path, data="", type="detector", exception=exception
             )
