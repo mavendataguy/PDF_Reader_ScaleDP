@@ -589,6 +589,7 @@ class HasLLM(Params):
     apiKey = Param(Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString)
     delay = Param(Params._dummy(), "delay", "Delay.", typeConverter=TypeConverters.toInt)
     maxRetry = Param(Params._dummy(), "maxRetry", "Max retry.", typeConverter=TypeConverters.toInt)
+    temperature = Param(Params._dummy(), "temperature", "Temperature.", typeConverter=TypeConverters.toFloat)
     systemPrompt = Param(
         Params._dummy(),
         "systemPrompt",
@@ -604,13 +605,17 @@ class HasLLM(Params):
         from openai import OpenAI
         if self.openAiClient:
             return self.openAiClient
+        return self.getClient(self.getApiKey(), self.getApiBase())
+
+    @classmethod
+    def getClient(cls, apiKey, apiBase):
+        from openai import OpenAI
         kwargs = {}
-        if self.getApiKey():
-            kwargs["api_key"] = self.getApiKey()
-        if self.getApiBase():
-            kwargs["base_url"] = self.getApiBase()
-        self.openAiClient = OpenAI(**kwargs)
-        return self.openAiClient
+        if apiKey:
+            kwargs["api_key"] = apiKey
+        if apiBase:
+            kwargs["base_url"] = apiBase
+        return OpenAI(**kwargs)
 
     def getDelay(self):
         """
@@ -671,6 +676,12 @@ class HasLLM(Params):
         Sets the value of :py:attr:`systemPrompt`.
         """
         return self._set(systemPrompt=value)
+
+    def getTemperature(self):
+        """
+        Gets the value of temperature or its default value.
+        """
+        return self.getOrDefault(self.temperature)
 
 
 class HasPropagateError(Params):

@@ -55,6 +55,7 @@ class TesseractOcr(BaseOcr):
         "tessDataPath": "/usr/share/tesseract-ocr/5/tessdata/",
         "tessLib": TessLib.PYTESSERACT,
         "partitionMap": False,
+        "propagateError": False,
     }
 
     @keyword_only

@@ -32,6 +32,7 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
         "delay": 30,
         "maxRetry": 6,
         "propagateError": False,
+        "temperature": 1.0,
     }
 
     @keyword_only
@@ -80,6 +81,7 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                     },
                 ],
                 response_format=self.getPaydanticSchema(),
+                temperature=self.getTemperature(),
             )
 
             results.append(
