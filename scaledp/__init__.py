@@ -21,6 +21,7 @@ from scaledp.models.recognizers.TesseractRecognizer import TesseractRecognizer
 from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
 from scaledp.models.extractors.LLMExtractor import LLMExtractor
+from scaledp.models.recognizers.LLMOcr import LLMOcr
 from importlib import resources
 from scaledp import enums
 from scaledp.enums import *
@@ -155,6 +156,7 @@ __all__ = [
     "DocTRTextDetector",
     "LLMVisualExtractor",
     "LLMExtractor",
+    "LLMOcr",
     "__version__",
     "files",
 ] + dir(enums)

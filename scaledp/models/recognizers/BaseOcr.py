@@ -14,6 +14,9 @@ from scaledp.schemas.Document import Document
 from scaledp.schemas.Image import Image
 
 
+class OcrError(Exception):
+    pass
+
 class BaseOcr(
     Transformer,
     HasInputCol,
@@ -29,6 +32,7 @@ class BaseOcr(
     HasNumPartitions,
     HasPageCol,
     HasPathCol,
+    HasPropagateError,
 ):
 
     scaleFactor = Param(
@@ -124,10 +128,12 @@ class BaseOcr(
                 resized_image = image_pil
 
             result = self.call_ocr([(resized_image, image.path)], params)
-        except Exception:
+        except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
             logging.warning(f"{self.uid}: Error in text recognition.")
+            if self.getPropagateError():
+                raise OcrError() from e
             return Document(path=image.path, text="", bboxes=[], type="ocr", exception=exception)
         return result[0]
 

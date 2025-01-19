@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scaledp"
-version = "0.2.0rc27"
+version = "0.2.1rc3"
 description = "ScaleDP is a library for processing documents using Apache Spark and LLMs"
 authors = ["Mykola Melnyk <mykola@stabrise.com>"]
 repository = "https://github.com/StabRise/scaledp"

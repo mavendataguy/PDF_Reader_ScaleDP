@@ -26,6 +26,7 @@ class DocTROcr(BaseOcr, HasDevice, HasBatchSize):
         "pathCol": "path",
         "device": Device.CPU,
         "batchSize": 2,
+        "propagateError": False,
     }
 
     @keyword_only

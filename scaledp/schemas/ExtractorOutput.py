@@ -9,6 +9,7 @@ class ExtractorOutput:
     data: str
     type: str
     exception: str = ""
+    processing_time: float = 0.0
 
     @staticmethod
     def get_schema():
