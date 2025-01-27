@@ -43,7 +43,9 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
 
         predictor = ocr_predictor(pretrained=True, det_arch=params["model"])
 
-        predictor.det_predictor.model.postprocessor.box_thresh = params["scoreThreshold"]
+        predictor.det_predictor.model.postprocessor.box_thresh = params[
+            "scoreThreshold"
+        ]
 
         detector = predictor.det_predictor
 
@@ -81,9 +83,13 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
                     else resolve_geometry(geom[:4].tolist())
                 )
                 boxes.append(
-                    Box.fromBBox([g[0] * w, g[1] * h, g[2] * w, g[3] * h], score=geom[-1])
+                    Box.fromBBox(
+                        [g[0] * w, g[1] * h, g[2] * w, g[3] * h], score=geom[-1]
+                    )
                 )
-            results_final.append(DetectorOutput(path=image_path, type="doctr", bboxes=boxes))
+            results_final.append(
+                DetectorOutput(path=image_path, type="doctr", bboxes=boxes)
+            )
 
         gc.collect()
         if int(params["device"]) == Device.CUDA.value:

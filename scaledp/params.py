@@ -1,8 +1,8 @@
 from pyspark.ml.param import Param, Params, TypeConverters
 from enum import Enum
 
-from .utils.pydantic_shema_utils import json_schema_to_model
-from .langs import *
+from scaledp.utils.pydantic_shema_utils import json_schema_to_model
+from scaledp.langs import *
 from pydantic import BaseModel
 import json
 
@@ -251,7 +251,9 @@ class HasNumPartitions:
 
 
 class HasDevice(Params):
-    device = Param(Params._dummy(), "device", "Device.", typeConverter=TypeConverters.toInt)
+    device = Param(
+        Params._dummy(), "device", "Device.", typeConverter=TypeConverters.toInt
+    )
 
     def setDevice(self, value):
         """
@@ -336,6 +338,7 @@ class HasBlackList(Params):
         """
         return self._set(blackList=value)
 
+
 class HasScoreThreshold(Params):
     """
     Mixin for param scoreThreshold.
@@ -369,7 +372,9 @@ class HasModel(Params):
     Mixin for param model.
     """
 
-    model = Param(Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString)
+    model = Param(
+        Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString
+    )
 
     def __init__(self) -> None:
         super(HasModel, self).__init__()
@@ -388,7 +393,9 @@ class HasModel(Params):
 
 
 class HasColor(Params):
-    color = Param(Params._dummy(), "color", "Color.", typeConverter=TypeConverters.toString)
+    color = Param(
+        Params._dummy(), "color", "Color.", typeConverter=TypeConverters.toString
+    )
 
     def setColor(self, value):
         """
@@ -428,7 +435,8 @@ class HasDefaultEnum(Params):
                     value = value.value
                 except TypeError as e:
                     raise TypeError(
-                        'Invalid default param value given for param "%s". %s' % (param, e)
+                        'Invalid default param value given for param "%s". %s'
+                        % (param, e)
                     )
             validator = "validate" + param[0].upper() + param[1:]
             if hasattr(self, validator):
@@ -453,7 +461,9 @@ class HasDefaultEnum(Params):
                 try:
                     value = p.typeConverter(value)
                 except TypeError as e:
-                    raise TypeError('Invalid param value given for param "%s". %s' % (p.name, e))
+                    raise TypeError(
+                        'Invalid param value given for param "%s". %s' % (p.name, e)
+                    )
             self._paramMap[p] = value
         return self
 
@@ -494,7 +504,9 @@ class HasPartitionMap(Params):
 
 
 class HasLang(Params):
-    lang = Param(Params._dummy(), "lang", "Language.", typeConverter=TypeConverters.toListString)
+    lang = Param(
+        Params._dummy(), "lang", "Language.", typeConverter=TypeConverters.toListString
+    )
 
     def setLang(self, value):
         """
@@ -527,6 +539,13 @@ class HasSchema(Params):
         typeConverter=TypeConverters.toString,
     )
 
+    schemaByPrompt = Param(
+        Params._dummy(),
+        "schemaByPrompt",
+        "Output schema by prompt.",
+        typeConverter=TypeConverters.toBoolean,
+    )
+
     @staticmethod
     def toPydanticSchema(schema):
         schema = json.loads(schema)
@@ -557,6 +576,12 @@ class HasSchema(Params):
         """
         return self._set(schema=value)
 
+    def getSchemaByPrompt(self):
+        """
+        Gets the value of schemaByPrompt or its default value.
+        """
+        return self.getOrDefault(self.schemaByPrompt)
+
 
 class HasPrompt(Params):
 
@@ -566,6 +591,7 @@ class HasPrompt(Params):
         "Prompt.",
         typeConverter=TypeConverters.toString,
     )
+
     def getPrompt(self):
         """
         Gets the value of prompt or its default value.
@@ -584,12 +610,27 @@ class HasLLM(Params):
     Mixin for param model.
     """
 
-    model = Param(Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString)
-    apiBase = Param(Params._dummy(), "apiBase", "apiBase.", typeConverter=TypeConverters.toString)
-    apiKey = Param(Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString)
-    delay = Param(Params._dummy(), "delay", "Delay.", typeConverter=TypeConverters.toInt)
-    maxRetry = Param(Params._dummy(), "maxRetry", "Max retry.", typeConverter=TypeConverters.toInt)
-    temperature = Param(Params._dummy(), "temperature", "Temperature.", typeConverter=TypeConverters.toFloat)
+    model = Param(
+        Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString
+    )
+    apiBase = Param(
+        Params._dummy(), "apiBase", "apiBase.", typeConverter=TypeConverters.toString
+    )
+    apiKey = Param(
+        Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString
+    )
+    delay = Param(
+        Params._dummy(), "delay", "Delay.", typeConverter=TypeConverters.toInt
+    )
+    maxRetry = Param(
+        Params._dummy(), "maxRetry", "Max retry.", typeConverter=TypeConverters.toInt
+    )
+    temperature = Param(
+        Params._dummy(),
+        "temperature",
+        "Temperature.",
+        typeConverter=TypeConverters.toFloat,
+    )
     systemPrompt = Param(
         Params._dummy(),
         "systemPrompt",
@@ -598,11 +639,13 @@ class HasLLM(Params):
     )
 
     openAiClient = None
+
     def __init__(self) -> None:
         super(HasLLM, self).__init__()
 
     def getOIClient(self):
         from openai import OpenAI
+
         if self.openAiClient:
             return self.openAiClient
         return self.getClient(self.getApiKey(), self.getApiBase())
@@ -610,6 +653,7 @@ class HasLLM(Params):
     @classmethod
     def getClient(cls, apiKey, apiBase):
         from openai import OpenAI
+
         kwargs = {}
         if apiKey:
             kwargs["api_key"] = apiKey

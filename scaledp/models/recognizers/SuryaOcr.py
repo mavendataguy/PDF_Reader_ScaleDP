@@ -91,7 +91,9 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
             else:
                 text = "\n".join([str(w.text) for w in boxes])
 
-            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
+            results.append(
+                Document(path=image_path, text=text, type="text", bboxes=boxes)
+            )
 
         gc.collect()
         if int(params["device"]) == Device.CUDA.value:

@@ -100,6 +100,7 @@ def _calculate_dict_similarity(dict1: Dict[Any, Any], dict2: Dict[Any, Any]) -> 
 
     return total_similarity / len(common_keys)
 
+
 # # Example usage
 # class Address(BaseModel):
 #   street: str

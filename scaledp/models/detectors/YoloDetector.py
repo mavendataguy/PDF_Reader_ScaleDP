@@ -41,6 +41,7 @@ class YoloDetector(BaseDetector, HasDevice, HasBatchSize):
         if cls._model:
             return cls._model
         from ultralytics import YOLO
+
         model = params["model"]
         if not os.path.isfile(model):
             model = hf_hub_download(repo_id=model, filename="best.pt")
@@ -71,7 +72,9 @@ class YoloDetector(BaseDetector, HasDevice, HasBatchSize):
             boxes = []
             for box in res.boxes:
                 boxes.append(Box.fromBBox(box.xyxy[0]))
-            results_final.append(DetectorOutput(path=image_path, type="yolo", bboxes=boxes))
+            results_final.append(
+                DetectorOutput(path=image_path, type="yolo", bboxes=boxes)
+            )
 
         gc.collect()
         if int(params["device"]) == Device.CUDA.value:

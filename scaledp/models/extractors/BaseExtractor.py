@@ -11,6 +11,10 @@ from scaledp.schemas.Document import Document
 from scaledp.schemas.ExtractorOutput import ExtractorOutput
 
 
+class ExtractorError(Exception):
+    pass
+
+
 class BaseExtractor(
     Transformer,
     HasInputCol,
@@ -23,6 +27,7 @@ class BaseExtractor(
     HasPageCol,
     HasColumnValidator,
     HasDefaultEnum,
+    HasPropagateError,
 ):
 
     def get_params(self):
@@ -49,10 +54,12 @@ class BaseExtractor(
         try:
 
             result = self.call_extractor([document], params)
-        except Exception:
+        except Exception as e:
             exception = traceback.format_exc()
             exception = f"{self.uid}: Error in data extraction: {exception}, {document.exception}"
             logging.warning(f"{self.uid}: Error in data extraction.")
+            if self.getPropagateError():
+                raise ExtractorError() from e
             return ExtractorOutput(
                 path=document.path, data="", type="detector", exception=exception
             )

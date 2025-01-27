@@ -17,6 +17,7 @@ from scaledp.schemas.Image import Image
 class OcrError(Exception):
     pass
 
+
 class BaseOcr(
     Transformer,
     HasInputCol,
@@ -130,11 +131,15 @@ class BaseOcr(
             result = self.call_ocr([(resized_image, image.path)], params)
         except Exception as e:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
+            exception = (
+                f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
+            )
             logging.warning(f"{self.uid}: Error in text recognition.")
             if self.getPropagateError():
                 raise OcrError() from e
-            return Document(path=image.path, text="", bboxes=[], type="ocr", exception=exception)
+            return Document(
+                path=image.path, text="", bboxes=[], type="ocr", exception=exception
+            )
         return result[0]
 
     @classmethod
@@ -142,7 +147,9 @@ class BaseOcr(
         raise NotImplementedError("Subclasses should implement this method")
 
     @classmethod
-    def transform_udf_pandas(cls, images: pd.DataFrame, params: pd.Series) -> pd.DataFrame:
+    def transform_udf_pandas(
+        cls, images: pd.DataFrame, params: pd.Series
+    ) -> pd.DataFrame:
         params = json.loads(params[0])
 
         resized_images = []
@@ -214,7 +221,9 @@ class BaseOcr(
                 dataset = dataset.coalesce(self.getNumPartitions())
             result = dataset.withColumn(
                 out_col,
-                pandas_udf(self.transform_udf_pandas, self.outputSchema())(input_col, lit(params)),
+                pandas_udf(self.transform_udf_pandas, self.outputSchema())(
+                    input_col, lit(params)
+                ),
             )
         if not self.getKeepInputData():
             result = result.drop(input_col)

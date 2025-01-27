@@ -11,7 +11,7 @@ from tenacity import (
     retry,
     stop_after_attempt,
     wait_random_exponential,
-    retry_if_exception_type
+    retry_if_exception_type,
 )
 
 
@@ -53,10 +53,11 @@ class LLMOcr(BaseOcr, HasLLM, HasPrompt):
         client = cls.getClient(params["apiKey"], params["apiBase"])
         results = []
 
-        @retry(retry=retry_if_exception_type(RateLimitError),
-               wait=wait_random_exponential(min=1,
-                                            max=params["delay"]),
-               stop=stop_after_attempt(params["maxRetry"]))
+        @retry(
+            retry=retry_if_exception_type(RateLimitError),
+            wait=wait_random_exponential(min=1, max=params["delay"]),
+            stop=stop_after_attempt(params["maxRetry"]),
+        )
         def completion_with_backoff(**kwargs):
             logging.info(f"Calling LLM API")
             return client.beta.chat.completions.parse(**kwargs)
@@ -64,7 +65,7 @@ class LLMOcr(BaseOcr, HasLLM, HasPrompt):
         for image, image_path in images:
             buff = io.BytesIO()
             image.save(buff, "png")
-            image_decoded = base64.b64encode(buff.getvalue()).decode('utf-8')
+            image_decoded = base64.b64encode(buff.getvalue()).decode("utf-8")
             completion = completion_with_backoff(
                 model=params["model"],
                 messages=[
@@ -77,19 +78,21 @@ class LLMOcr(BaseOcr, HasLLM, HasPrompt):
                                 "type": "image_url",
                                 "image_url": {
                                     "url": f"data:image/jpeg;base64,{image_decoded}"
-                                }
+                                },
                             },
-                            {
-                                "type": "text",
-                                "text": params["prompt"]
-                            }
-                        ]
+                            {"type": "text", "text": params["prompt"]},
+                        ],
                     },
                 ],
-                #response_format=self.getPaydanticSchema(),
+                # response_format=self.getPaydanticSchema(),
             )
 
             results.append(
-                Document(path=image_path, text=completion.choices[0].message.content, type="text", bboxes=[])
+                Document(
+                    path=image_path,
+                    text=completion.choices[0].message.content,
+                    type="text",
+                    bboxes=[],
+                )
             )
         return results

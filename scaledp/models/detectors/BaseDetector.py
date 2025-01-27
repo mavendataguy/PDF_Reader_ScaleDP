@@ -18,6 +18,7 @@ from scaledp.schemas.DetectorOutput import DetectorOutput
 class DetectionError(Exception):
     pass
 
+
 class BaseDetector(
     Transformer,
     HasInputCol,
@@ -33,7 +34,7 @@ class BaseDetector(
     HasNumPartitions,
     HasPageCol,
     HasPathCol,
-    HasPropagateError
+    HasPropagateError,
 ):
 
     scaleFactor = Param(
@@ -102,11 +103,15 @@ class BaseDetector(
             result = self.call_detector([(resized_image, image.path)], params)
         except Exception as e:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error in object detection: {exception}, {image.exception}"
+            exception = (
+                f"{self.uid}: Error in object detection: {exception}, {image.exception}"
+            )
             logging.warning(f"{self.uid}: Error in object detection.")
             if self.getPropagateError():
                 raise DetectionError() from e
-            return DetectorOutput(path=image.path, bboxes=[], type="detector", exception=exception)
+            return DetectorOutput(
+                path=image.path, bboxes=[], type="detector", exception=exception
+            )
         return result[0]
 
     @classmethod
@@ -114,7 +119,9 @@ class BaseDetector(
         raise NotImplementedError("Subclasses should implement this method")
 
     @classmethod
-    def transform_udf_pandas(cls, images: pd.DataFrame, params: pd.Series) -> pd.DataFrame:
+    def transform_udf_pandas(
+        cls, images: pd.DataFrame, params: pd.Series
+    ) -> pd.DataFrame:
         params = json.loads(params[0])
         resized_images = []
         for index, image in images.iterrows():
@@ -145,7 +152,9 @@ class BaseDetector(
         if not self.getPartitionMap():
             result = dataset.withColumn(
                 out_col,
-                udf(self.transform_udf, DetectorOutput.get_schema())(input_col, lit(params)),
+                udf(self.transform_udf, DetectorOutput.get_schema())(
+                    input_col, lit(params)
+                ),
             )
         else:
             if self.getNumPartitions() > 0:
@@ -156,7 +165,9 @@ class BaseDetector(
                 dataset = dataset.coalesce(self.getNumPartitions())
             result = dataset.withColumn(
                 out_col,
-                pandas_udf(self.transform_udf_pandas, self.outputSchema())(input_col, lit(params)),
+                pandas_udf(self.transform_udf_pandas, self.outputSchema())(
+                    input_col, lit(params)
+                ),
             )
 
         if not self.getKeepInputData():

@@ -56,7 +56,9 @@ class BaseVisualExtractor(
             result = self.call_extractor([image], params)
         except Exception as e:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error in data extraction: {exception}, {image.exception}"
+            exception = (
+                f"{self.uid}: Error in data extraction: {exception}, {image.exception}"
+            )
             logging.warning(f"{self.uid}: Error in data extraction.")
             if self.getPropagateError():
                 raise VisualExtractorError() from e
@@ -71,7 +73,9 @@ class BaseVisualExtractor(
 
         result = dataset.withColumn(
             out_col,
-            udf(self.transform_udf, ExtractorOutput.get_schema())(in_col, lit(self.get_params())),
+            udf(self.transform_udf, ExtractorOutput.get_schema())(
+                in_col, lit(self.get_params())
+            ),
         )
         if not self.getKeepInputData():
             result = result.drop(in_col)

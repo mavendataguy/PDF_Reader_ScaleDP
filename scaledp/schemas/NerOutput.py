@@ -8,7 +8,7 @@ class NerOutput:
     path: str
     entities: list[Entity]
     exception: str
-    json: str = None
+    json: str = ""
 
     @staticmethod
     def get_schema():

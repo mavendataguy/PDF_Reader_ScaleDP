@@ -48,9 +48,13 @@ class ImageDrawBoxes(
         Params._dummy(), "lineWidth", "Line width.", typeConverter=TypeConverters.toInt
     )
 
-    textSize = Param(Params._dummy(), "textSize", "Text size.", typeConverter=TypeConverters.toInt)
+    textSize = Param(
+        Params._dummy(), "textSize", "Text size.", typeConverter=TypeConverters.toInt
+    )
 
-    padding = Param(Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt)
+    padding = Param(
+        Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt
+    )
 
     displayDataList = Param(
         Params._dummy(),
@@ -155,7 +159,9 @@ class ImageDrawBoxes(
                                 img1.textbbox(
                                     (
                                         box.x,
-                                        box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                                        box.y
+                                        - self.getTextSize() * 1.2
+                                        - self.getPadding(),
                                     ),
                                     text,
                                     font_size=self.getTextSize(),
@@ -164,12 +170,18 @@ class ImageDrawBoxes(
                             tbox[3] = tbox[3] + self.getTextSize() / 4
                             tbox[2] = tbox[2] + self.getTextSize() / 4
                             tbox[0] = box.x - self.getPadding()
-                            tbox[1] = box.y - self.getTextSize() * 1.2 - self.getPadding()
-                            img1.rounded_rectangle(tbox, outline=color, radius=2, fill=color)
+                            tbox[1] = (
+                                box.y - self.getTextSize() * 1.2 - self.getPadding()
+                            )
+                            img1.rounded_rectangle(
+                                tbox, outline=color, radius=2, fill=color
+                            )
                             img1.text(
                                 (
                                     box.x,
-                                    box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                                    box.y
+                                    - self.getTextSize() * 1.2
+                                    - self.getPadding(),
                                 ),
                                 text,
                                 stroke_width=0,
@@ -221,7 +233,9 @@ class ImageDrawBoxes(
         dataset = self._preprocessing(dataset)
 
         if self.getNumPartitions() > 0:
-            dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())
+            dataset = dataset.repartition(self.getPageCol()).coalesce(
+                self.getNumPartitions()
+            )
         result = dataset.withColumn(
             out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
         )

@@ -36,8 +36,15 @@ class ImageCropBoxes(
     Crop image by bounding boxes
     """
 
-    padding = Param(Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt)
-    noCrop = Param(Params._dummy(), "noCrop", "Does not Crop if boxes is empty.", typeConverter=TypeConverters.toBoolean)
+    padding = Param(
+        Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt
+    )
+    noCrop = Param(
+        Params._dummy(),
+        "noCrop",
+        "Does not Crop if boxes is empty.",
+        typeConverter=TypeConverters.toBoolean,
+    )
 
     defaultParams = {
         "inputCols": ["image", "boxes"],
@@ -74,7 +81,9 @@ class ImageCropBoxes(
                 if not isinstance(box, Box):
                     box = Box(**box.asDict())
                 if box.width > box.height:
-                    results.append(img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True))
+                    results.append(
+                        img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True)
+                    )
                 else:
                     results.append(img.crop(box.bbox(self.getPadding())))
             if self.getNoCrop() and len(results) == 0:
@@ -97,7 +106,9 @@ class ImageCropBoxes(
         box_col = self._validate(self.getInputCols()[1], dataset)
 
         if self.getNumPartitions() > 0:
-            dataset = dataset.repartition(self.getPageCol()).coalesce(self.getNumPartitions())
+            dataset = dataset.repartition(self.getPageCol()).coalesce(
+                self.getNumPartitions()
+            )
         result = dataset.withColumn(
             out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
         )

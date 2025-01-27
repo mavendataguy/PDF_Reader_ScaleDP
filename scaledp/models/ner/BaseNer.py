@@ -25,6 +25,7 @@ class BaseNer(
     HasPageCol,
     HasColumnValidator,
     HasDefaultEnum,
+    HasPartitionMap,
 ):
 
     def outputSchema(self):
@@ -46,12 +47,20 @@ class BaseNer(
                                     ArrayType(
                                         StructType(
                                             [
-                                                StructField("text", StringType(), False),
-                                                StructField("score", DoubleType(), False),
+                                                StructField(
+                                                    "text", StringType(), False
+                                                ),
+                                                StructField(
+                                                    "score", DoubleType(), False
+                                                ),
                                                 StructField("x", IntegerType(), False),
                                                 StructField("y", IntegerType(), False),
-                                                StructField("width", IntegerType(), False),
-                                                StructField("height", IntegerType(), False),
+                                                StructField(
+                                                    "width", IntegerType(), False
+                                                ),
+                                                StructField(
+                                                    "height", IntegerType(), False
+                                                ),
                                             ]
                                         ),
                                         True,
@@ -76,7 +85,7 @@ class BaseNer(
         out_col = self.getOutputCol()
         in_col = self._validate(self.getInputCol(), dataset)
 
-        if not hasattr(dataset, "sparkSession"):
+        if not self.getPartitionMap():
             result = dataset.withColumn(
                 out_col, udf(self.transform_udf, NerOutput.get_schema())(in_col)
             )
@@ -89,7 +98,9 @@ class BaseNer(
                 dataset = dataset.coalesce(self.getNumPartitions())
             result = dataset.withColumn(
                 out_col,
-                pandas_udf(self.transform_udf_pandas, self.outputSchema())(in_col, lit(params)),
+                pandas_udf(self.transform_udf_pandas, self.outputSchema())(
+                    in_col, lit(params)
+                ),
             )
 
         if not self.getKeepInputData():

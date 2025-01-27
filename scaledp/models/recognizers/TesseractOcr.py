@@ -70,7 +70,9 @@ class TesseractOcr(BaseOcr):
 
         results = []
 
-        config = f"--psm {params['psm']} --oem {params['oem']} -l {cls.getLangTess(params)}"
+        config = (
+            f"--psm {params['psm']} --oem {params['oem']} -l {cls.getLangTess(params)}"
+        )
         for image, image_path in images:
             res = pytesseract.image_to_data(
                 image, output_type=pytesseract.Output.DATAFRAME, config=config
@@ -89,17 +91,24 @@ class TesseractOcr(BaseOcr):
                 lambda x: Box(*x).toString().scale(1 / params["scaleFactor"]), axis=1
             ).values.tolist()
             if params["keepFormatting"]:
-                text = TesseractOcr.box_to_formatted_text(boxes, params["lineTolerance"])
+                text = TesseractOcr.box_to_formatted_text(
+                    boxes, params["lineTolerance"]
+                )
             else:
                 text = " ".join([str(w) for w in res["text"].values.tolist()])
 
-            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
+            results.append(
+                Document(path=image_path, text=text, type="text", bboxes=boxes)
+            )
         return results
 
     @staticmethod
     def getLangTess(params):
         return "+".join(
-            [LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in params["lang"]]
+            [
+                LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]]
+                for lang in params["lang"]
+            ]
         )
 
     @classmethod
@@ -143,7 +152,9 @@ class TesseractOcr(BaseOcr):
                         )
                         texts.append(text)
                 if params["keepFormatting"]:
-                    text = TesseractOcr.box_to_formatted_text(boxes, params["lineTolerance"])
+                    text = TesseractOcr.box_to_formatted_text(
+                        boxes, params["lineTolerance"]
+                    )
                 else:
                     text = " ".join(texts)
 

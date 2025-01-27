@@ -4,9 +4,9 @@
     "company_type": "MARKET",
     "address": {
         "country_code": "UA",
-        "state": "",
+        "state": "null",
         "city": "Вінниця",
-        "street": "Келецька",
+        "street": "вул. Келецька",
         "house": "78-В"
     },
     "tax_id": "228739826104",
@@ -40,7 +40,7 @@
             "quantity": 0.118,
             "price_per_unit": 156.9,
             "price": 18.51,
-            "product_code": "150"
+            "product_code": "null"
         },
         {
             "name": "Карамель Butter-Milk kr",

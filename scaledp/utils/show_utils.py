@@ -87,9 +87,12 @@ def show_text(df, column="", field="text", limit=5, width=800):
             "Exception": text.exception,
         }
 
-        rendered_html = template.render(width=width, metadata=metadata, text=getattr(text, field))
+        rendered_html = template.render(
+            width=width, metadata=metadata, text=getattr(text, field)
+        )
 
         display(HTML(rendered_html))
+
 
 def show_json(df, column="", field="data", limit=5, width=800):
     from IPython.display import display, HTML
@@ -118,10 +121,12 @@ def show_json(df, column="", field="data", limit=5, width=800):
             logging.warning("Failed to parse json")
 
         from IPython.display import Code
-        data = Code(data, language='json')._repr_html_()
+
+        data = Code(data, language="json")._repr_html_()
         rendered_html = template.render(width=width, metadata=metadata, text=data)
 
         display(HTML(rendered_html))
+
 
 def show_pdf(df, column="", limit=5, width=600, show_meta=True):
     if column == "":
@@ -148,7 +153,9 @@ def show_ner(df, column="ner", limit=20, truncate=False):
     )
 
 
-def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, labels_list=None):
+def visualize_ner(
+    df, column="ner", text_column="text", limit=20, width=800, labels_list=None
+):
     from IPython.display import display, HTML
     from jinja2 import PackageLoader, Environment
 
@@ -156,7 +163,11 @@ def visualize_ner(df, column="ner", text_column="text", limit=20, width=800, lab
     template = templateEnv.get_template("ner.html")
 
     df = df.limit(limit).select(column, text_column).cache()
-    entities = df.select(f.explode(f"{column}.entities").alias("ner")).select("ner.*").collect()
+    entities = (
+        df.select(f.explode(f"{column}.entities").alias("ner"))
+        .select("ner.*")
+        .collect()
+    )
     text = df.select(text_column).collect()[0][0]
     original_text = text.text
 

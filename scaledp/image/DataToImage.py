@@ -47,7 +47,9 @@ class DataToImage(
 
     def transform_udf(self, input, path, resolution):
         try:
-            return Image.from_binary(input, path, self.getImageType(), resolution=resolution)
+            return Image.from_binary(
+                input, path, self.getImageType(), resolution=resolution
+            )
         except Exception as ex:
             exception = traceback.format_exc()
             exception = f"DataToImage: {exception}"
@@ -55,7 +57,6 @@ class DataToImage(
             if self.getPropagateError():
                 raise ImageError(exception) from ex
             return Image(path, self.getImageType(), data=bytes(), exception=exception)
-
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
@@ -67,7 +68,9 @@ class DataToImage(
             resolution = lit(0)
         result = dataset.withColumn(
             out_col,
-            udf(self.transform_udf, Image.get_schema())(input_col, path_col, resolution),
+            udf(self.transform_udf, Image.get_schema())(
+                input_col, path_col, resolution
+            ),
         )
         if not self.getKeepInputData():
             result = result.drop(input_col)
