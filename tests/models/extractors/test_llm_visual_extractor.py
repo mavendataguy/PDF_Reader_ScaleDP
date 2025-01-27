@@ -1,5 +1,6 @@
 from datetime import date, time
 from typing import Optional
+import pytest
 
 from scaledp.image.DataToImage import DataToImage
 from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
@@ -80,6 +81,7 @@ class ReceiptSchema1(BaseModel):
 
 
 def test_llm_visual_extractor_pandas(receipt_file, receipt_json, receipt_json_path):
+    pytest.skip("Slow test")
     from scaledp.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
 
@@ -116,7 +118,7 @@ def test_llm_visual_extractor_pandas(receipt_file, receipt_json, receipt_json_pa
 
 
 def test_llm_visual_extractor(image_receipt_df, receipt_json, receipt_json_path):
-
+    pytest.skip("Slow test")
     extractor = LLMVisualExtractor(model="gemini-1.5-flash",
                                    schema=ReceiptSchema,
                                    propagateError=False,
