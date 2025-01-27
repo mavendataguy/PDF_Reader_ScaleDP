@@ -75,7 +75,9 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
             image = np.array(image.convert("RGB"))[:, :, ::-1].copy()
             result = reader.readtext(image)
             boxes = [
-                EasyOcr.points_to_box(box, text, float(score)).toString().scale(1 / scale_factor)
+                EasyOcr.points_to_box(box, text, float(score))
+                .toString()
+                .scale(1 / scale_factor)
                 for box, text, score in result
             ]
 
@@ -84,7 +86,9 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
             else:
                 text = "\n".join([str(w.text) for w in boxes])
 
-            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
+            results.append(
+                Document(path=image_path, text=text, type="text", bboxes=boxes)
+            )
 
         gc.collect()
         if int(params["device"]) == Device.CUDA.value:

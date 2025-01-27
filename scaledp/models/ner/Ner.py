@@ -21,6 +21,7 @@ class Ner(BaseNer):
         "model": "d4data/biomedical-ner-all",
         "whiteList": [],
         "numPartitions": 1,
+        "partitionMap": False,
         "device": Device.CPU,
         "batchSize": 1,
         "scoreThreshold": 0.0,
@@ -90,7 +91,10 @@ class Ner(BaseNer):
 
         entities = []
         for tag in result:
-            if len(self.getWhiteList()) > 0 and tag["entity_group"] not in self.getWhiteList():
+            if (
+                len(self.getWhiteList()) > 0
+                and tag["entity_group"] not in self.getWhiteList()
+            ):
                 continue
             boxes = mapping[tag["start"] : tag["end"]]
             boxes = [text.bboxes[i] for i in list(dict.fromkeys(boxes))]
@@ -166,9 +170,15 @@ class Ner(BaseNer):
 
             entities = []
             for tag in result:
-                if len(params["whiteList"]) > 0 and tag["entity_group"] not in params["whiteList"]:
+                if (
+                    len(params["whiteList"]) > 0
+                    and tag["entity_group"] not in params["whiteList"]
+                ):
                     continue
-                if params["scoreThreshold"] > 0 and tag["score"] < params["scoreThreshold"]:
+                if (
+                    params["scoreThreshold"] > 0
+                    and tag["score"] < params["scoreThreshold"]
+                ):
                     continue
                 boxes = mapping[tag["start"] : tag["end"]]
                 boxes = [text.bboxes[i] for i in list(dict.fromkeys(boxes))]

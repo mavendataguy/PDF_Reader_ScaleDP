@@ -24,7 +24,10 @@ class Image(object):
     width: int = 0
 
     def to_pil(self):
-        if self.imageType == ImageType.FILE.value or self.imageType == ImageType.WEBP.value:
+        if (
+            self.imageType == ImageType.FILE.value
+            or self.imageType == ImageType.WEBP.value
+        ):
             return pImage.open(io.BytesIO(self.data))
 
     def to_io_stream(self):
@@ -44,7 +47,9 @@ class Image(object):
 
     @staticmethod
     def from_binary(data, path, imageType, resolution=None, width=None, height=None):
-        img = Image(path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution)
+        img = Image(
+            path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution
+        )
         if data is None or len(data) == 0:
             raise ValueError("Empty image data.")
         if imageType in (ImageType.FILE.value, ImageType.WEBP.value):

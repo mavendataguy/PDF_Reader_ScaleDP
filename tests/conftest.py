@@ -85,6 +85,14 @@ def receipt_json_path(resource_path_root: Path) -> Path:
     return (resource_path_root / "images" / "receipt.json")
 
 @pytest.fixture
+def receipt_with_null_json(receipt_json_path: Path) -> Path:
+    return receipt_json_path.open("r").read()
+
+@pytest.fixture
+def receipt_with_null_json_path(resource_path_root: Path) -> Path:
+    return (resource_path_root / "images" / "receipt_with_null.json")
+
+@pytest.fixture
 def text_df(spark_session, resource_path_root):
     df = spark_session.read.text(
         (resource_path_root / "texts/example.txt").absolute().as_posix(), wholetext=True)

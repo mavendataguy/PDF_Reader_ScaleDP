@@ -32,6 +32,7 @@ class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
 
     def call_extractor(self, documents, params):
         import dspy
+
         lm = dspy.LM(
             params["model"],
             api_base=params["apiBase"] or os.environ["OPENAI_BASE_URL"],

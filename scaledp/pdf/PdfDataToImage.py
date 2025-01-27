@@ -82,9 +82,7 @@ class PdfDataToImage(
 
         except Exception:
             exception = traceback.format_exc()
-            exception = (
-                f"{self.uid}: Error during extract image from the PDF document: {exception}"
-            )
+            exception = f"{self.uid}: Error during extract image from the PDF document: {exception}"
             logging.warning(exception)
             return [Image(path=path, exception=exception)]
 
@@ -95,7 +93,9 @@ class PdfDataToImage(
 
         selCol = dataset.columns + [
             posexplode_outer(
-                udf(self.transform_udf, ArrayType(Image.get_schema()))(input_col, path_col)
+                udf(self.transform_udf, ArrayType(Image.get_schema()))(
+                    input_col, path_col
+                )
             ).alias(self.getPageCol(), out_col),
         ]
 

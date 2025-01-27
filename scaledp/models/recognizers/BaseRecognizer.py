@@ -43,12 +43,18 @@ class BaseRecognizer(BaseOcr, HasInputCols):
             else:
                 resized_image = image_pil
 
-            result = self.call_recognizer([(resized_image, image.path)], [boxes], params)
+            result = self.call_recognizer(
+                [(resized_image, image.path)], [boxes], params
+            )
         except Exception:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
+            exception = (
+                f"{self.uid}: Error in text recognition: {exception}, {image.exception}"
+            )
             logging.warning(f"{self.uid}: Error in text recognition.")
-            return Document(path=image.path, text="", bboxes=[], type="ocr", exception=exception)
+            return Document(
+                path=image.path, text="", bboxes=[], type="ocr", exception=exception
+            )
         return result[0]
 
     @classmethod
@@ -94,7 +100,9 @@ class BaseRecognizer(BaseOcr, HasInputCols):
         if not self.getPartitionMap():
             result = dataset.withColumn(
                 out_col,
-                udf(self.transform_udf, Document.get_schema())(image_col, box_col, lit(params)),
+                udf(self.transform_udf, Document.get_schema())(
+                    image_col, box_col, lit(params)
+                ),
             )
         else:
             if self.getNumPartitions() > 0:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scaledp"
-version = "0.2.1rc3"
+version = "0.2.2rc11"
 description = "ScaleDP is a library for processing documents using Apache Spark and LLMs"
 authors = ["Mykola Melnyk <mykola@stabrise.com>"]
 repository = "https://github.com/StabRise/scaledp"
@@ -38,6 +38,7 @@ huggingface-hub = "^0.27.0"
 tenacity = "^9.0.0"
 openai = "^1.58.0"
 
+
 [tool.poetry.extras]
 ml = ["transformers", "torch"]
 ocr = ["easyocr", "python-doctr", "surya-ocr"]
@@ -68,7 +69,7 @@ transformers = "^4.36.0"
 torchvision= {version= ">=0.18.0", source = "pytorch_cpu"}
 python-doctr  = "0.10.0"
 surya-ocr = "0.8.1"
-
+black = "^24.10.0"
 ultralytics = "^8.3.40"
 
 [build-system]

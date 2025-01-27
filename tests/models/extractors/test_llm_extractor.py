@@ -12,6 +12,7 @@ class ReceiptItem(BaseModel):
     quantity: float
     price_per_unit: float
     price: float
+    product_code: str
 
 
 class ReceiptSchema(BaseModel):

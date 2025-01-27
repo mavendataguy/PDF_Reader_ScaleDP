@@ -90,7 +90,10 @@ class TesseractRecognizer(BaseRecognizer):
     @staticmethod
     def getLangTess(params):
         return "+".join(
-            [LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]] for lang in params["lang"]]
+            [
+                LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]]
+                for lang in params["lang"]
+            ]
         )
 
     @classmethod
@@ -106,7 +109,7 @@ class TesseractRecognizer(BaseRecognizer):
             lang=lang,
         ) as api:
             api.SetVariable("debug_file", "ocr.log")
-            #api.SetVariable("tessedit_char_whitelist", "1234567890.,-:")
+            # api.SetVariable("tessedit_char_whitelist", "1234567890.,-:")
 
             for (image, image_path), detected_box in zip(images, detected_boxes):
                 api.SetImage(image)

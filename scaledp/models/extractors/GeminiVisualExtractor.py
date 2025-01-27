@@ -43,7 +43,7 @@ class GeminiVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
             "top_k": 40,
             "max_output_tokens": 8192,
             "response_mime_type": "application/json",
-            "response_schema": schema
+            "response_schema": schema,
         }
 
         genai.configure(api_key=params["apiKey"])
@@ -59,9 +59,12 @@ class GeminiVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
         results = []
 
         for image in images:
-            image_decoded = base64.b64encode(image.data).decode('utf-8')
+            image_decoded = base64.b64encode(image.data).decode("utf-8")
             prompt = params["prompt"].format(schema=schema)
-            response = model.generate_content([{'mime_type':'image/png', 'data': image_decoded}, prompt], stream=False)
+            response = model.generate_content(
+                [{"mime_type": "image/png", "data": image_decoded}, prompt],
+                stream=False,
+            )
             results.append(
                 ExtractorOutput(
                     path=image.path,

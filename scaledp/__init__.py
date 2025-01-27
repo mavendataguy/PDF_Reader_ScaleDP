@@ -22,6 +22,7 @@ from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
 from scaledp.models.extractors.LLMExtractor import LLMExtractor
 from scaledp.models.recognizers.LLMOcr import LLMOcr
+from scaledp.models.ner.LLMNer import LLMNer
 from importlib import resources
 from scaledp import enums
 from scaledp.enums import *
@@ -37,20 +38,28 @@ from scaledp.utils.show_utils import (
     show_json,
 )
 
-DataFrame.show_image = lambda self, column="", limit=5, width=None, show_meta=True,: show_image(
-    self, column, limit, width, show_meta
+DataFrame.show_image = (
+    lambda self, column="", limit=5, width=None, show_meta=True,: show_image(
+        self, column, limit, width, show_meta
+    )
 )
-DataFrame.show_pdf = lambda self, column="", limit=5, width=None, show_meta=True,: show_pdf(
-    self, column, limit, width, show_meta
+DataFrame.show_pdf = (
+    lambda self, column="", limit=5, width=None, show_meta=True,: show_pdf(
+        self, column, limit, width, show_meta
+    )
 )
 DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ner(
     self, column, limit, truncate
 )
-DataFrame.show_text = lambda self, column="", field="text", limit=20, width=None: show_text(
-    self, column, field, limit, width
+DataFrame.show_text = (
+    lambda self, column="", field="text", limit=20, width=None: show_text(
+        self, column, field, limit, width
+    )
 )
-DataFrame.show_json = lambda self, column="", field="data", limit=20, width=None: show_json(
-    self, column, field, limit, width
+DataFrame.show_json = (
+    lambda self, column="", field="data", limit=20, width=None: show_json(
+        self, column, field, limit, width
+    )
 )
 DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None: visualize_ner(
     self, column, text_column, limit, width, labels_list
@@ -124,7 +133,9 @@ def ScaleDPSession(
         if extra_jars:
             jars.append(extra_jars)
 
-    builder = SparkSession.builder.master(master_url).appName("ScaleDP")
+    builder = SparkSession.builder.master(master_url).appName(
+        "ScaleDP: v" + __version__
+    )
 
     for k, v in default_conf.items():
         builder.config(str(k), str(v))
@@ -157,6 +168,7 @@ __all__ = [
     "LLMVisualExtractor",
     "LLMExtractor",
     "LLMOcr",
+    "LLMNer",
     "__version__",
     "files",
 ] + dir(enums)

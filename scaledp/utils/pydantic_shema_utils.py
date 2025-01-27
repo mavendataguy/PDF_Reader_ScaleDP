@@ -3,7 +3,10 @@ from pydantic import BaseModel, Field, create_model
 from typing import Any, Dict, List, Optional, Type, Union
 from datetime import datetime, date, time
 
-def json_schema_to_model(json_schema: Dict[str, Any], definitions: Dict[str, Any] = None) -> Type[BaseModel]:
+
+def json_schema_to_model(
+    json_schema: Dict[str, Any], definitions: Dict[str, Any] = None
+) -> Type[BaseModel]:
     """
     Converts a JSON schema to a Pydantic BaseModel class.
 
@@ -15,14 +18,22 @@ def json_schema_to_model(json_schema: Dict[str, Any], definitions: Dict[str, Any
         A Pydantic BaseModel class.
     """
 
-    model_name = json_schema.get('title')
+    model_name = json_schema.get("title")
     field_definitions = {
-        name: json_schema_to_pydantic_field(name, prop, json_schema.get('required', []), definitions)
-        for name, prop in json_schema.get('properties', {}).items()
+        name: json_schema_to_pydantic_field(
+            name, prop, json_schema.get("required", []), definitions
+        )
+        for name, prop in json_schema.get("properties", {}).items()
     }
     return create_model(model_name, **field_definitions)
 
-def json_schema_to_pydantic_field(name: str, json_schema: Dict[str, Any], required: List[str], definitions: Dict[str, Any] = None) -> Any:
+
+def json_schema_to_pydantic_field(
+    name: str,
+    json_schema: Dict[str, Any],
+    required: List[str],
+    definitions: Dict[str, Any] = None,
+) -> Any:
     """
     Converts a JSON schema property to a Pydantic field definition.
 
@@ -37,32 +48,43 @@ def json_schema_to_pydantic_field(name: str, json_schema: Dict[str, Any], requir
     """
 
     type_ = json_schema_to_pydantic_type(json_schema, definitions)
-    description = json_schema.get('description')
-    examples = json_schema.get('examples')
-    min_length = json_schema.get('minLength')
-    max_length = json_schema.get('maxLength')
-    minimum = json_schema.get('minimum')
-    maximum = json_schema.get('maximum')
-    exclusive_minimum = json_schema.get('exclusiveMinimum')
-    exclusive_maximum = json_schema.get('exclusiveMaximum')
-    pattern = json_schema.get('pattern')
+    description = json_schema.get("description")
+    examples = json_schema.get("examples")
+    min_length = json_schema.get("minLength")
+    max_length = json_schema.get("maxLength")
+    minimum = json_schema.get("minimum")
+    maximum = json_schema.get("maximum")
+    exclusive_minimum = json_schema.get("exclusiveMinimum")
+    exclusive_maximum = json_schema.get("exclusiveMaximum")
+    pattern = json_schema.get("pattern")
 
     # Handle optional fields (including 'anyOf' with 'null')
-    if name not in required or ('anyOf' in json_schema and any(item.get('type') == 'null' for item in json_schema.get('anyOf', []))):
+    if name not in required or (
+        "anyOf" in json_schema
+        and any(item.get("type") == "null" for item in json_schema.get("anyOf", []))
+    ):
         type_ = Optional[type_]
 
-    return (type_, Field(description=description,
-                         examples=examples,
-                         min_length=min_length,
-                         max_length=max_length,
-                         ge=minimum,
-                         le=maximum,
-                         gt=exclusive_minimum,
-                         lt=exclusive_maximum,
-                         pattern=pattern,
-                         default=... if name in required else None))
+    return (
+        type_,
+        Field(
+            description=description,
+            examples=examples,
+            min_length=min_length,
+            max_length=max_length,
+            ge=minimum,
+            le=maximum,
+            gt=exclusive_minimum,
+            lt=exclusive_maximum,
+            pattern=pattern,
+            default=... if name in required else None,
+        ),
+    )
 
-def json_schema_to_pydantic_type(json_schema: Dict[str, Any], definitions: Dict[str, Any] = None) -> Any:
+
+def json_schema_to_pydantic_type(
+    json_schema: Dict[str, Any], definitions: Dict[str, Any] = None
+) -> Any:
     """
     Converts a JSON schema type to a Pydantic type.
 
@@ -74,54 +96,60 @@ def json_schema_to_pydantic_type(json_schema: Dict[str, Any], definitions: Dict[
         A Pydantic type.
     """
 
-    type_ = json_schema.get('type')
+    type_ = json_schema.get("type")
 
-    if type_ == 'string':
-        format_ = json_schema.get('format')
-        if format_ == 'date':
+    if type_ == "string":
+        format_ = json_schema.get("format")
+        if format_ == "date":
             return date
-        elif format_ == 'time':
+        elif format_ == "time":
             return time
-        elif format_ == 'date-time':
+        elif format_ == "date-time":
             return datetime
-        if 'enum' in json_schema:
-            return Enum(json_schema.get('title', 'EnumType'), {member: member for member in json_schema['enum']})
+        if "enum" in json_schema:
+            return Enum(
+                json_schema.get("title", "EnumType"),
+                {member: member for member in json_schema["enum"]},
+            )
         return str
-    elif type_ == 'integer':
+    elif type_ == "integer":
         return int
-    elif type_ == 'number':
+    elif type_ == "number":
         return float
-    elif type_ == 'boolean':
+    elif type_ == "boolean":
         return bool
-    elif type_ == 'array':
-        items_schema = json_schema.get('items')
+    elif type_ == "array":
+        items_schema = json_schema.get("items")
         if items_schema:
             item_type = json_schema_to_pydantic_type(items_schema, definitions)
             return List[item_type]
         else:
             return List
-    elif type_ == 'object':
+    elif type_ == "object":
         # Handle nested models.
-        properties = json_schema.get('properties')
+        properties = json_schema.get("properties")
         if properties:
             nested_model = json_schema_to_model(json_schema, definitions)
             return nested_model
         else:
             return Dict
-    elif type_ == 'null':
+    elif type_ == "null":
         return None
-    elif '$ref' in json_schema:
+    elif "$ref" in json_schema:
         # Handle references to nested schemas
-        ref_path = json_schema['$ref'].split('/')
+        ref_path = json_schema["$ref"].split("/")
         ref_name = ref_path[-1]
         if definitions:
             ref_schema = definitions.get(ref_name)
             if ref_schema:
                 return json_schema_to_pydantic_type(ref_schema, definitions)
         raise ValueError(f"Could not resolve reference: {json_schema['$ref']}")
-    elif 'anyOf' in json_schema:
+    elif "anyOf" in json_schema:
         # Handle 'anyOf' with 'null' for optional fields
-        types = [json_schema_to_pydantic_type(item, definitions) for item in json_schema['anyOf']]
+        types = [
+            json_schema_to_pydantic_type(item, definitions)
+            for item in json_schema["anyOf"]
+        ]
         if any(t is None for t in types):  # If 'null' is present in anyOf
             types = [t for t in types if t is not None]  # Remove 'null' from the list
             if len(types) == 1:
@@ -132,4 +160,4 @@ def json_schema_to_pydantic_type(json_schema: Dict[str, Any], definitions: Dict[
             # If 'null' is not present, return the union of all types
             return Union[types]
     else:
-        raise ValueError(f'Unsupported JSON schema type: {type_}')
+        raise ValueError(f"Unsupported JSON schema type: {type_}")

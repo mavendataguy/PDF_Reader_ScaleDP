@@ -66,7 +66,9 @@ class DocTROcr(BaseOcr, HasDevice, HasBatchSize):
                         for word in line.words:
 
                             xmin, ymin, xmax, ymax = [
-                                tupl for tuploftupls in word.geometry for tupl in tuploftupls
+                                tupl
+                                for tuploftupls in word.geometry
+                                for tupl in tuploftupls
                             ]
                             xmin = int(xmin * w)
                             ymin = int(ymin * h)
@@ -89,7 +91,9 @@ class DocTROcr(BaseOcr, HasDevice, HasBatchSize):
             else:
                 text = result.render()
 
-            results.append(Document(path=image_path, text=text, type="text", bboxes=boxes))
+            results.append(
+                Document(path=image_path, text=text, type="text", bboxes=boxes)
+            )
 
         gc.collect()
 

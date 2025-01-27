@@ -52,7 +52,9 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                 # Handle lists of data classes
                 sub_struct = map_dataclass_to_struct(elem_type)
                 nullable = is_field_nullable(field_name, hints)
-                fields_list.append(StructField(field_name, ArrayType(sub_struct), nullable))
+                fields_list.append(
+                    StructField(field_name, ArrayType(sub_struct), nullable)
+                )
             else:
                 # Handle lists of primitive types and dicts
                 spark_type = get_spark_type(elem_type)
@@ -61,7 +63,9 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                     # Special case for dictionaries with any value type
                     fields_list.append(StructField(field_name, spark_type, nullable))
                 else:
-                    fields_list.append(StructField(field_name, ArrayType(spark_type), nullable))
+                    fields_list.append(
+                        StructField(field_name, ArrayType(spark_type), nullable)
+                    )
         elif hasattr(field_type, "__origin__") and field_type.__origin__ is dict:
             # Handle dictionaries
             key_type, value_type = field_type.__args__
@@ -104,7 +108,9 @@ def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
     if py_type in type_mapping:
         # If it's a function, call it (e.g., for Box.getSchema())
         return (
-            type_mapping[py_type]() if callable(type_mapping[py_type]) else type_mapping[py_type]()
+            type_mapping[py_type]()
+            if callable(type_mapping[py_type])
+            else type_mapping[py_type]()
         )
 
     # Handle BoundDecimal separately as it needs specific attributes
