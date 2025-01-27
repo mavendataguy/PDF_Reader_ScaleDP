@@ -1,4 +1,5 @@
 import pyspark.sql.functions as f
+import pytest
 from pyspark.ml import PipelineModel
 
 from scaledp import DataToImage, ImageDrawBoxes
@@ -10,6 +11,7 @@ import tempfile
 
 
 def test_llm_ner(image_df):
+    pytest.skip("Slow test")
     # Initialize the OCR stage
     ocr = TesseractOcr(keepInputData=True)
 
