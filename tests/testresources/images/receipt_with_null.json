@@ -1,0 +1,60 @@
+{
+    "company_name": "ДП \"ІЗЮМІНКА\"",
+    "shop_name": "ROSHEN Фірмовий магазин",
+    "company_type": "MARKET",
+    "address": {
+        "country_code": "UA",
+        "state": null,
+        "city": "Вінниця",
+        "street": "вул. Келецька",
+        "house": "78-В"
+    },
+    "tax_id": "228739826104",
+    "transaction_date": "2024-10-29",
+    "transaction_time": "20:15:52",
+    "total_amount": 326.06,
+    "items": [
+        {
+            "name": "Шоколад чорний Brut 80%",
+            "quantity": 1.0,
+            "price_per_unit": 46.31,
+            "price": 46.31,
+            "product_code": "4823077632570"
+        },
+        {
+            "name": "Шоколад чорний Brut 80%",
+            "quantity": 1.0,
+            "price_per_unit": 46.31,
+            "price": 46.31,
+            "product_code": "4823077632570"
+        },
+        {
+            "name": "Шоколад чорний Special 56%",
+            "quantity": 5.0,
+            "price_per_unit": 33.84,
+            "price": 169.2,
+            "product_code": "4823077632563"
+        },
+        {
+            "name": "Карамель LolliPops 3 коктейльним",
+            "quantity": 0.118,
+            "price_per_unit": 156.9,
+            "price": 18.51,
+            "product_code": null
+        },
+        {
+            "name": "Карамель Butter-Milk kr",
+            "quantity": 0.116,
+            "price_per_unit": 142.8,
+            "price": 16.56,
+            "product_code": "4823077625626"
+        },
+        {
+            "name": "Вафлі Wafers горіх 216г",
+            "quantity": 1.0,
+            "price_per_unit": 29.17,
+            "price": 29.17,
+            "product_code": null
+        }
+    ]
+}
