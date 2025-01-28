@@ -9,8 +9,6 @@ from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import lit, pandas_udf, udf
 from pyspark.sql.types import (
     ArrayType,
-    DoubleType,
-    IntegerType,
     StringType,
     StructField,
     StructType,
@@ -30,6 +28,7 @@ from scaledp.params import (
     HasPropagateExc,
     HasScoreThreshold,
 )
+from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
 from scaledp.schemas.Image import Image
 
@@ -211,16 +210,7 @@ class BaseOcr(
                 StructField(
                     "bboxes",
                     ArrayType(
-                        StructType(
-                            [
-                                StructField("text", StringType(), False),
-                                StructField("score", DoubleType(), False),
-                                StructField("x", IntegerType(), False),
-                                StructField("y", IntegerType(), False),
-                                StructField("width", IntegerType(), False),
-                                StructField("height", IntegerType(), False),
-                            ],
-                        ),
+                        Box.get_schema(),
                         True,
                     ),
                     True,
