@@ -139,6 +139,8 @@ lint.ignore = [
     "ANN202", # Missing type annotation for return
     "ANN201", # Missing type annotation for return
     "ANN206", # Missing type annotation for self in method
+    "ANN101",
+    "ANN102",
     "N803", # argument name should be lowercase
     "N999",
     "N815", # variable in class should be lowercase
