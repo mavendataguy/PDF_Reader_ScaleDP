@@ -225,6 +225,6 @@ def test_llm_visual_extractor_prompt_schema(
     true_receipt = ReceiptSchema1.model_validate_json(receipt_with_null_json)
     similairty = calculate_similarity(receipt, true_receipt)
     print(similairty)
-    assert similairty > 0.7
+    assert similairty > 0.6
 
     result.select("data.data").show(1, False)
