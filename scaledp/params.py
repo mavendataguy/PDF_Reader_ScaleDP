@@ -1,14 +1,21 @@
-from pyspark.ml.param import Param, Params, TypeConverters
-from enum import Enum
-
-from scaledp.utils.pydantic_shema_utils import json_schema_to_model
-from scaledp.langs import *
-from pydantic import BaseModel
 import json
+from enum import Enum
+from typing import Any, List
+
+from pydantic import BaseModel
+from pyspark.ml.param import Param, Params, TypeConverters
+
+from scaledp.langs import (
+    CODE_TO_LANGUAGE,
+    LANGUAGE_TO_CODE,
+    LANGUAGE_TO_TESSERACT_CODE,
+    TESSERACT_CODE_TO_LANGUAGE,
+)
+from scaledp.utils.pydantic_shema_utils import json_schema_to_model
 
 
 class AutoParamsMeta(type(Params), type):
-    def __new__(cls, name, bases, dct):
+    def __new__(cls, name, bases, dct) -> Any:
         dct_copy = dct.copy()
         for attr_name, attr_value in dct_copy.items():
             if isinstance(attr_value, Param):
@@ -252,7 +259,10 @@ class HasNumPartitions:
 
 class HasDevice(Params):
     device = Param(
-        Params._dummy(), "device", "Device.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "device",
+        "Device.",
+        typeConverter=TypeConverters.toInt,
     )
 
     def setDevice(self, value):
@@ -270,7 +280,10 @@ class HasDevice(Params):
 
 class HasBatchSize(Params):
     batchSize = Param(
-        Params._dummy(), "batchSize", "Batch size.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "batchSize",
+        "Batch size.",
+        typeConverter=TypeConverters.toInt,
     )
 
     def setBatchSize(self, value):
@@ -301,13 +314,13 @@ class HasWhiteList(Params):
     def __init__(self) -> None:
         super(HasWhiteList, self).__init__()
 
-    def getWhiteList(self):
+    def getWhiteList(self) -> Any:
         """
         Gets the value of whiteList or its default value.
         """
         return self.getOrDefault(self.whiteList)
 
-    def setWhiteList(self, value):
+    def setWhiteList(self, value: list[str]) -> Any:
         """
         Sets the value of :py:attr:`whiteList`.
         """
@@ -326,13 +339,13 @@ class HasBlackList(Params):
         typeConverter=TypeConverters.toListString,
     )
 
-    def getBlackList(self):
+    def getBlackList(self) -> list[str]:
         """
         Gets the value of whiteList or its default value.
         """
         return self.getOrDefault(self.blackList)
 
-    def setBlackList(self, value):
+    def setBlackList(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`blackList`.
         """
@@ -354,13 +367,13 @@ class HasScoreThreshold(Params):
     def __init__(self) -> None:
         super(HasScoreThreshold, self).__init__()
 
-    def getScoreThreshold(self):
+    def getScoreThreshold(self) -> float:
         """
         Gets the value of scoreThreshold or its default value.
         """
         return self.getOrDefault(self.scoreThreshold)
 
-    def setScoreThreshold(self, value):
+    def setScoreThreshold(self, value: float) -> Any:
         """
         Sets the value of :py:attr:`scoreThreshold`.
         """
@@ -373,19 +386,22 @@ class HasModel(Params):
     """
 
     model = Param(
-        Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString
+        Params._dummy(),
+        "model",
+        "Model.",
+        typeConverter=TypeConverters.toString,
     )
 
     def __init__(self) -> None:
         super(HasModel, self).__init__()
 
-    def getModel(self):
+    def getModel(self) -> str:
         """
         Gets the value of model or its default value.
         """
         return self.getOrDefault(self.model)
 
-    def setModel(self, value):
+    def setModel(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`model`.
         """
@@ -394,10 +410,13 @@ class HasModel(Params):
 
 class HasColor(Params):
     color = Param(
-        Params._dummy(), "color", "Color.", typeConverter=TypeConverters.toString
+        Params._dummy(),
+        "color",
+        "Color.",
+        typeConverter=TypeConverters.toString,
     )
 
-    def setColor(self, value):
+    def setColor(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`color`.
         """
@@ -416,18 +435,18 @@ class HasDefaultEnum(Params):
     def _any_lang_to_code(lang):
         if lang in TESSERACT_CODE_TO_LANGUAGE:
             return LANGUAGE_TO_CODE[TESSERACT_CODE_TO_LANGUAGE[lang]]
-        elif lang in LANGUAGE_TO_CODE:
+        if lang in LANGUAGE_TO_CODE:
             return LANGUAGE_TO_CODE[lang]
-        elif lang in CODE_TO_LANGUAGE:
+        if lang in CODE_TO_LANGUAGE:
             return lang
-        else:
-            raise ValueError(f"Invalid language: {lang}")
+        raise ValueError(f"Invalid language: {lang}")
 
-    def _setDefault(self, **kwargs):
+    def _setDefault(self, **kwargs: Any) -> Any:
         """
         Sets default params.
         """
-        for param, value in kwargs.items():
+        for param, val in kwargs.items():
+            value = val
             if param == "lang":
                 value = [self._any_lang_to_code(lang) for lang in value]
             if value is not None and isinstance(value, Enum):
@@ -436,20 +455,21 @@ class HasDefaultEnum(Params):
                 except TypeError as e:
                     raise TypeError(
                         'Invalid default param value given for param "%s". %s'
-                        % (param, e)
-                    )
+                        % (param, e),
+                    ) from e
             validator = "validate" + param[0].upper() + param[1:]
             if hasattr(self, validator):
                 value = getattr(self, validator)(value)
             super(HasDefaultEnum, self)._setDefault(**{param: value})
         return self
 
-    def _set(self, **kwargs):
+    def _set(self, **kwargs: Any) -> Any:
         """
         Sets user-supplied params.
         """
-        for param, value in kwargs.items():
+        for param, val in kwargs.items():
             p = getattr(self, param)
+            value = val
             if value is not None:
                 if p.name == "lang":
                     value = [self._any_lang_to_code(lang) for lang in value]
@@ -462,26 +482,29 @@ class HasDefaultEnum(Params):
                     value = p.typeConverter(value)
                 except TypeError as e:
                     raise TypeError(
-                        'Invalid param value given for param "%s". %s' % (p.name, e)
-                    )
+                        'Invalid param value given for param "%s". %s' % (p.name, e),
+                    ) from e
             self._paramMap[p] = value
         return self
 
 
 class HasColumnValidator:
+    """Column validator."""
 
-    def _validate(self, column_name, dataset):
+    def _validate(self, column_name: str, dataset: Any) -> Any:
         """
         Validate input schema.
         """
         if column_name not in dataset.columns:
             raise ValueError(
-                f"Missing input column in transformer {self.uid}: Column '{column_name}' is not present."
+                f"Missing input column in transformer {self.uid}: "
+                f"Column '{column_name}' is not present.",
             )
         return dataset[column_name]
 
 
 class HasPartitionMap(Params):
+    """Has Partition Map."""
 
     partitionMap = Param(
         Params._dummy(),
@@ -490,13 +513,13 @@ class HasPartitionMap(Params):
         typeConverter=TypeConverters.toBoolean,
     )
 
-    def setPartitionMap(self, value):
+    def setPartitionMap(self, value: bool) -> Any:
         """
         Sets the value of :py:attr:`partitionMap`.
         """
         return self._set(partitionMap=value)
 
-    def getPartitionMap(self):
+    def getPartitionMap(self) -> bool:
         """
         Sets the value of :py:attr:`partitionMap`.
         """
@@ -504,11 +527,16 @@ class HasPartitionMap(Params):
 
 
 class HasLang(Params):
+    """Has Lang."""
+
     lang = Param(
-        Params._dummy(), "lang", "Language.", typeConverter=TypeConverters.toListString
+        Params._dummy(),
+        "lang",
+        "Language.",
+        typeConverter=TypeConverters.toListString,
     )
 
-    def setLang(self, value):
+    def setLang(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`lang`.
         """
@@ -531,6 +559,7 @@ class HasLang(Params):
 
 
 class HasSchema(Params):
+    """Has Schema."""
 
     schema = Param(
         Params._dummy(),
@@ -547,14 +576,14 @@ class HasSchema(Params):
     )
 
     @staticmethod
-    def toPydanticSchema(schema):
+    def toPydanticSchema(schema: str) -> Any:
         schema = json.loads(schema)
         return json_schema_to_model(schema, schema.get("$defs", {}))
 
-    def getPaydanticSchema(self):
+    def getPaydanticSchema(self) -> Any:
         return self.toPydanticSchema(self.getSchema())
 
-    def validateSchema(self, value):
+    def validateSchema(self, value: Any) -> Any:
         """
         Validate schema.
         """
@@ -564,19 +593,19 @@ class HasSchema(Params):
             value = json.dumps(value.model_json_schema())
         return value
 
-    def getSchema(self):
+    def getSchema(self) -> str:
         """
         Gets the value of schema or its default value.
         """
         return self.getOrDefault(self.schema)
 
-    def setSchema(self, value):
+    def setSchema(self, value: bool) -> Any:
         """
         Sets the value of :py:attr:`schema`.
         """
         return self._set(schema=value)
 
-    def getSchemaByPrompt(self):
+    def getSchemaByPrompt(self) -> bool:
         """
         Gets the value of schemaByPrompt or its default value.
         """
@@ -592,13 +621,13 @@ class HasPrompt(Params):
         typeConverter=TypeConverters.toString,
     )
 
-    def getPrompt(self):
+    def getPrompt(self) -> str:
         """
         Gets the value of prompt or its default value.
         """
         return self.getOrDefault(self.prompt)
 
-    def setPrompt(self, value):
+    def setPrompt(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`prompt`.
         """
@@ -611,19 +640,34 @@ class HasLLM(Params):
     """
 
     model = Param(
-        Params._dummy(), "model", "Model.", typeConverter=TypeConverters.toString
+        Params._dummy(),
+        "model",
+        "Model.",
+        typeConverter=TypeConverters.toString,
     )
     apiBase = Param(
-        Params._dummy(), "apiBase", "apiBase.", typeConverter=TypeConverters.toString
+        Params._dummy(),
+        "apiBase",
+        "apiBase.",
+        typeConverter=TypeConverters.toString,
     )
     apiKey = Param(
-        Params._dummy(), "apiKey", "apiKey.", typeConverter=TypeConverters.toString
+        Params._dummy(),
+        "apiKey",
+        "apiKey.",
+        typeConverter=TypeConverters.toString,
     )
     delay = Param(
-        Params._dummy(), "delay", "Delay.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "delay",
+        "Delay.",
+        typeConverter=TypeConverters.toInt,
     )
     maxRetry = Param(
-        Params._dummy(), "maxRetry", "Max retry.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "maxRetry",
+        "Max retry.",
+        typeConverter=TypeConverters.toInt,
     )
     temperature = Param(
         Params._dummy(),
@@ -643,15 +687,15 @@ class HasLLM(Params):
     def __init__(self) -> None:
         super(HasLLM, self).__init__()
 
-    def getOIClient(self):
-        from openai import OpenAI
-
+    def getOIClient(self) -> Any:
+        """OpenAI client."""
         if self.openAiClient:
             return self.openAiClient
         return self.getClient(self.getApiKey(), self.getApiBase())
 
     @classmethod
-    def getClient(cls, apiKey, apiBase):
+    def getClient(cls, apiKey: str, apiBase: str) -> Any:
+        """OpenAI client."""
         from openai import OpenAI
 
         kwargs = {}
@@ -661,74 +705,71 @@ class HasLLM(Params):
             kwargs["base_url"] = apiBase
         return OpenAI(**kwargs)
 
-    def getDelay(self):
+    def getDelay(self) -> int:
         """
         Gets the value of delay or its default value.
         """
         return self.getOrDefault(self.delay)
 
-    def getMaxRetry(self):
+    def getMaxRetry(self) -> int:
         """
         Gets the value of maxRetry or its default value.
         """
         return self.getOrDefault(self.maxRetry)
 
-    def getModel(self):
+    def getModel(self) -> Any:
         """
         Gets the value of model or its default value.
         """
         return self.getOrDefault(self.model)
 
-    def setModel(self, value):
+    def setModel(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`model`.
         """
         return self._set(model=value)
 
-    def getApiBase(self):
+    def getApiBase(self) -> str:
         """
         Gets the value of apiBase or its default value.
         """
         return self.getOrDefault(self.apiBase)
 
-    def setApiBase(self, value):
+    def setApiBase(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`model`.
         """
         return self._set(apiBase=value)
 
-    def getApiKey(self):
+    def getApiKey(self) -> str:
         """
         Gets the value of apiKey or its default value.
         """
         return self.getOrDefault(self.apiKey)
 
-    def setApiKey(self, value):
+    def setApiKey(self, value: str) -> Any:
         """
         Sets the value of :py:attr:`apiKey`.
         """
         return self._set(apiKey=value)
 
-    def getSystemPrompt(self):
+    def getSystemPrompt(self) -> str:
         """
         Gets the value of systemPrompt or its default value.
         """
         return self.getOrDefault(self.systemPrompt)
 
-    def setSystemPrompt(self, value):
-        """
-        Sets the value of :py:attr:`systemPrompt`.
-        """
+    def setSystemPrompt(self, value: str) -> Any:
+        """Sets the value of :py:attr:`systemPrompt`."""
         return self._set(systemPrompt=value)
 
-    def getTemperature(self):
-        """
-        Gets the value of temperature or its default value.
-        """
+    def getTemperature(self) -> float:
+        """Gets the value of temperature or its default value."""
         return self.getOrDefault(self.temperature)
 
 
-class HasPropagateError(Params):
+class HasPropagateExc(Params):
+    """Propagate error."""
 
     propagateError = Param(
         Params._dummy(),
@@ -737,14 +778,10 @@ class HasPropagateError(Params):
         typeConverter=TypeConverters.toBoolean,
     )
 
-    def getPropagateError(self):
-        """
-        Gets the value of propagateError or its default value.
-        """
+    def getPropagateError(self) -> bool:
+        """Gets the value of propagateError or its default value."""
         return self.getOrDefault(self.propagateError)
 
-    def setPropagateError(self, value):
-        """
-        Sets the value of :py:attr:`propagateError`.
-        """
+    def setPropagateError(self, value: bool) -> Any:
+        """Sets the value of :py:attr:`propagateError`."""
         return self._set(propagateError=value)

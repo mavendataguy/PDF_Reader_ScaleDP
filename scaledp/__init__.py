@@ -1,81 +1,105 @@
 import os
 import sys
+from importlib import resources
+from importlib.util import find_spec
+from pathlib import Path
+
 import pyspark
-from pyspark import SparkConf
-from pyspark.sql import SparkSession
 from pyspark.ml.pipeline import PipelineModel
-from importlib.resources import files
+from pyspark.sql import DataFrame, SparkSession
+
+from scaledp import enums
 from scaledp.image.DataToImage import DataToImage
-from scaledp.pdf.PdfDataToImage import PdfDataToImage
-from scaledp.models.recognizers.TesseractOcr import TesseractOcr
-from scaledp.models.ner.Ner import Ner
-from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
 from scaledp.image.ImageCropBoxes import ImageCropBoxes
-from scaledp.text.TextToDocument import TextToDocument
-from scaledp.models.recognizers.SuryaOcr import SuryaOcr
-from scaledp.models.recognizers.EasyOcr import EasyOcr
-from scaledp.models.recognizers.DocTROcr import DocTROcr
+from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
+from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 from scaledp.models.detectors.YoloDetector import YoloDetector
 from scaledp.models.extractors.DSPyExtractor import DSPyExtractor
-from scaledp.models.recognizers.TesseractRecognizer import TesseractRecognizer
-from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
-from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
 from scaledp.models.extractors.LLMExtractor import LLMExtractor
-from scaledp.models.recognizers.LLMOcr import LLMOcr
+from scaledp.models.extractors.LLMVisualExtractor import LLMVisualExtractor
 from scaledp.models.ner.LLMNer import LLMNer
-from importlib import resources
-from scaledp import enums
-from scaledp.enums import *
-
-from pyspark.sql import DataFrame
-
+from scaledp.models.ner.Ner import Ner
+from scaledp.models.recognizers.DocTROcr import DocTROcr
+from scaledp.models.recognizers.EasyOcr import EasyOcr
+from scaledp.models.recognizers.LLMOcr import LLMOcr
+from scaledp.models.recognizers.SuryaOcr import SuryaOcr
+from scaledp.models.recognizers.TesseractOcr import TesseractOcr
+from scaledp.models.recognizers.TesseractRecognizer import TesseractRecognizer
+from scaledp.pdf.PdfDataToImage import PdfDataToImage
+from scaledp.text.TextToDocument import TextToDocument
 from scaledp.utils.show_utils import (
     show_image,
-    show_pdf,
-    show_ner,
-    visualize_ner,
-    show_text,
     show_json,
+    show_ner,
+    show_pdf,
+    show_text,
+    visualize_ner,
 )
 
 DataFrame.show_image = (
-    lambda self, column="", limit=5, width=None, show_meta=True,: show_image(
-        self, column, limit, width, show_meta
+    lambda self, column="", limit=5, width=None, show_meta=True: show_image(
+        self,
+        column,
+        limit,
+        width,
+        show_meta,
     )
 )
 DataFrame.show_pdf = (
-    lambda self, column="", limit=5, width=None, show_meta=True,: show_pdf(
-        self, column, limit, width, show_meta
+    lambda self, column="", limit=5, width=None, show_meta=True: show_pdf(
+        self,
+        column,
+        limit,
+        width,
+        show_meta,
     )
 )
 DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ner(
-    self, column, limit, truncate
+    self,
+    column,
+    limit,
+    truncate,
 )
 DataFrame.show_text = (
     lambda self, column="", field="text", limit=20, width=None: show_text(
-        self, column, field, limit, width
+        self,
+        column,
+        field,
+        limit,
+        width,
     )
 )
 DataFrame.show_json = (
     lambda self, column="", field="data", limit=20, width=None: show_json(
-        self, column, field, limit, width
+        self,
+        column,
+        field,
+        limit,
+        width,
     )
 )
-DataFrame.visualize_ner = lambda self, column="ner", text_column="text", limit=20, width=None, labels_list=None: visualize_ner(
-    self, column, text_column, limit, width, labels_list
+DataFrame.visualize_ner = (
+    lambda self, column="ner", text_column="text", limit=20, width=None: visualize_ner(
+        self,
+        column,
+        text_column,
+        limit,
+        width,
+    )
 )
 
 
 def version():
-    version_path = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(version_path, "VERSION"), encoding="utf-8") as version_file:
+    with (Path.parent / "VERSION").open(encoding="utf-8") as version_file:
         return version_file.read().strip()
 
 
 __version__ = version()
 
 
-files = lambda path: resources.files("scaledp").joinpath(path).as_posix()
+def files(path):
+    """File resources."""
+    return resources.files("scaledp").joinpath(path).as_posix()
 
 
 def aws_version():
@@ -91,10 +115,15 @@ def aws_version():
 
 
 def ScaleDPSession(
-    conf=None, master_url="local[*]", with_aws=False, with_pro=False, logLevel="ERROR"
+    conf=None,
+    master_url="local[*]",
+    with_aws=False,
+    with_pro=False,
+    logLevel="ERROR",
 ):
     """
-    Start Spark session with ScaleDP
+    Start Spark session with ScaleDP.
+
     @param conf: Instance of SparkConf or dict with extra configuration.
     @param master_url: Spark master URL
     @param with_aws: Enable AWS support
@@ -103,13 +132,10 @@ def ScaleDPSession(
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["TRANSFORMERS_VERBOSITY"] = logLevel.lower()
 
-    if with_pro:
-        try:
-            import scaledp_pro
-        except ImportError:
-            raise ImportError(
-                "ScaleDP Pro is not installed. Please install it using 'pip install scaledp-pro'"
-            )
+    if with_pro and find_spec("scaledp_pro") is None:
+        raise ImportError(
+            "ScaleDP Pro is not installed. Please install it using 'pip install scaledp-pro'",
+        )
 
     jars = []
     jars_packages = []
@@ -134,7 +160,7 @@ def ScaleDPSession(
             jars.append(extra_jars)
 
     builder = SparkSession.builder.master(master_url).appName(
-        "ScaleDP: v" + __version__
+        "ScaleDP: v" + __version__,
     )
 
     for k, v in default_conf.items():
@@ -171,4 +197,5 @@ __all__ = [
     "LLMNer",
     "__version__",
     "files",
-] + dir(enums)
+    *dir(enums),
+]

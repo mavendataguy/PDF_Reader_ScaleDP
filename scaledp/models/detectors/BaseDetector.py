@@ -1,18 +1,39 @@
 import json
-import traceback
 import logging
+import traceback
 
 import pandas as pd
-from pyspark.sql.functions import udf, pandas_udf, lit
-from pyspark.sql.types import ArrayType
-
-from scaledp.params import *
-from pyspark.sql.types import *
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
+from pyspark.sql.functions import lit, pandas_udf, udf
+from pyspark.sql.types import (
+    ArrayType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
-from scaledp.schemas.Image import Image
+from scaledp.params import (
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasInputCol,
+    HasKeepInputData,
+    HasModel,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPartitionMap,
+    HasPathCol,
+    HasPropagateExc,
+    HasScoreThreshold,
+    Param,
+    Params,
+    TypeConverters,
+)
 from scaledp.schemas.DetectorOutput import DetectorOutput
+from scaledp.schemas.Image import Image
 
 
 class DetectionError(Exception):
@@ -34,7 +55,7 @@ class BaseDetector(
     HasNumPartitions,
     HasPageCol,
     HasPathCol,
-    HasPropagateError,
+    HasPropagateExc,
 ):
 
     scaleFactor = Param(
@@ -63,14 +84,14 @@ class BaseDetector(
                                 StructField("y", IntegerType(), False),
                                 StructField("width", IntegerType(), False),
                                 StructField("height", IntegerType(), False),
-                            ]
+                            ],
                         ),
                         True,
                     ),
                     True,
                 ),
                 StructField("exception", StringType(), True),
-            ]
+            ],
         )
 
     def transform_udf(self, image, params=None):
@@ -95,7 +116,7 @@ class BaseDetector(
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
@@ -108,9 +129,12 @@ class BaseDetector(
             )
             logging.warning(f"{self.uid}: Error in object detection.")
             if self.getPropagateError():
-                raise DetectionError() from e
+                raise DetectionError from e
             return DetectorOutput(
-                path=image.path, bboxes=[], type="detector", exception=exception
+                path=image.path,
+                bboxes=[],
+                type="detector",
+                exception=exception,
             )
         return result[0]
 
@@ -120,11 +144,14 @@ class BaseDetector(
 
     @classmethod
     def transform_udf_pandas(
-        cls, images: pd.DataFrame, params: pd.Series
+        cls,
+        images: pd.DataFrame,
+        params: pd.Series,
     ) -> pd.DataFrame:
         params = json.loads(params[0])
         resized_images = []
-        for index, image in images.iterrows():
+        for _index, img in images.iterrows():
+            image = img
             if not isinstance(image, Image):
                 image = Image(**image.to_dict())
             image_pil = image.to_pil()
@@ -134,7 +161,7 @@ class BaseDetector(
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
@@ -153,7 +180,8 @@ class BaseDetector(
             result = dataset.withColumn(
                 out_col,
                 udf(self.transform_udf, DetectorOutput.get_schema())(
-                    input_col, lit(params)
+                    input_col,
+                    lit(params),
                 ),
             )
         else:
@@ -166,7 +194,8 @@ class BaseDetector(
             result = dataset.withColumn(
                 out_col,
                 pandas_udf(self.transform_udf_pandas, self.outputSchema())(
-                    input_col, lit(params)
+                    input_col,
+                    lit(params),
                 ),
             )
 

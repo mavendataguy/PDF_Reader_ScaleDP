@@ -1,13 +1,12 @@
+import tempfile
+
 import pyspark.sql.functions as f
 import pytest
 from pyspark.ml import PipelineModel
 
-from scaledp import DataToImage, ImageDrawBoxes
-from scaledp.enums import Device
+from scaledp import ImageDrawBoxes
 from scaledp.models.ner.LLMNer import LLMNer
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
-from scaledp.text.TextToDocument import TextToDocument
-import tempfile
 
 
 def test_llm_ner(image_df):
@@ -17,9 +16,13 @@ def test_llm_ner(image_df):
 
     # Initialize the NER stage with the specified model and device
     ner = LLMNer(model="gemini-1.5-flash", numPartitions=0)
-    draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "ner"],
-                          filled=False, color="grey",
-                          displayDataList=['entity_group'])
+    draw = ImageDrawBoxes(
+        keepInputData=True,
+        inputCols=["image", "ner"],
+        filled=False,
+        color="grey",
+        displayDataList=["entity_group"],
+    )
 
     # Transform the image dataframe through the OCR and NER stages
     pipeline = PipelineModel(stages=[ocr, ner, draw])
@@ -53,9 +56,9 @@ def test_llm_ner(image_df):
     assert ner_tags.count() > 10
 
     # Save the output image to a temporary file for verification
-    temp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
-    temp.write(data[0].image_with_boxes.data)
-    temp.close()
+    with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp:
+        temp.write(data[0].image_with_boxes.data)
+        temp.close()
 
-    # Print the path to the temporary file
-    print("file://" + temp.name)
+        # Print the path to the temporary file
+        print("file://" + temp.name)

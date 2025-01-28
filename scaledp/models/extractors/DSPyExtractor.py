@@ -1,30 +1,34 @@
 import json
 import os
+from types import MappingProxyType
+from typing import Any
 
-from .BaseExtractor import BaseExtractor
 from pyspark import keyword_only
 
 from ...params import HasLLM, HasSchema
 from ...schemas.ExtractorOutput import ExtractorOutput
 from ...utils.pydantic_shema_utils import json_schema_to_model
+from .BaseExtractor import BaseExtractor
 
 
 class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
 
-    defaultParams = {
-        "inputCol": "text",
-        "outputCol": "data",
-        "keepInputData": True,
-        "model": "llama3-8b-8192",
-        "apiBase": None,
-        "apiKey": None,
-        "numPartitions": 1,
-        "pageCol": "page",
-        "pathCol": "path",
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "text",
+            "outputCol": "data",
+            "keepInputData": True,
+            "model": "llama3-8b-8192",
+            "apiBase": None,
+            "apiKey": None,
+            "numPartitions": 1,
+            "pageCol": "page",
+            "pathCol": "path",
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(DSPyExtractor, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -50,7 +54,8 @@ class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
                 desc="""OCR recognized text of the receipt from the Ukrainian store""",
             )
             data: schema = dspy.OutputField(
-                desc="Structured data from the receipt with fixes and improvements of OCR recognition."
+                desc="Structured data from the receipt with fixes "
+                "and improvements of OCR recognition.",
             )
 
         module = dspy.ChainOfThought(ExtractData)
@@ -64,6 +69,6 @@ class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
                     data=data.json(),
                     type="DSPyExtractor",
                     exception="",
-                )
+                ),
             )
         return results

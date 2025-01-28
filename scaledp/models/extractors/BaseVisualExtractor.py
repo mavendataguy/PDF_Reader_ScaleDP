@@ -1,14 +1,24 @@
 import json
 import logging
 import traceback
-from pyspark.sql.types import *
+
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import lit, udf
 
-from scaledp.params import *
-from scaledp.schemas.Image import Image
+from scaledp.params import (
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasInputCol,
+    HasKeepInputData,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPathCol,
+    HasPropagateExc,
+)
 from scaledp.schemas.ExtractorOutput import ExtractorOutput
+from scaledp.schemas.Image import Image
 
 
 class VisualExtractorError(Exception):
@@ -27,7 +37,7 @@ class BaseVisualExtractor(
     HasPageCol,
     HasColumnValidator,
     HasDefaultEnum,
-    HasPropagateError,
+    HasPropagateExc,
 ):
 
     def get_params(self):
@@ -61,9 +71,12 @@ class BaseVisualExtractor(
             )
             logging.warning(f"{self.uid}: Error in data extraction.")
             if self.getPropagateError():
-                raise VisualExtractorError() from e
+                raise VisualExtractorError from e
             return ExtractorOutput(
-                path=image.path, data="", type="detector", exception=exception
+                path=image.path,
+                data="",
+                type="detector",
+                exception=exception,
             )
         return result[0]
 
@@ -74,7 +87,8 @@ class BaseVisualExtractor(
         result = dataset.withColumn(
             out_col,
             udf(self.transform_udf, ExtractorOutput.get_schema())(
-                in_col, lit(self.get_params())
+                in_col,
+                lit(self.get_params()),
             ),
         )
         if not self.getKeepInputData():

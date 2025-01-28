@@ -1,13 +1,15 @@
+import json
+
+import pytest
+from pydantic import BaseModel, Field
+
 from scaledp.models.extractors.DSPyExtractor import DSPyExtractor
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
-from pydantic import BaseModel, Field
-import json
-import pytest
-
 
 
 class ReceiptItem(BaseModel):
     """Purchased items."""
+
     name: str
     quantity: float
     price_per_unit: float
@@ -16,6 +18,7 @@ class ReceiptItem(BaseModel):
 
 class ReceiptSchema(BaseModel):
     """Receipt."""
+
     company_name: str
     shop_name: str
     address: str
@@ -31,8 +34,10 @@ def test_dspy_extractor(image_receipt_df):
     ocr = TesseractOcr(keepInputData=True, lang=["ukr", "eng"], keepFormatting=True)
 
     # Initialize the NER stage with the specified model and device
-    extractor = DSPyExtractor(model="openai/gemini-1.5-flash",
-                              schema=json.dumps(ReceiptSchema.model_json_schema()))
+    extractor = DSPyExtractor(
+        model="openai/gemini-1.5-flash",
+        schema=json.dumps(ReceiptSchema.model_json_schema()),
+    )
 
     # Transform the image dataframe through the OCR and NER stages
     result_df = extractor.transform(ocr.transform(image_receipt_df))

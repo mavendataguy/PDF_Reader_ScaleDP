@@ -1,12 +1,30 @@
 ## Frome the https://github.com/xdanny/pyspark_types/blob/main/pyspark_types/dataclass.py
 ## with some changes
 
-from typing import Type, get_type_hints, Union
-from dataclasses import is_dataclass, fields
 import datetime
-from pyspark.sql.types import *
+from dataclasses import fields, is_dataclass
+from typing import Dict, Type, Union, get_type_hints
 
-from scaledp.utils.auxiliary import LongT, ShortT, ByteT, BinaryT, BoundDecimal
+from pyspark.sql.types import (
+    ArrayType,
+    BinaryType,
+    BooleanType,
+    ByteType,
+    DataType,
+    DateType,
+    DecimalType,
+    DoubleType,
+    IntegerType,
+    LongType,
+    MapType,
+    ShortType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
+)
+
+from scaledp.utils.auxiliary import BinaryT, BoundDecimal, ByteT, LongT, ShortT
 
 type_mapping = {
     str: StringType,
@@ -22,7 +40,8 @@ type_mapping = {
 }
 
 
-def register_type(new_type, spark_type):
+def register_type(new_type: Type, spark_type: DataType) -> None:
+    """Register type mapping for a new type."""
     type_mapping[new_type] = spark_type
 
 
@@ -53,7 +72,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                 sub_struct = map_dataclass_to_struct(elem_type)
                 nullable = is_field_nullable(field_name, hints)
                 fields_list.append(
-                    StructField(field_name, ArrayType(sub_struct), nullable)
+                    StructField(field_name, ArrayType(sub_struct), nullable),
                 )
             else:
                 # Handle lists of primitive types and dicts
@@ -64,7 +83,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                     fields_list.append(StructField(field_name, spark_type, nullable))
                 else:
                     fields_list.append(
-                        StructField(field_name, ArrayType(spark_type), nullable)
+                        StructField(field_name, ArrayType(spark_type), nullable),
                     )
         elif hasattr(field_type, "__origin__") and field_type.__origin__ is dict:
             # Handle dictionaries
@@ -77,7 +96,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                         field_name,
                         MapType(get_spark_type(key_type), sub_struct),
                         nullable,
-                    )
+                    ),
                 )
             else:
                 spark_type = get_spark_type(value_type)
@@ -87,7 +106,7 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
                         field_name,
                         MapType(get_spark_type(key_type), spark_type),
                         nullable,
-                    )
+                    ),
                 )
         else:
             # Handle primitive types and BoundDecimal custom type
@@ -98,12 +117,12 @@ def map_dataclass_to_struct(dataclass_type: Type) -> StructType:
     return StructType(fields_list)
 
 
-def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
-    """
-    Creates a mapping from a python type to a pyspark data type
-    :param py_type:
-    :return:
-    """
+def get_spark_type(
+    py_type: Type,
+    type_mapping: Dict[Type, DataType] = type_mapping,
+) -> DataType:
+    """Creates a mapping from a python type to a pyspark data type."""
+
     # Check if the type exists in the mapping
     if py_type in type_mapping:
         # If it's a function, call it (e.g., for Box.getSchema())
@@ -127,36 +146,30 @@ def get_spark_type(py_type: Type, type_mapping=type_mapping) -> DataType:
 
 def is_field_nullable(field_name: str, hints: dict) -> bool:
     """
-    Returns True if the given field name is nullable, based on the type hint for the field in the given hints dictionary.
+    Returns True if the given field name is nullable, based on the
+    type hint for the field in the given hints dictionary.
     """
+
     if field_name not in hints:
         return True
     field_type = hints[field_name]
-    if is_optional_type(field_type):
-        return True
-    return False
+    return is_optional_type(field_type)
 
 
 def apply_nullability(dtype: DataType, is_nullable: bool) -> DataType:
-    """
-    Returns a new PySpark DataType with the nullable flag set to the given value.
-    """
+    """Returns a new PySpark DataType with the nullable flag set to the given value."""
     if is_nullable:
         if isinstance(dtype, StructType):
             # Wrap the nullable field in a struct with a single field
             return StructType([StructField("value", dtype, True)])
-        elif hasattr(dtype, "add_nullable"):
+        if hasattr(dtype, "add_nullable"):
             return dtype.add_nullable()
-        else:
-            raise TypeError(f"Type {dtype} does not support nullability")
-    else:
-        return dtype
+        raise TypeError(f"Type {dtype} does not support nullability")
+    return dtype
 
 
 def is_optional_type(py_type: Type) -> bool:
-    """
-    Returns True if the given type is an Optional type.
-    """
+    """Returns True if the given type is an Optional type."""
     if hasattr(py_type, "__origin__") and py_type.__origin__ is Union:
         args = py_type.__args__
         if len(args) == 2 and args[1] is type(None):

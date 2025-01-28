@@ -1,15 +1,32 @@
-import traceback
 import logging
+import traceback
+from types import MappingProxyType
+from typing import Any, Dict
+
 import fitz
 from pyspark import keyword_only
-from pyspark.sql.functions import udf, posexplode_outer
-from pyspark.sql.types import ArrayType
-
-from scaledp.schemas.Image import Image
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
-from scaledp.params import *
+from pyspark.pandas import DataFrame
+from pyspark.sql.functions import posexplode_outer, udf
+from pyspark.sql.types import ArrayType, Row
+
 from scaledp.enums import ImageType
+from scaledp.params import (
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasImageType,
+    HasInputCol,
+    HasKeepInputData,
+    HasOutputCol,
+    HasPageCol,
+    HasPathCol,
+    HasResolution,
+    Param,
+    Params,
+    TypeConverters,
+)
+from scaledp.schemas.Image import Image
 
 
 class PdfDataToImage(
@@ -26,9 +43,7 @@ class PdfDataToImage(
     HasColumnValidator,
     HasDefaultEnum,
 ):
-    """
-    Extract image from PDF file
-    """
+    """Extract image from PDF file."""
 
     pageLimit = Param(
         Params._dummy(),
@@ -37,24 +52,26 @@ class PdfDataToImage(
         typeConverter=TypeConverters.toInt,
     )
 
-    defaultParams = {
-        "inputCol": "content",
-        "outputCol": "image",
-        "pathCol": "path",
-        "pageCol": "page",
-        "keepInputData": False,
-        "imageType": ImageType.FILE,
-        "resolution": 300,
-        "pageLimit": 0,
-    }
+    DEFAULT_PARAMS = MappingProxyType(
+        {
+            "inputCol": "content",
+            "outputCol": "image",
+            "pathCol": "path",
+            "pageCol": "page",
+            "keepInputData": False,
+            "imageType": ImageType.FILE,
+            "resolution": 300,
+            "pageLimit": 0,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]) -> None:
         super(PdfDataToImage, self).__init__()
-        self._setDefault(**self.defaultParams)
+        self._setDefault(**self.DEFAULT_PARAMS)
         self._set(**kwargs)
 
-    def transform_udf(self, input, path):
+    def transform_udf(self, input: Row, path: Row) -> list[Image]:
         logging.info("Run Pdf Data to Image")
         try:
             doc = fitz.open("pdf", input)
@@ -82,30 +99,39 @@ class PdfDataToImage(
 
         except Exception:
             exception = traceback.format_exc()
-            exception = f"{self.uid}: Error during extract image from the PDF document: {exception}"
+            exception = (
+                f"{self.uid}: Error during extract image from "
+                f"the PDF document: {exception}"
+            )
             logging.warning(exception)
             return [Image(path=path, exception=exception)]
 
-    def _transform(self, dataset):
+    def _transform(self, dataset: DataFrame) -> DataFrame:
         out_col = self.getOutputCol()
         input_col = self._validate(self.getInputCol(), dataset)
         path_col = dataset[self.getPathCol()]
 
-        selCol = dataset.columns + [
-            posexplode_outer(
-                udf(self.transform_udf, ArrayType(Image.get_schema()))(
-                    input_col, path_col
-                )
-            ).alias(self.getPageCol(), out_col),
+        sel_col = [
+            dataset.columns,
+            *[
+                posexplode_outer(
+                    udf(self.transform_udf, ArrayType(Image.get_schema()))(
+                        input_col,
+                        path_col,
+                    ),
+                ).alias(self.getPageCol(), out_col),
+            ],
         ]
 
-        result = dataset.select(selCol)
+        result = dataset.select(sel_col)
         if not self.getKeepInputData():
             result = result.drop(input_col)
         return result
 
-    def getPageLimit(self):
+    def getPageLimit(self) -> int:
+        """Get page limit."""
         return self.getOrDefault(self.pageLimit)
 
-    def setPageLimit(self, value):
+    def setPageLimit(self, value) -> "PdfDataToImage":
+        """Set page limit."""
         return self._set(pageNumber=value)

@@ -1,6 +1,5 @@
-
-from scaledp.models.recognizers.DocTROcr import DocTROcr
 from scaledp.enums import Device
+from scaledp.models.recognizers.DocTROcr import DocTROcr
 
 
 def test_doctr_ocr(image_line_df):
@@ -13,8 +12,9 @@ def test_doctr_ocr(image_line_df):
     assert len(result) == 1, "Expected exactly one result"
 
     # Verify the detected text contains the expected substring
-    assert ("24/11/16 08:12:24 WARN Utils:"
-            in result[0].text.text), "Expected text not found in result"
+    assert (
+        "24/11/16 08:12:24 WARN Utils:" in result[0].text.text
+    ), "Expected text not found in result"
 
 
 def test_doctr_ocr_pandas_udf(image_line_df):
@@ -27,5 +27,6 @@ def test_doctr_ocr_pandas_udf(image_line_df):
     assert len(result) == 1, "Expected exactly one result"
 
     # Verify the detected text contains the expected substring
-    assert ("24/11/16 08:12:24 WARN Utils:"
-            in result[0].text.text), "Expected text not found in result"
+    assert (
+        "24/11/16 08:12:24 WARN Utils:" in result[0].text.text
+    ), "Expected text not found in result"

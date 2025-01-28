@@ -1,11 +1,20 @@
+from types import MappingProxyType
+from typing import Any
+
 from pyspark import keyword_only
 
-
+from scaledp.models.recognizers.BaseOcr import BaseOcr
+from scaledp.params import (
+    CODE_TO_LANGUAGE,
+    LANGUAGE_TO_TESSERACT_CODE,
+    Param,
+    Params,
+    TypeConverters,
+)
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
-from scaledp.models.recognizers.BaseOcr import BaseOcr
-from scaledp.params import *
-from ...enums import PSM, OEM, TessLib
+
+from ...enums import OEM, PSM, TessLib
 
 
 class TesseractOcr(BaseOcr):
@@ -41,25 +50,27 @@ class TesseractOcr(BaseOcr):
         typeConverter=TypeConverters.toInt,
     )
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "text",
-        "keepInputData": False,
-        "scaleFactor": 1.0,
-        "scoreThreshold": 0.5,
-        "psm": PSM.AUTO,
-        "oem": OEM.DEFAULT,
-        "lang": ["eng"],
-        "lineTolerance": 0,
-        "keepFormatting": False,
-        "tessDataPath": "/usr/share/tesseract-ocr/5/tessdata/",
-        "tessLib": TessLib.PYTESSERACT,
-        "partitionMap": False,
-        "propagateError": False,
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "text",
+            "keepInputData": False,
+            "scaleFactor": 1.0,
+            "scoreThreshold": 0.5,
+            "psm": PSM.AUTO,
+            "oem": OEM.DEFAULT,
+            "lang": ["eng"],
+            "lineTolerance": 0,
+            "keepFormatting": False,
+            "tessDataPath": "/usr/share/tesseract-ocr/5/tessdata/",
+            "tessLib": TessLib.PYTESSERACT,
+            "partitionMap": False,
+            "propagateError": False,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(TesseractOcr, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -75,7 +86,9 @@ class TesseractOcr(BaseOcr):
         )
         for image, image_path in images:
             res = pytesseract.image_to_data(
-                image, output_type=pytesseract.Output.DATAFRAME, config=config
+                image,
+                output_type=pytesseract.Output.DATAFRAME,
+                config=config,
             )
             res["conf"] = res["conf"] / 100
 
@@ -88,17 +101,19 @@ class TesseractOcr(BaseOcr):
             ].rename(columns={"conf": "score", "left": "x", "top": "y"})
             res = res[res["text"] != "\n"]
             boxes = res.apply(
-                lambda x: Box(*x).toString().scale(1 / params["scaleFactor"]), axis=1
+                lambda x: Box(*x).to_string().scale(1 / params["scaleFactor"]),
+                axis=1,
             ).values.tolist()
             if params["keepFormatting"]:
                 text = TesseractOcr.box_to_formatted_text(
-                    boxes, params["lineTolerance"]
+                    boxes,
+                    params["lineTolerance"],
                 )
             else:
                 text = " ".join([str(w) for w in res["text"].values.tolist()])
 
             results.append(
-                Document(path=image_path, text=text, type="text", bboxes=boxes)
+                Document(path=image_path, text=text, type="text", bboxes=boxes),
             )
         return results
 
@@ -108,12 +123,12 @@ class TesseractOcr(BaseOcr):
             [
                 LANGUAGE_TO_TESSERACT_CODE[CODE_TO_LANGUAGE[lang]]
                 for lang in params["lang"]
-            ]
+            ],
         )
 
     @classmethod
     def call_tesserocr(cls, images, params):  # pragma: no cover
-        from tesserocr import PyTessBaseAPI, RIL, iterate_level
+        from tesserocr import RIL, PyTessBaseAPI, iterate_level
 
         results = []
 
@@ -148,12 +163,13 @@ class TesseractOcr(BaseOcr):
                                 box[1],
                                 abs(box[2] - box[0]),
                                 abs(box[3] - box[1]),
-                            ).scale(1 / params["scaleFactor"])
+                            ).scale(1 / params["scaleFactor"]),
                         )
                         texts.append(text)
                 if params["keepFormatting"]:
                     text = TesseractOcr.box_to_formatted_text(
-                        boxes, params["lineTolerance"]
+                        boxes,
+                        params["lineTolerance"],
                     )
                 else:
                     text = " ".join(texts)
@@ -165,7 +181,7 @@ class TesseractOcr(BaseOcr):
                         bboxes=boxes,
                         type="text",
                         exception="",
-                    )
+                    ),
                 )
         return results
 
@@ -173,10 +189,9 @@ class TesseractOcr(BaseOcr):
     def call_ocr(cls, images, params):
         if params["tessLib"] == TessLib.TESSEROCR.value:
             return cls.call_tesserocr(images, params)
-        elif params["tessLib"] == TessLib.PYTESSERACT.value:
+        if params["tessLib"] == TessLib.PYTESSERACT.value:
             return cls.call_pytesseract(images, params)
-        else:
-            raise ValueError(f"Unknown Tesseract library: {params['tessLib']}")
+        raise ValueError(f"Unknown Tesseract library: {params['tessLib']}")
 
     def setPsm(self, value):
         """

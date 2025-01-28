@@ -1,19 +1,18 @@
-from pyspark.sql.types import *
-import imagesize
 import io
 import logging
-from PIL import Image as pImage
-import traceback
 from dataclasses import dataclass
+
+import imagesize
+from PIL import Image as pImage
+
+from scaledp.utils.dataclass import BinaryT, map_dataclass_to_struct, register_type
+
 from ..enums import ImageType
-from scaledp.utils.dataclass import map_dataclass_to_struct, register_type, BinaryT
 
 
 @dataclass(order=True)
 class Image(object):
-    """
-    Image object for represent image data in Spark Dataframe
-    """
+    """Image object for represent image data in Spark Dataframe."""
 
     path: str
     resolution: int = 0
@@ -23,21 +22,15 @@ class Image(object):
     height: int = 0
     width: int = 0
 
-    def to_pil(self):
-        if (
-            self.imageType == ImageType.FILE.value
-            or self.imageType == ImageType.WEBP.value
-        ):
+    def to_pil(self) -> pImage.Image:
+        if self.imageType in (ImageType.FILE.value, ImageType.WEBP.value):
             return pImage.open(io.BytesIO(self.data))
+        raise ValueError("Invalid image type.")
 
-    def to_io_stream(self):
+    def to_io_stream(self) -> io.BytesIO:
         return io.BytesIO(self.data)
 
-    def to_opencv(self):
-        if self.imageType == ImageType.FILE.value:
-            return pImage.open(io.BytesIO(self.data))
-
-    def to_webp(self):
+    def to_webp(self) -> "Image":
         if self.imageType == ImageType.FILE.value:
             image = pImage.open(io.BytesIO(self.data))
             buff = io.BytesIO()
@@ -48,7 +41,10 @@ class Image(object):
     @staticmethod
     def from_binary(data, path, imageType, resolution=None, width=None, height=None):
         img = Image(
-            path=path, data=data, imageType=ImageType.FILE.value, resolution=resolution
+            path=path,
+            data=data,
+            imageType=ImageType.FILE.value,
+            resolution=resolution,
         )
         if data is None or len(data) == 0:
             raise ValueError("Empty image data.")
@@ -71,7 +67,7 @@ class Image(object):
             data.save(buff, "webp")
         else:
             data.save(buff, "png")
-        img = Image(
+        return Image(
             path=path,
             data=buff.getvalue(),
             imageType=ImageType.FILE.value,
@@ -79,16 +75,19 @@ class Image(object):
             height=data.height,
             resolution=resolution,
         )
-        return img
 
     @staticmethod
     def get_schema():
         return map_dataclass_to_struct(Image)
 
-    def __str__(self):
-        return f"Image(path={self.path}, resolution={self.resolution}, imageType={self.imageType}, exception={self.exception}, height={self.height}, width={self.width})"
+    def __str__(self) -> str:
+        return (
+            f"Image(path={self.path}, resolution={self.resolution}, "
+            f"imageType={self.imageType}, exception={self.exception}, "
+            f"height={self.height}, width={self.width})"
+        )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 

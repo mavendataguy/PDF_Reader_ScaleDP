@@ -1,19 +1,36 @@
-import traceback
 import logging
 import random
+import traceback
+from types import MappingProxyType
+from typing import Any
 
 from PIL import ImageDraw
 from pyspark import keyword_only
-from pyspark.sql.functions import udf
 from pyspark.ml import Transformer
+from pyspark.ml.param import Param, Params, TypeConverters
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
+from pyspark.sql.functions import udf
 
+from scaledp.params import (
+    AutoParamsMeta,
+    HasBlackList,
+    HasColor,
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasImageType,
+    HasInputCols,
+    HasKeepInputData,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasWhiteList,
+)
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Entity import Entity
 from scaledp.schemas.Image import Image
 from scaledp.schemas.NerOutput import NerOutput
+
 from ..enums import ImageType
-from scaledp.params import *
 
 
 class ImageDrawBoxes(
@@ -33,9 +50,7 @@ class ImageDrawBoxes(
     HasBlackList,
     metaclass=AutoParamsMeta,
 ):
-    """
-    Draw boxes on image
-    """
+    """Draw boxes on image."""
 
     filled = Param(
         Params._dummy(),
@@ -45,15 +60,24 @@ class ImageDrawBoxes(
     )
 
     lineWidth = Param(
-        Params._dummy(), "lineWidth", "Line width.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "lineWidth",
+        "Line width.",
+        typeConverter=TypeConverters.toInt,
     )
 
     textSize = Param(
-        Params._dummy(), "textSize", "Text size.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "textSize",
+        "Text size.",
+        typeConverter=TypeConverters.toInt,
     )
 
     padding = Param(
-        Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "padding",
+        "Padding.",
+        typeConverter=TypeConverters.toInt,
     )
 
     displayDataList = Param(
@@ -63,25 +87,27 @@ class ImageDrawBoxes(
         typeConverter=TypeConverters.toListString,
     )
 
-    defaultParams = {
-        "inputCols": ["image", "boxes"],
-        "outputCol": "image_with_boxes",
-        "keepInputData": False,
-        "imageType": ImageType.FILE,
-        "filled": False,
-        "color": None,
-        "lineWidth": 1,
-        "textSize": 12,
-        "displayDataList": [],
-        "numPartitions": 0,
-        "padding": 0,
-        "pageCol": "page",
-        "whiteList": [],
-        "blackList": [],
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCols": ["image", "boxes"],
+            "outputCol": "image_with_boxes",
+            "keepInputData": False,
+            "imageType": ImageType.FILE,
+            "filled": False,
+            "color": None,
+            "lineWidth": 1,
+            "textSize": 12,
+            "displayDataList": [],
+            "numPartitions": 0,
+            "padding": 0,
+            "pageCol": "page",
+            "whiteList": [],
+            "blackList": [],
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(ImageDrawBoxes, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -120,100 +146,10 @@ class ImageDrawBoxes(
             img1 = ImageDraw.Draw(img)
             fill = self.getColor() if self.getFilled() else None
 
-            black_list = self.getBlackList()
-            white_list = self.getWhiteList()
-
             if hasattr(data, "entities"):
-                if not isinstance(data, NerOutput):
-                    data = NerOutput(**data.asDict())
-                colors = {}
-                for ner in data.entities:
-
-                    if not isinstance(ner, Entity):
-                        ner = Entity(**ner.asDict())
-
-                    if ner.entity_group in black_list:
-                        continue
-                    if white_list and ner.entity_group not in white_list:
-                        continue
-
-                    if ner.entity_group not in colors:
-                        colors[ner.entity_group] = get_color()
-                    if self.getColor() is None:
-                        color = colors[ner.entity_group]
-                    else:
-                        color = self.getColor()
-                    for box in ner.boxes:
-                        if not isinstance(box, Box):
-                            box = Box(**box.asDict())
-                        text = self.getDisplayText(ner)
-                        img1.rounded_rectangle(
-                            box.shape(self.getPadding()),
-                            outline=color,
-                            radius=4,
-                            fill=fill,
-                            width=self.getLineWidth(),
-                        )
-                        if text:
-                            tbox = list(
-                                img1.textbbox(
-                                    (
-                                        box.x,
-                                        box.y
-                                        - self.getTextSize() * 1.2
-                                        - self.getPadding(),
-                                    ),
-                                    text,
-                                    font_size=self.getTextSize(),
-                                )
-                            )
-                            tbox[3] = tbox[3] + self.getTextSize() / 4
-                            tbox[2] = tbox[2] + self.getTextSize() / 4
-                            tbox[0] = box.x - self.getPadding()
-                            tbox[1] = (
-                                box.y - self.getTextSize() * 1.2 - self.getPadding()
-                            )
-                            img1.rounded_rectangle(
-                                tbox, outline=color, radius=2, fill=color
-                            )
-                            img1.text(
-                                (
-                                    box.x,
-                                    box.y
-                                    - self.getTextSize() * 1.2
-                                    - self.getPadding(),
-                                ),
-                                text,
-                                stroke_width=0,
-                                fill="white",
-                                font_size=self.getTextSize(),
-                            )
+                self.draw_ner_boxes(data, fill, get_color, img1)
             else:
-                if self.getColor() is None:
-                    color = "green"
-                else:
-                    color = self.getColor()
-                for box in data.bboxes:
-                    if not isinstance(box, Box):
-                        box = Box(**box.asDict())
-                    img1.rounded_rectangle(
-                        box.shape(self.getPadding()),
-                        outline=color,
-                        radius=4,
-                        fill=fill,
-                        width=self.getLineWidth(),
-                    )
-                    text = self.getDisplayText(box)
-                    if text:
-                        img1.text(
-                            (
-                                box.x,
-                                box.y - self.getTextSize() * 1.2 - self.getPadding(),
-                            ),
-                            text,
-                            fill=color,
-                            font_size=self.getTextSize(),
-                        )
+                self.draw_boxes(data, fill, img1)
 
         except Exception:
             exception = traceback.format_exc()
@@ -221,6 +157,96 @@ class ImageDrawBoxes(
             logging.warning(exception)
             return Image(image.path, image.imageType, data=bytes(), exception=exception)
         return Image.from_pil(img, image.path, image.imageType, image.resolution)
+
+    def draw_boxes(self, data, fill, img1):
+        color = "green" if self.getColor() is None else self.getColor()
+        for b in data.bboxes:
+            box = b
+            if not isinstance(box, Box):
+                box = Box(**box.asDict())
+            img1.rounded_rectangle(
+                box.shape(self.getPadding()),
+                outline=color,
+                radius=4,
+                fill=fill,
+                width=self.getLineWidth(),
+            )
+            text = self.getDisplayText(box)
+            if text:
+                img1.text(
+                    (
+                        box.x,
+                        box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                    ),
+                    text,
+                    fill=color,
+                    font_size=self.getTextSize(),
+                )
+
+    def draw_ner_boxes(self, data, fill, get_color, img1):
+        black_list = self.getBlackList()
+        white_list = self.getWhiteList()
+        if not isinstance(data, NerOutput):
+            data = NerOutput(**data.asDict())
+        colors = {}
+        for n in data.entities:
+            ner = n
+            if not isinstance(ner, Entity):
+                ner = Entity(**ner.asDict())
+
+            if ner.entity_group in black_list:
+                continue
+            if white_list and ner.entity_group not in white_list:
+                continue
+
+            if ner.entity_group not in colors:
+                colors[ner.entity_group] = get_color()
+            color = (
+                colors[ner.entity_group] if self.getColor() is None else self.getColor()
+            )
+            for b in ner.boxes:
+                box = b
+                if not isinstance(box, Box):
+                    box = Box(**box.asDict())
+                text = self.getDisplayText(ner)
+                img1.rounded_rectangle(
+                    box.shape(self.getPadding()),
+                    outline=color,
+                    radius=4,
+                    fill=fill,
+                    width=self.getLineWidth(),
+                )
+                if text:
+                    tbox = list(
+                        img1.textbbox(
+                            (
+                                box.x,
+                                box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                            ),
+                            text,
+                            font_size=self.getTextSize(),
+                        ),
+                    )
+                    tbox[3] = tbox[3] + self.getTextSize() / 4
+                    tbox[2] = tbox[2] + self.getTextSize() / 4
+                    tbox[0] = box.x - self.getPadding()
+                    tbox[1] = box.y - self.getTextSize() * 1.2 - self.getPadding()
+                    img1.rounded_rectangle(
+                        tbox,
+                        outline=color,
+                        radius=2,
+                        fill=color,
+                    )
+                    img1.text(
+                        (
+                            box.x,
+                            box.y - self.getTextSize() * 1.2 - self.getPadding(),
+                        ),
+                        text,
+                        stroke_width=0,
+                        fill="white",
+                        font_size=self.getTextSize(),
+                    )
 
     def _preprocessing(self, dataset):
         return dataset
@@ -234,10 +260,11 @@ class ImageDrawBoxes(
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(
-                self.getNumPartitions()
+                self.getNumPartitions(),
             )
         result = dataset.withColumn(
-            out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
+            out_col,
+            udf(self.transform_udf, Image.get_schema())(image_col, box_col),
         )
 
         if not self.getKeepInputData():

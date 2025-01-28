@@ -1,8 +1,12 @@
+from pathlib import Path
+
+from pyspark.sql import DataFrame
+
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 from scaledp.pdf.PdfDataToImage import PdfDataToImage
 
 
-def test_pdf_data_to_text(pdf_df):
+def test_pdf_data_to_text(pdf_df: DataFrame) -> None:
     # Initialize the PdfDataToImage stage with specific input and output columns
     pdf_data_to_image = PdfDataToImage(inputCol="content", outputCol="image")
 
@@ -22,11 +26,15 @@ def test_pdf_data_to_text(pdf_df):
     assert result[0].text.exception == "", "Expected no exception in the OCR result"
 
     # Verify that the detected text contains the expected substring
-    assert "UniDoc Medial Center" in result[0].text.text, "Expected 'UniDoc Medical Center' in the detected text"
+    assert (
+        "UniDoc Medial Center" in result[0].text.text
+    ), "Expected 'UniDoc Medical Center' in the detected text"
 
-def test_pdf_data_to_image_class(pdf_file):
+
+def test_pdf_data_to_image_class(pdf_file: str) -> None:
+    """Test the PdfDataToImage class with the UDF transform method."""
     # Read the PDF file
-    with open(pdf_file, "rb") as f:
+    with Path.open(pdf_file, "rb") as f:
         data = f.read()
 
     pdf_to_image = PdfDataToImage()

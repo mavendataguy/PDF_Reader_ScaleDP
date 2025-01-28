@@ -1,9 +1,13 @@
 from dataclasses import dataclass
+from typing import Any, Dict
+
 from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 
 
 @dataclass(order=True)
 class Box:
+    """Box object for represent bounding box data in Spark Dataframe."""
+
     text: str
     score: float
     x: int
@@ -11,18 +15,18 @@ class Box:
     width: int
     height: int
 
-    def toString(self):
+    def to_string(self) -> "Box":
         self.text = str(self.text)
         return self
 
-    def json(self):
+    def json(self) -> Dict[str, Any]:
         return {"text": self.text}
 
     @staticmethod
     def get_schema():
         return map_dataclass_to_struct(Box)
 
-    def scale(self, factor, padding=0):
+    def scale(self, factor: float, padding: int = 0) -> "Box":
         return Box(
             text=self.text,
             score=self.score,
@@ -32,13 +36,13 @@ class Box:
             height=int(self.height * factor) + padding,
         )
 
-    def shape(self, padding=0):
+    def shape(self, padding: int = 0) -> list[tuple[int, int]]:
         return [
             (self.x - padding, self.y - padding),
             (self.x + self.width + padding, self.y + self.height + padding),
         ]
 
-    def bbox(self, padding=0):
+    def bbox(self, padding: int = 0) -> list[int]:
         return [
             self.x - padding,
             self.y - padding,
@@ -47,7 +51,7 @@ class Box:
         ]
 
     @staticmethod
-    def fromBBox(box, label="", score=0):
+    def from_bbox(box: list[int], label: str = "", score: float = 0):
         return Box(
             text=label,
             score=float(score),

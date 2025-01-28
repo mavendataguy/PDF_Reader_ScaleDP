@@ -1,15 +1,33 @@
-import traceback
 import logging
+import traceback
+from types import MappingProxyType
+from typing import Any
 
 from pyspark import keyword_only
-from pyspark.sql.functions import udf
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
+from pyspark.sql.functions import udf
 
+from scaledp.params import (
+    AutoParamsMeta,
+    HasColor,
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasImageType,
+    HasInputCols,
+    HasKeepInputData,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPropagateExc,
+    Param,
+    Params,
+    TypeConverters,
+)
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Image import Image
+
 from ..enums import ImageType
-from scaledp.params import *
 
 
 class ImageCropError(Exception):
@@ -29,15 +47,16 @@ class ImageCropBoxes(
     HasNumPartitions,
     HasColumnValidator,
     HasDefaultEnum,
-    HasPropagateError,
+    HasPropagateExc,
     metaclass=AutoParamsMeta,
 ):
-    """
-    Crop image by bounding boxes
-    """
+    """Crop image by bounding boxes."""
 
     padding = Param(
-        Params._dummy(), "padding", "Padding.", typeConverter=TypeConverters.toInt
+        Params._dummy(),
+        "padding",
+        "Padding.",
+        typeConverter=TypeConverters.toInt,
     )
     noCrop = Param(
         Params._dummy(),
@@ -46,20 +65,22 @@ class ImageCropBoxes(
         typeConverter=TypeConverters.toBoolean,
     )
 
-    defaultParams = {
-        "inputCols": ["image", "boxes"],
-        "outputCol": "cropped_image",
-        "keepInputData": False,
-        "imageType": ImageType.FILE,
-        "numPartitions": 0,
-        "padding": 0,
-        "pageCol": "page",
-        "propagateError": False,
-        "noCrop": True,
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCols": ["image", "boxes"],
+            "outputCol": "cropped_image",
+            "keepInputData": False,
+            "imageType": ImageType.FILE,
+            "numPartitions": 0,
+            "padding": 0,
+            "pageCol": "page",
+            "propagateError": False,
+            "noCrop": True,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(ImageCropBoxes, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -77,12 +98,13 @@ class ImageCropBoxes(
                 )
             img = image.to_pil()
             results = []
-            for box in data.bboxes:
+            for b in data.bboxes:
+                box = b
                 if not isinstance(box, Box):
                     box = Box(**box.asDict())
                 if box.width > box.height:
                     results.append(
-                        img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True)
+                        img.crop(box.bbox(self.getPadding())).rotate(-90, expand=True),
                     )
                 else:
                     results.append(img.crop(box.bbox(self.getPadding())))
@@ -96,7 +118,7 @@ class ImageCropBoxes(
             exception = f"ImageCropBoxes: {exception}, {image.exception}"
             logging.warning(exception)
             if self.getPropagateError():
-                raise ImageCropError() from e
+                raise ImageCropError from e
             return Image(image.path, image.imageType, data=bytes(), exception=exception)
         return Image.from_pil(results[0], image.path, image.imageType, image.resolution)
 
@@ -107,10 +129,11 @@ class ImageCropBoxes(
 
         if self.getNumPartitions() > 0:
             dataset = dataset.repartition(self.getPageCol()).coalesce(
-                self.getNumPartitions()
+                self.getNumPartitions(),
             )
         result = dataset.withColumn(
-            out_col, udf(self.transform_udf, Image.get_schema())(image_col, box_col)
+            out_col,
+            udf(self.transform_udf, Image.get_schema())(image_col, box_col),
         )
 
         if not self.getKeepInputData():

@@ -1,15 +1,25 @@
 import tempfile
+
 from scaledp import ImageDrawBoxes
-from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 from scaledp.enums import Device
+from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 
 
 def test_doctr_text_detector(image_receipt_df):
-    detector = DocTRTextDetector(device=Device.CPU, keepInputData=True, scoreThreshold=0.2)
+    detector = DocTRTextDetector(
+        device=Device.CPU,
+        keepInputData=True,
+        scoreThreshold=0.2,
+    )
 
-    draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "boxes"],
-                          filled=False, color="green", lineWidth=2,
-                          displayDataList=['score'])
+    draw = ImageDrawBoxes(
+        keepInputData=True,
+        inputCols=["image", "boxes"],
+        filled=False,
+        color="green",
+        lineWidth=2,
+        displayDataList=["score"],
+    )
     # Transform the image dataframe through the OCR stage
     result = draw.transform(detector.transform(image_receipt_df)).cache()
 
@@ -22,22 +32,30 @@ def test_doctr_text_detector(image_receipt_df):
     assert data[0].boxes.exception == ""
 
     # Save the output image to a temporary file for verification
-    temp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    temp.write(data[0].image_with_boxes.data)
-    temp.close()
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp:
+        temp.write(data[0].image_with_boxes.data)
+        temp.close()
 
-    # Print the path to the temporary file
-    print("file://" + temp.name)
+        # Print the path to the temporary file
+        print("file://" + temp.name)
+
 
 def test_doctr_text_detector_pandas(image_receipt_df):
-    detector = DocTRTextDetector(device=Device.CPU,
-                                 keepInputData=True,
-                                 scoreThreshold=0.2,
-                                 partitionMap=True)
+    detector = DocTRTextDetector(
+        device=Device.CPU,
+        keepInputData=True,
+        scoreThreshold=0.2,
+        partitionMap=True,
+    )
 
-    draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "boxes"],
-                          filled=False, color="green", lineWidth=2,
-                          displayDataList=['score'])
+    draw = ImageDrawBoxes(
+        keepInputData=True,
+        inputCols=["image", "boxes"],
+        filled=False,
+        color="green",
+        lineWidth=2,
+        displayDataList=["score"],
+    )
     # Transform the image dataframe through the OCR stage
     result = draw.transform(detector.transform(image_receipt_df)).cache()
 
@@ -50,9 +68,9 @@ def test_doctr_text_detector_pandas(image_receipt_df):
     assert data[0].boxes.exception == ""
 
     # Save the output image to a temporary file for verification
-    temp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    temp.write(data[0].image_with_boxes.data)
-    temp.close()
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp:
+        temp.write(data[0].image_with_boxes.data)
+        temp.close()
 
-    # Print the path to the temporary file
-    print("file://" + temp.name)
+        # Print the path to the temporary file
+        print("file://" + temp.name)

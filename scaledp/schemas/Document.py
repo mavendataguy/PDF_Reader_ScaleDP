@@ -1,7 +1,8 @@
 # Description: Schema Document
-from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 from dataclasses import dataclass
+
 from scaledp.schemas.Box import Box
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 
 
 @dataclass(order=True)

@@ -1,35 +1,41 @@
+import gc
+from types import MappingProxyType
+from typing import Any
+
 from pyspark import keyword_only
 
-from ...enums import Device
-from scaledp.params import *
+from scaledp.models.recognizers.BaseOcr import BaseOcr
+from scaledp.params import HasBatchSize, HasDevice
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
-from scaledp.models.recognizers.BaseOcr import BaseOcr
-import gc
+
+from ...enums import Device
 
 
 class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "text",
-        "keepInputData": False,
-        "scaleFactor": 1.0,
-        "scoreThreshold": 0.5,
-        "lang": ["eng"],
-        "lineTolerance": 0,
-        "keepFormatting": False,
-        "partitionMap": False,
-        "numPartitions": 0,
-        "pageCol": "page",
-        "pathCol": "path",
-        "device": Device.CPU,
-        "batchSize": 2,
-        "propagateError": False,
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "text",
+            "keepInputData": False,
+            "scaleFactor": 1.0,
+            "scoreThreshold": 0.5,
+            "lang": ["eng"],
+            "lineTolerance": 0,
+            "keepFormatting": False,
+            "partitionMap": False,
+            "numPartitions": 0,
+            "pageCol": "page",
+            "pathCol": "path",
+            "device": Device.CPU,
+            "batchSize": 2,
+            "propagateError": False,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(SuryaOcr, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -37,21 +43,20 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
     @classmethod
     def call_ocr(cls, images, params):
         import torch
-        from surya.ocr import run_ocr
         from surya.model.detection.model import (
             load_model as load_det_model,
+        )
+        from surya.model.detection.model import (
             load_processor as load_det_processor,
         )
         from surya.model.recognition.model import load_model as load_rec_model
         from surya.model.recognition.processor import (
             load_processor as load_rec_processor,
         )
+        from surya.ocr import run_ocr
         from surya.settings import settings
 
-        if int(params["device"]) == Device.CPU.value:
-            device = "cpu"
-        else:
-            device = "cuda"
+        device = "cpu" if int(params["device"]) == Device.CPU.value else "cuda"
 
         langs = params["lang"]
 
@@ -71,7 +76,7 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
             rec_processor,
         )
 
-        for prediction, (image, image_path) in zip(predictions, images):
+        for prediction, (_, image_path) in zip(predictions, images):
             boxes = [
                 Box(
                     text=x.text,
@@ -81,7 +86,7 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
                     width=x.bbox[2] - x.bbox[0],
                     height=x.bbox[3] - x.bbox[1],
                 )
-                .toString()
+                .to_string()
                 .scale(1 / params["scaleFactor"])
                 for x in prediction.text_lines
             ]
@@ -92,7 +97,7 @@ class SuryaOcr(BaseOcr, HasDevice, HasBatchSize):
                 text = "\n".join([str(w.text) for w in boxes])
 
             results.append(
-                Document(path=image_path, text=text, type="text", bboxes=boxes)
+                Document(path=image_path, text=text, type="text", bboxes=boxes),
             )
 
         gc.collect()

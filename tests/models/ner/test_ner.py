@@ -47,8 +47,13 @@ def test_ner(image_df):
 
 
 def test_ner_local_pipeline(image_file):
-    from scaledp.pipeline.PandasPipeline import PandasPipeline, pathSparkFunctions, unpathSparkFunctions
     import pyspark
+
+    from scaledp.pipeline.PandasPipeline import (
+        PandasPipeline,
+        pathSparkFunctions,
+        unpathSparkFunctions,
+    )
 
     # Temporarily replace the UserDefinedFunction
     pathSparkFunctions(pyspark)
@@ -56,9 +61,13 @@ def test_ner_local_pipeline(image_file):
     data_to_image = DataToImage()
     ocr = TesseractOcr(keepInputData=True)
     ner = Ner(model="obi/deid_bert_i2b2", numPartitions=0, device=Device.CPU.value)
-    draw = ImageDrawBoxes(keepInputData=True, inputCols=["image", "ner"],
-                          filled=True, color="orange",
-                          displayDataList=['score'])
+    draw = ImageDrawBoxes(
+        keepInputData=True,
+        inputCols=["image", "ner"],
+        filled=True,
+        color="orange",
+        displayDataList=["score"],
+    )
 
     # Create the pipeline
     pipeline = PandasPipeline(stages=[data_to_image, ocr, ner, draw])

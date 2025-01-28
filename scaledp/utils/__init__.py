@@ -1,9 +1,15 @@
 import statistics
+from typing import Callable, List
 
 
-def cluster(items, maxgap, key=lambda x: x):
-    """Arrange data into groups where successive elements
-    differ by no more than *maxgap*
+def cluster(
+    items: List[int],
+    maxgap: int,
+    key: Callable[[int], int] = lambda x: x,
+) -> List[List[int]]:
+    """
+    Arrange data into groups where successive elements
+    differ by no more than *maxgap*.
     """
     if not items:
         return []
@@ -17,7 +23,8 @@ def cluster(items, maxgap, key=lambda x: x):
     return groups
 
 
-def get_size(items, key=lambda x: x):
+def get_size(items: List[int], key: Callable[[int], int] = lambda x: x) -> int:
+    """Get size of the cluster."""
     if not items:
         return 0
     items = [key(x) for x in items]
@@ -26,6 +33,5 @@ def get_size(items, key=lambda x: x):
     items.sort()
     if len(items) <= 4:
         return int(statistics.mean(items))
-    else:
-        l = int(len(items) / 4)
-        return int(statistics.mode(items[l:-l]))
+    length = int(len(items) / 4)
+    return int(statistics.mode(items[length:-length]))
