@@ -1,51 +1,48 @@
 import gc
-from pyspark import keyword_only
+from types import MappingProxyType
+from typing import Any
+
 import numpy as np
+from pyspark import keyword_only
 
 from scaledp.enums import Device
-from scaledp.params import *
+from scaledp.models.recognizers.BaseOcr import BaseOcr
+from scaledp.params import HasBatchSize, HasDevice
 from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
-from scaledp.models.recognizers.BaseOcr import BaseOcr
 
 
 class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "text",
-        "keepInputData": False,
-        "scaleFactor": 1.0,
-        "scoreThreshold": 0.5,
-        "lang": ["eng"],
-        "lineTolerance": 0,
-        "keepFormatting": False,
-        "partitionMap": False,
-        "numPartitions": 0,
-        "pageCol": "page",
-        "pathCol": "path",
-        "device": Device.CPU,
-        "batchSize": 2,
-        "propagateError": False,
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "text",
+            "keepInputData": False,
+            "scaleFactor": 1.0,
+            "scoreThreshold": 0.5,
+            "lang": ["eng"],
+            "lineTolerance": 0,
+            "keepFormatting": False,
+            "partitionMap": False,
+            "numPartitions": 0,
+            "pageCol": "page",
+            "pathCol": "path",
+            "device": Device.CPU,
+            "batchSize": 2,
+            "propagateError": False,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(EasyOcr, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
 
     @staticmethod
     def points_to_box(points, text, score):
-        """
-        Convert a set of four corner points to (x, y, width, height).
-
-        Args:
-            points (list of tuple): List of four (x, y) tuples representing the corners.
-
-        Returns:
-            tuple: A tuple (x, y, width, height).
-        """
+        """Convert a set of four corner points to (x, y, width, height)."""
         x_coords = [p[0] for p in points]
         y_coords = [p[1] for p in points]
 
@@ -61,18 +58,14 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
         import easyocr
         import torch
 
-        if int(params["device"]) == Device.CPU.value:
-            device = False
-        else:
-            device = True
+        device = int(params["device"]) != Device.CPU.value
 
         langs = params["lang"]
         scale_factor = params["scaleFactor"]
         reader = easyocr.Reader(langs, device)
         results = []
-        for image, image_path in images:
-
-            image = np.array(image.convert("RGB"))[:, :, ::-1].copy()
+        for img, image_path in images:
+            image = np.array(img.convert("RGB"))[:, :, ::-1].copy()
             result = reader.readtext(image)
             boxes = [
                 EasyOcr.points_to_box(box, text, float(score))
@@ -87,7 +80,7 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
                 text = "\n".join([str(w.text) for w in boxes])
 
             results.append(
-                Document(path=image_path, text=text, type="text", bboxes=boxes)
+                Document(path=image_path, text=text, type="text", bboxes=boxes),
             )
 
         gc.collect()

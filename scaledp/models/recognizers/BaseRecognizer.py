@@ -1,13 +1,15 @@
+import json
+import logging
+import traceback
+
+import pandas as pd
+from pyspark.sql.functions import lit, pandas_udf, udf
+
 from scaledp.models.recognizers.BaseOcr import BaseOcr
 from scaledp.params import HasInputCols
-from pyspark.sql.functions import udf, pandas_udf, lit
-import pandas as pd
 from scaledp.schemas.DetectorOutput import DetectorOutput
 from scaledp.schemas.Document import Document
 from scaledp.schemas.Image import Image
-import logging
-import json
-import traceback
 
 
 class BaseRecognizer(BaseOcr, HasInputCols):
@@ -38,13 +40,15 @@ class BaseRecognizer(BaseOcr, HasInputCols):
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
 
             result = self.call_recognizer(
-                [(resized_image, image.path)], [boxes], params
+                [(resized_image, image.path)],
+                [boxes],
+                params,
             )
         except Exception:
             exception = traceback.format_exc()
@@ -53,18 +57,27 @@ class BaseRecognizer(BaseOcr, HasInputCols):
             )
             logging.warning(f"{self.uid}: Error in text recognition.")
             return Document(
-                path=image.path, text="", bboxes=[], type="ocr", exception=exception
+                path=image.path,
+                text="",
+                bboxes=[],
+                type="ocr",
+                exception=exception,
             )
         return result[0]
 
     @classmethod
     def transform_udf_pandas(
-        cls, images: pd.DataFrame, boxes: pd.DataFrame, params: pd.Series
+        cls,
+        images: pd.DataFrame,
+        boxes: pd.DataFrame,
+        params: pd.Series,
     ) -> pd.DataFrame:
         params = json.loads(params[0])
         resized_images = []
         boxes_o = []
-        for (index, image), (i, box) in zip(images.iterrows(), boxes.iterrows()):
+        for (_index, img), (_, b) in zip(images.iterrows(), boxes.iterrows()):
+            box = b
+            image = img
             if not isinstance(image, Image):
                 image = Image(**image.to_dict())
             if not isinstance(box, DetectorOutput):
@@ -76,7 +89,7 @@ class BaseRecognizer(BaseOcr, HasInputCols):
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
@@ -101,7 +114,9 @@ class BaseRecognizer(BaseOcr, HasInputCols):
             result = dataset.withColumn(
                 out_col,
                 udf(self.transform_udf, Document.get_schema())(
-                    image_col, box_col, lit(params)
+                    image_col,
+                    box_col,
+                    lit(params),
                 ),
             )
         else:
@@ -114,7 +129,9 @@ class BaseRecognizer(BaseOcr, HasInputCols):
             result = dataset.withColumn(
                 out_col,
                 pandas_udf(self.transform_udf_pandas, self.outputSchema())(
-                    image_col, box_col, lit(params)
+                    image_col,
+                    box_col,
+                    lit(params),
                 ),
             )
 

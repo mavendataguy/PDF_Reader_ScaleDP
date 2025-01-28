@@ -1,39 +1,44 @@
 import json
+from types import MappingProxyType
+from typing import Any
 
-from .BaseVisualExtractor import BaseVisualExtractor
 from pyspark import keyword_only
 
-from ...params import HasLLM, HasSchema, HasPrompt
-from ...schemas.ExtractorOutput import ExtractorOutput
-from ...utils.pydantic_shema_utils import json_schema_to_model
+from scaledp.params import HasLLM, HasPrompt, HasSchema
+from scaledp.schemas.ExtractorOutput import ExtractorOutput
+from scaledp.utils.pydantic_shema_utils import json_schema_to_model
+
+from .BaseVisualExtractor import BaseVisualExtractor
 
 
 class GeminiVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "data",
-        "keepInputData": True,
-        "model": "gemini-1.5-flash",
-        "apiBase": "",
-        "apiKey": "",
-        "numPartitions": 1,
-        "pageCol": "page",
-        "pathCol": "path",
-        "prompt": """Please extract data from the scanned image as json.""",
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "data",
+            "keepInputData": True,
+            "model": "gemini-1.5-flash",
+            "apiBase": "",
+            "apiKey": "",
+            "numPartitions": 1,
+            "pageCol": "page",
+            "pathCol": "path",
+            "prompt": """Please extract data from the scanned image as json.""",
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(GeminiVisualExtractor, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
         self.pipeline = None
 
     def call_extractor(self, images, params):
-        import google.generativeai as genai
         import base64
-        import json
+
+        import google.generativeai as genai
 
         schema = json.loads(params["schema"])
         schema = json_schema_to_model(schema, schema.get("$defs", {}))
@@ -71,6 +76,6 @@ class GeminiVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                     data=response.text,
                     type="GeminiVisualExtractor",
                     exception="",
-                )
+                ),
             )
         return results

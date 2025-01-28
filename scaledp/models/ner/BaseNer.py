@@ -1,10 +1,33 @@
 import json
-from pyspark.sql.types import *
+
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
-from pyspark.sql.functions import pandas_udf, lit, udf
+from pyspark.sql.functions import lit, pandas_udf, udf
+from pyspark.sql.types import (
+    ArrayType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
-from scaledp.params import *
+from scaledp.params import (
+    HasBatchSize,
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasDevice,
+    HasInputCol,
+    HasKeepInputData,
+    HasModel,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPartitionMap,
+    HasPathCol,
+    HasScoreThreshold,
+    HasWhiteList,
+)
 from scaledp.schemas.NerOutput import NerOutput
 
 
@@ -48,33 +71,41 @@ class BaseNer(
                                         StructType(
                                             [
                                                 StructField(
-                                                    "text", StringType(), False
+                                                    "text",
+                                                    StringType(),
+                                                    False,
                                                 ),
                                                 StructField(
-                                                    "score", DoubleType(), False
+                                                    "score",
+                                                    DoubleType(),
+                                                    False,
                                                 ),
                                                 StructField("x", IntegerType(), False),
                                                 StructField("y", IntegerType(), False),
                                                 StructField(
-                                                    "width", IntegerType(), False
+                                                    "width",
+                                                    IntegerType(),
+                                                    False,
                                                 ),
                                                 StructField(
-                                                    "height", IntegerType(), False
+                                                    "height",
+                                                    IntegerType(),
+                                                    False,
                                                 ),
-                                            ]
+                                            ],
                                         ),
                                         True,
                                     ),
                                     False,
                                 ),
-                            ]
+                            ],
                         ),
                         True,
                     ),
                     True,
                 ),
                 StructField("exception", StringType(), True),
-            ]
+            ],
         )
 
     def get_params(self):
@@ -87,7 +118,8 @@ class BaseNer(
 
         if not self.getPartitionMap():
             result = dataset.withColumn(
-                out_col, udf(self.transform_udf, NerOutput.get_schema())(in_col)
+                out_col,
+                udf(self.transform_udf, NerOutput.get_schema())(in_col),
             )
         else:
             if self.getNumPartitions() > 0:
@@ -99,7 +131,8 @@ class BaseNer(
             result = dataset.withColumn(
                 out_col,
                 pandas_udf(self.transform_udf_pandas, self.outputSchema())(
-                    in_col, lit(params)
+                    in_col,
+                    lit(params),
                 ),
             )
 

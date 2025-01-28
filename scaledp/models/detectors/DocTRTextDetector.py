@@ -1,45 +1,49 @@
-from pyspark import keyword_only
-
-from ...enums import Device
-from scaledp.models.detectors.BaseDetector import BaseDetector
-from scaledp.params import HasDevice, HasBatchSize
 import gc
 import io
+from types import MappingProxyType
 from typing import Any
 
+from pyspark import keyword_only
+
+from scaledp.models.detectors.BaseDetector import BaseDetector
+from scaledp.params import HasBatchSize, HasDevice
 from scaledp.schemas.Box import Box
 from scaledp.schemas.DetectorOutput import DetectorOutput
+
+from ...enums import Device
 
 
 class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "boxes",
-        "keepInputData": False,
-        "scaleFactor": 1.0,
-        "scoreThreshold": 0.1,
-        "device": Device.CPU,
-        "batchSize": 2,
-        "model": "db_resnet50",
-        "partitionMap": False,
-        "numPartitions": 0,
-        "pageCol": "page",
-        "pathCol": "path",
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "boxes",
+            "keepInputData": False,
+            "scaleFactor": 1.0,
+            "scoreThreshold": 0.1,
+            "device": Device.CPU,
+            "batchSize": 2,
+            "model": "db_resnet50",
+            "partitionMap": False,
+            "numPartitions": 0,
+            "pageCol": "page",
+            "pathCol": "path",
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(DocTRTextDetector, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
 
     @classmethod
     def call_detector(cls, images, params):
+        import torch
+        from doctr.file_utils import CLASS_NAME
         from doctr.io import DocumentFile
         from doctr.models import ocr_predictor
-        from doctr.file_utils import CLASS_NAME
-        import torch
 
         predictor = ocr_predictor(pretrained=True, det_arch=params["model"])
 
@@ -49,10 +53,7 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
 
         detector = predictor.det_predictor
 
-        if int(params["device"]) == Device.CPU.value:
-            device = "cpu"
-        else:
-            device = "cuda"
+        device = "cpu" if int(params["device"]) == Device.CPU.value else "cuda"
 
         def resolve_geometry(
             geom: Any,
@@ -65,7 +66,7 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
             return (*geom[0], *geom[1])
 
         docs = []
-        for image, image_path in images:
+        for image, _image_path in images:
             buff = io.BytesIO()
             image.save(buff, "png")
             docs.extend(DocumentFile.from_images(buff.getvalue()))
@@ -83,12 +84,13 @@ class DocTRTextDetector(BaseDetector, HasDevice, HasBatchSize):
                     else resolve_geometry(geom[:4].tolist())
                 )
                 boxes.append(
-                    Box.fromBBox(
-                        [g[0] * w, g[1] * h, g[2] * w, g[3] * h], score=geom[-1]
-                    )
+                    Box.from_bbox(
+                        [g[0] * w, g[1] * h, g[2] * w, g[3] * h],
+                        score=geom[-1],
+                    ),
                 )
             results_final.append(
-                DetectorOutput(path=image_path, type="doctr", bboxes=boxes)
+                DetectorOutput(path=image_path, type="doctr", bboxes=boxes),
             )
 
         gc.collect()

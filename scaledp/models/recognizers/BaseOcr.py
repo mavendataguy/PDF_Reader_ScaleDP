@@ -1,17 +1,38 @@
-import traceback
-import logging
 import json
+import logging
+import traceback
 
 import pandas as pd
-from pyspark.sql.types import *
-from scaledp.params import *
 from pyspark.ml import Transformer
+from pyspark.ml.param import Param, Params, TypeConverters
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
+from pyspark.sql.functions import lit, pandas_udf, udf
+from pyspark.sql.types import (
+    ArrayType,
+    StringType,
+    StructField,
+    StructType,
+)
 
-from ...utils import get_size, cluster
-from pyspark.sql.functions import udf, pandas_udf, lit
+from scaledp.params import (
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasInputCol,
+    HasKeepInputData,
+    HasLang,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPartitionMap,
+    HasPathCol,
+    HasPropagateExc,
+    HasScoreThreshold,
+)
+from scaledp.schemas.Box import Box
 from scaledp.schemas.Document import Document
 from scaledp.schemas.Image import Image
+
+from ...utils import cluster, get_size
 
 
 class OcrError(Exception):
@@ -33,7 +54,7 @@ class BaseOcr(
     HasNumPartitions,
     HasPageCol,
     HasPathCol,
-    HasPropagateError,
+    HasPropagateExc,
 ):
 
     scaleFactor = Param(
@@ -68,7 +89,7 @@ class BaseOcr(
             line_diffs = int((regions[0].y - y) / (character_height * 2))
             y = regions[0].y
             if line_diffs > 1:
-                for i in range(line_diffs - 1):
+                for _i in range(line_diffs - 1):
                     output_lines.append("")
 
             prev = 0
@@ -123,7 +144,7 @@ class BaseOcr(
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
@@ -136,9 +157,13 @@ class BaseOcr(
             )
             logging.warning(f"{self.uid}: Error in text recognition.")
             if self.getPropagateError():
-                raise OcrError() from e
+                raise OcrError from e
             return Document(
-                path=image.path, text="", bboxes=[], type="ocr", exception=exception
+                path=image.path,
+                text="",
+                bboxes=[],
+                type="ocr",
+                exception=exception,
             )
         return result[0]
 
@@ -148,12 +173,15 @@ class BaseOcr(
 
     @classmethod
     def transform_udf_pandas(
-        cls, images: pd.DataFrame, params: pd.Series
+        cls,
+        images: pd.DataFrame,
+        params: pd.Series,
     ) -> pd.DataFrame:
         params = json.loads(params[0])
 
         resized_images = []
-        for index, image in images.iterrows():
+        for _index, img in images.iterrows():
+            image = img
             if not isinstance(image, Image):
                 image = Image(**image.to_dict())
             image_pil = image.to_pil()
@@ -163,7 +191,7 @@ class BaseOcr(
                     (
                         int(image_pil.width * scale_factor),
                         int(image_pil.height * scale_factor),
-                    )
+                    ),
                 )
             else:
                 resized_image = image_pil
@@ -182,22 +210,13 @@ class BaseOcr(
                 StructField(
                     "bboxes",
                     ArrayType(
-                        StructType(
-                            [
-                                StructField("text", StringType(), False),
-                                StructField("score", DoubleType(), False),
-                                StructField("x", IntegerType(), False),
-                                StructField("y", IntegerType(), False),
-                                StructField("width", IntegerType(), False),
-                                StructField("height", IntegerType(), False),
-                            ]
-                        ),
+                        Box.get_schema(),
                         True,
                     ),
                     True,
                 ),
                 StructField("exception", StringType(), True),
-            ]
+            ],
         )
 
     def get_params(self):
@@ -222,7 +241,8 @@ class BaseOcr(
             result = dataset.withColumn(
                 out_col,
                 pandas_udf(self.transform_udf_pandas, self.outputSchema())(
-                    input_col, lit(params)
+                    input_col,
+                    lit(params),
                 ),
             )
         if not self.getKeepInputData():

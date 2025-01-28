@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+
+from scaledp.schemas.Box import Box
 from scaledp.utils.dataclass import (
+    apply_nullability,
     map_dataclass_to_struct,
     register_type,
-    apply_nullability,
 )
-from scaledp.schemas.Box import Box
 
 
 @dataclass(order=True)

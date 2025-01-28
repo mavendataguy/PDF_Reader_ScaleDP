@@ -1,6 +1,7 @@
 import pytest
-from scaledp.models.recognizers.EasyOcr import EasyOcr
+
 from scaledp.enums import Device
+from scaledp.models.recognizers.EasyOcr import EasyOcr
 
 
 def test_easy_ocr(image_line_df):
@@ -14,8 +15,10 @@ def test_easy_ocr(image_line_df):
     assert len(result) == 1, "Expected exactly one result"
 
     # Verify the detected text contains the expected substring
-    assert ("24/11/16 08:12:24 WARN Utils: Service SparkUI could not bind on port 4043"
-            in result[0].text.text), "Expected text not found in result"
+    assert (
+        "24/11/16 08:12:24 WARN Utils: Service SparkUI could not bind on port 4043"
+        in result[0].text.text
+    ), "Expected text not found in result"
 
 
 def test_easy_ocr_pandas_udf(image_line_df):
@@ -29,5 +32,7 @@ def test_easy_ocr_pandas_udf(image_line_df):
     assert len(result) == 1, "Expected exactly one result"
 
     # Verify the detected text contains the expected substring
-    assert ("24/11/16 08:12:24 WARN Utils: Service SparkUI could not bind on port 4043"
-            in result[0].text.text), "Expected text not found in result"
+    assert (
+        "24/11/16 08:12:24 WARN Utils: Service SparkUI could not bind on port 4043"
+        in result[0].text.text
+    ), "Expected text not found in result"

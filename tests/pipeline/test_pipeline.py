@@ -1,9 +1,14 @@
+from pathlib import Path
+
 from scaledp import DataToImage
 
 
-def test_local_pipeline(image_file):
-    from scaledp.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
+def test_local_pipeline(image_file: str) -> None:
+    """Test the local pipeline with the DataToImage stage."""
     import pyspark
+
+    from scaledp.pipeline.PandasPipeline import PandasPipeline, UserDefinedFunction
+
     original_udf = pyspark.sql.udf.UserDefinedFunction
 
     try:
@@ -17,7 +22,7 @@ def test_local_pipeline(image_file):
         pipeline = PandasPipeline(stages=[data_to_image])
 
         # Read the image file
-        with open(image_file, "rb") as f:
+        with Path.open(image_file, "rb") as f:
             image_data = f.read()
 
         # Transform the image data through the pipeline

@@ -1,6 +1,7 @@
 # Description: Schema Detector Output
-from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 from dataclasses import dataclass
+
+from scaledp.utils.dataclass import map_dataclass_to_struct, register_type
 
 
 @dataclass(order=True)

@@ -1,36 +1,38 @@
-import datetime
+import json
+from types import MappingProxyType
+from typing import Any
+
+import pandas as pd
 from pyspark import keyword_only
+
 from scaledp.models.ner.BaseNer import BaseNer
-from ...enums import Device
 from scaledp.schemas.Entity import Entity
 from scaledp.schemas.NerOutput import NerOutput
-import pandas as pd
-import json
 
-
-def log_info(msg):
-    print(f"{datetime.datetime.now()} INFO: {msg}")
+from ...enums import Device
 
 
 class Ner(BaseNer):
 
-    defaultParams = {
-        "inputCol": "text",
-        "outputCol": "ner",
-        "keepInputData": True,
-        "model": "d4data/biomedical-ner-all",
-        "whiteList": [],
-        "numPartitions": 1,
-        "partitionMap": False,
-        "device": Device.CPU,
-        "batchSize": 1,
-        "scoreThreshold": 0.0,
-        "pageCol": "page",
-        "pathCol": "path",
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "text",
+            "outputCol": "ner",
+            "keepInputData": True,
+            "model": "d4data/biomedical-ner-all",
+            "whiteList": [],
+            "numPartitions": 1,
+            "partitionMap": False,
+            "device": Device.CPU,
+            "batchSize": 1,
+            "scoreThreshold": 0.0,
+            "pageCol": "page",
+            "pathCol": "path",
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(Ner, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -63,9 +65,9 @@ class Ner(BaseNer):
     def get_pipeline(self):
         if self.pipeline is None:
             from transformers import (
-                pipeline,
-                AutoTokenizer,
                 AutoModelForTokenClassification,
+                AutoTokenizer,
+                pipeline,
             )
 
             tokenizer = AutoTokenizer.from_pretrained(self.getModel())
@@ -86,7 +88,10 @@ class Ner(BaseNer):
             mapping.extend([idx] * (len(box.text) + 1))
 
         result = Ner.aggregate_ner_results(
-            text.text, self.get_pipeline(), max_length=500, stride=480
+            text.text,
+            self.get_pipeline(),
+            max_length=500,
+            stride=480,
         )
 
         entities = []
@@ -107,19 +112,19 @@ class Ner(BaseNer):
                 boxes=boxes,
             )
             entities.append(t)
-        output = NerOutput(path=text.path, entities=entities, exception="")
-        return output
+        return NerOutput(path=text.path, entities=entities, exception="")
 
     @staticmethod
     def transform_udf_pandas(
-        texts: pd.DataFrame, params: pd.Series
+        texts: pd.DataFrame,
+        params: pd.Series,
     ) -> pd.DataFrame:  # pragma: no cover
         params = json.loads(params[0])
         model = params["model"]
         from transformers import (
-            pipeline,
-            AutoTokenizer,
             AutoModelForTokenClassification,
+            AutoTokenizer,
+            pipeline,
         )
 
         tokenizer = AutoTokenizer.from_pretrained(model)
@@ -141,8 +146,7 @@ class Ner(BaseNer):
         ]
 
         if all(all(chunk == "-" for chunk in chunks) for index, chunks in batch_texts):
-            log_info("Skip NER, text are empty")
-            for index, text in texts.iterrows():
+            for _index, text in texts.iterrows():
                 output = NerOutput(path=text.path, entities=[], exception="")
                 results.append(output)
             return pd.DataFrame(results)
@@ -156,14 +160,14 @@ class Ner(BaseNer):
 
         ner_results = pipe(chunks)
         batch_results = [[] for i in range(len(batch_texts))]
-        for num, ner_results in enumerate(ner_results):
+        for num, ner_result in enumerate(ner_results):
 
-            for i in ner_results:
+            for i in ner_result:
                 i["start"] = i["start"] + offsets[num][1]
                 i["end"] = i["end"] + offsets[num][1]
                 batch_results[offsets[num][0]].append(i)
 
-        for (index, text), result in zip(texts.iterrows(), batch_results):
+        for (_index, text), result in zip(texts.iterrows(), batch_results):
             mapping = []
             for idx, box in enumerate(text["bboxes"]):
                 mapping.extend([idx] * (len(box["text"]) + 1))

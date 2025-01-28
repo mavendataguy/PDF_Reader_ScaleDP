@@ -1,44 +1,49 @@
-import json
-import time
 import base64
+import json
 import logging
+from types import MappingProxyType
+from typing import Any
 
-from .BaseVisualExtractor import BaseVisualExtractor
 from pyspark import keyword_only
-
-from ...params import HasLLM, HasSchema, HasPrompt
-from ...schemas.ExtractorOutput import ExtractorOutput
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_random_exponential,
-    retry_if_exception_type,
 )
+
+from scaledp.params import HasLLM, HasPrompt, HasSchema
+from scaledp.schemas.ExtractorOutput import ExtractorOutput
+
+from .BaseVisualExtractor import BaseVisualExtractor
 
 
 class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
 
-    defaultParams = {
-        "inputCol": "image",
-        "outputCol": "data",
-        "keepInputData": True,
-        "model": "gemini-1.5-flash",
-        "apiBase": None,
-        "apiKey": None,
-        "numPartitions": 1,
-        "pageCol": "page",
-        "pathCol": "path",
-        "prompt": """Please extract data from the scanned image as json. Date format is yyyy-mm-dd""",
-        "systemPrompt": "You are data extractor from the scanned images.",
-        "delay": 30,
-        "maxRetry": 6,
-        "propagateError": False,
-        "temperature": 1.0,
-        "schemaByPrompt": True,
-    }
+    defaultParams = MappingProxyType(
+        {
+            "inputCol": "image",
+            "outputCol": "data",
+            "keepInputData": True,
+            "model": "gemini-1.5-flash",
+            "apiBase": None,
+            "apiKey": None,
+            "numPartitions": 1,
+            "pageCol": "page",
+            "pathCol": "path",
+            "prompt": """Please extract data from the scanned image as json.
+         Date format is yyyy-mm-dd""",
+            "systemPrompt": "You are data extractor from the scanned images.",
+            "delay": 30,
+            "maxRetry": 6,
+            "propagateError": False,
+            "temperature": 1.0,
+            "schemaByPrompt": True,
+        },
+    )
 
     @keyword_only
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(LLMVisualExtractor, self).__init__()
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
@@ -55,8 +60,8 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
             wait=wait_random_exponential(min=1, max=self.getDelay()),
             stop=stop_after_attempt(self.getMaxRetry()),
         )
-        def completion_with_backoff(**kwargs):
-            logging.info(f"Calling LLM API")
+        def completion_with_backoff(**kwargs: Any):
+            logging.info("Calling LLM API")
             return client.beta.chat.completions.parse(**kwargs)
 
         kwargs = {}
@@ -69,9 +74,8 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                     "text": "Schema for the output json: "
                     + self.getSchema()
                     + " Always return valid json. Do not include schema to the output.",
-                }
+                },
             )
-            # kwargs["response_format"] = {"type": "json_object"}
         else:
             kwargs["response_format"] = self.getPaydanticSchema()
 
@@ -83,15 +87,19 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                     {
                         "role": "system",
                         "content": params["systemPrompt"],
+                    },
+                    {
                         "role": "user",
-                        "content": content
-                        + [
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{image_decoded}"
+                        "content": [
+                            *content,
+                            *[
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{image_decoded}",
+                                    },
                                 },
-                            }
+                            ],
                         ],
                     },
                 ],
@@ -108,11 +116,9 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
             results.append(
                 ExtractorOutput(
                     path=image.path,
-                    # data=json.dumps(completion.choices[0].message.parsed.json(), indent=4, ensure_ascii=False),
-                    # data=completion.choices[0].message.parsed.json(),
                     data=json.dumps(json.loads(result), indent=4, ensure_ascii=False),
                     type="LLMVisualExtractor",
                     exception="",
-                )
+                ),
             )
         return results

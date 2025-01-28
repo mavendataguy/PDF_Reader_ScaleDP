@@ -1,12 +1,22 @@
 import json
 import logging
 import traceback
-from pyspark.sql.types import *
+
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import lit, udf
 
-from scaledp.params import *
+from scaledp.params import (
+    HasColumnValidator,
+    HasDefaultEnum,
+    HasInputCol,
+    HasKeepInputData,
+    HasNumPartitions,
+    HasOutputCol,
+    HasPageCol,
+    HasPathCol,
+    HasPropagateExc,
+)
 from scaledp.schemas.Document import Document
 from scaledp.schemas.ExtractorOutput import ExtractorOutput
 
@@ -27,7 +37,7 @@ class BaseExtractor(
     HasPageCol,
     HasColumnValidator,
     HasDefaultEnum,
-    HasPropagateError,
+    HasPropagateExc,
 ):
 
     def get_params(self):
@@ -59,9 +69,12 @@ class BaseExtractor(
             exception = f"{self.uid}: Error in data extraction: {exception}, {document.exception}"
             logging.warning(f"{self.uid}: Error in data extraction.")
             if self.getPropagateError():
-                raise ExtractorError() from e
+                raise ExtractorError from e
             return ExtractorOutput(
-                path=document.path, data="", type="detector", exception=exception
+                path=document.path,
+                data="",
+                type="detector",
+                exception=exception,
             )
         return result[0]
 

@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
+
 from Levenshtein import distance
+from pydantic import BaseModel
 
 
 def calculate_similarity(obj1: BaseModel, obj2: BaseModel) -> float:
@@ -14,6 +15,7 @@ def calculate_similarity(obj1: BaseModel, obj2: BaseModel) -> float:
     Returns:
       A float value representing the similarity between the two objects.
       Higher values indicate greater similarity.
+
     """
 
     # 1. Get dictionaries of model attributes
@@ -45,19 +47,18 @@ def _calculate_value_similarity(value1: Any, value2: Any) -> float:
     """
     if isinstance(value1, BaseModel):
         return calculate_similarity(value1, value2)
-    elif isinstance(value1, list):
+    if isinstance(value1, list):
         return _calculate_list_similarity(value1, value2)
-    elif isinstance(value1, dict):
+    if isinstance(value1, dict):
         return _calculate_dict_similarity(value1, value2)
-    elif isinstance(value1, (int, float)):
+    if isinstance(value1, (int, float)):
         return 1 - abs(value1 - value2) / max(abs(value1), abs(value2), 1)
-    elif isinstance(value1, str):
+    if isinstance(value1, str):
         if value1 == "" and value2 == "":
             return 1.0
         return 1 - distance(value1, value2) / max(len(value1), len(value2))
-    else:
-        # Handle other data types (e.g., booleans, dates) as needed
-        return int(value1 == value2)
+    # Handle other data types (e.g., booleans, dates) as needed
+    return int(value1 == value2)
 
 
 def _calculate_list_similarity(list1: List[Any], list2: List[Any]) -> float:
@@ -99,41 +100,3 @@ def _calculate_dict_similarity(dict1: Dict[Any, Any], dict2: Dict[Any, Any]) -> 
         total_similarity += _calculate_value_similarity(dict1[key], dict2[key])
 
     return total_similarity / len(common_keys)
-
-
-# # Example usage
-# class Address(BaseModel):
-#   street: str
-#   city: str
-#
-# class Person(BaseModel):
-#   name: str
-#   age: int
-#   hobbies: List[str]
-#   address: Address
-#   friends: List[Person]
-#
-# obj1 = Person(
-#       name="Alice",
-#       age=30,
-#       hobbies=["reading", "swimming"],
-#       address=Address(street="Main St", city="New York"),
-#       friends=[
-#           Person(name="Bob", age=28, hobbies=["reading", "hiking"], address=Address(street="Oak Ave", city="New York")),
-#           Person(name="Charlie", age=32, hobbies=["gaming", "cooking"], address=Address(street="Elm St", city="London"))
-#       ]
-#   )
-#
-# obj2 = Person(
-#       name="Alice",
-#       age=30,
-#       hobbies=["reading", "swimming"],
-#       address=Address(street="Main St", city="New York"),
-#       friends=[
-#           Person(name="Bob", age=28, hobbies=["reading", "hiking"], address=Address(street="Oak Ave", city="New York")),
-#           Person(name="David", age=35, hobbies=["music", "travel"], address=Address(street="Pine St", "Paris"))
-#       ]
-#   )
-#
-# similarity = calculate_similarity(obj1, obj2)
-# print(f"Similarity between obj1 and obj2: {similarity}")
