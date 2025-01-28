@@ -91,7 +91,7 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                     {
                         "role": "user",
                         "content": [
-                            content,
+                            *content,
                             *[
                                 {
                                     "type": "image_url",

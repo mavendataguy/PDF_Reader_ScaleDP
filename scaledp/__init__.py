@@ -9,6 +9,7 @@ from pyspark.ml.pipeline import PipelineModel
 from pyspark.sql import DataFrame, SparkSession
 
 from scaledp import enums
+from scaledp.enums import *  # noqa
 from scaledp.image.DataToImage import DataToImage
 from scaledp.image.ImageCropBoxes import ImageCropBoxes
 from scaledp.image.ImageDrawBoxes import ImageDrawBoxes
@@ -90,7 +91,8 @@ DataFrame.visualize_ner = (
 
 
 def version():
-    with (Path.parent / "VERSION").open(encoding="utf-8") as version_file:
+    version_file_path = Path(__file__).parent / "VERSION"
+    with version_file_path.open(encoding="utf-8") as version_file:
         return version_file.read().strip()
 
 

@@ -70,7 +70,7 @@ def show_image(
         column = "image"
     for id_, row in enumerate(df.limit(limit).select(column).collect()):
         image = row[column]
-        _show_image(image, width, show_meta, id_)
+        _show_image(image, width, id_)
 
 
 def show_text(
@@ -188,7 +188,7 @@ def show_pdf(
         raise ValueError("Column must be binary")
     for id_, row in enumerate(df.limit(limit).select(column).collect()):
         image = row[column]
-        _show_image(image, width, show_meta, id_)
+        _show_image(image, width, id_)
 
 
 def show_ner(

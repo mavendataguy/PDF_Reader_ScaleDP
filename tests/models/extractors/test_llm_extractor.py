@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from scaledp import TessLib
+from scaledp.enums import TessLib
 from scaledp.models.extractors.LLMExtractor import LLMExtractor
 from scaledp.models.recognizers.TesseractOcr import TesseractOcr
 

@@ -112,7 +112,7 @@ class PdfDataToImage(
         path_col = dataset[self.getPathCol()]
 
         sel_col = [
-            dataset.columns,
+            *dataset.columns,
             *[
                 posexplode_outer(
                     udf(self.transform_udf, ArrayType(Image.get_schema()))(
@@ -123,7 +123,7 @@ class PdfDataToImage(
             ],
         ]
 
-        result = dataset.select(sel_col)
+        result = dataset.select(*sel_col)
         if not self.getKeepInputData():
             result = result.drop(input_col)
         return result

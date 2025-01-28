@@ -48,7 +48,7 @@ class YoloDetector(BaseDetector, HasDevice, HasBatchSize):
         from ultralytics import YOLO
 
         model = params["model"]
-        if not Path.isfile(model):
+        if not Path(model).is_file():
             model = hf_hub_download(repo_id=model, filename="best.pt")
 
         detector = YOLO(model)
