@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-    <i>An Open-Source Library for Processing Documents in Apache Spark.</i>
+    <i>An Open-Source Library for Processing Documents using AI/ML in Apache Spark.</i>
 </p>
 
 <p align="center">
@@ -29,7 +29,11 @@
 
 # Welcome to the ScaleDP library
 
-ScaleDP is library allows you to process documents using Apache Spark.  Discover pre-trained models for your projects or play with the thousands of machine learning apps hosted on the [Hugging Face Hub](https://huggingface.co/).
+ScaleDP is library allows you to process documents using AI/ML capabilities and scale it using Apache Spark.
+
+**LLM** (Large Language Models) and **VLM** (Vision Language Models) models are used to extract data from text and images in combination with **OCR** engines.
+
+Discover pre-trained models for your projects or play with the thousands of models hosted on the [Hugging Face Hub](https://huggingface.co/).
 
 ## Key features
 
@@ -37,29 +41,35 @@ ScaleDP is library allows you to process documents using Apache Spark.  Discover
 - Load PDF documents/Images to the Spark DataFrame
 - Extract text from PDF documents/Images
 - Extract images from PDF documents
-- Create document processing pipelines
+- Extract **structured data** from text/images using LLM and ML models
 
 ### OCR:
-- OCR Images/PDF documents using various OCR engines
-- OCR Images/PDF documents using Vision LLM models
-
-### CV:
-- Object detection on images
-- Text detection on images
-
-### NLP and LLM:
-- Extract data from the image using Vision LLM models
-- Extract data from the text/images using LLM models
-- Extract data from using DSPy framework
-- Extract data from the text/images using NLP models from the Hugging Face Hub
-- Visualize results
 
 Support various open-source OCR engines:
 
  - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) 
  - [Easy OCR](https://github.com/JaidedAI/EasyOCR)   
  - [Surya OCR](https://github.com/VikParuchuri/surya) 
- - [DocTR](https://github.com/mindee/doctr) 
+ - [DocTR](https://github.com/mindee/doctr)
+
+### CV:
+- Object detection on images using YOLO models
+- Text detection on images
+
+
+### LLM:
+
+Support OpenAI compatible API for call LLM/VLM models (GPT, Gemini, GROQ, etc.)
+
+- OCR Images/PDF documents using Vision LLM models
+- Extract data from the image using Vision LLM models
+- Extract data from the text/images using LLM models
+- Extract data using DSPy framework
+- Extract data from the text/images using NLP models from the Hugging Face Hub
+- Visualize results
+
+
+
 
 ## Installation
 
