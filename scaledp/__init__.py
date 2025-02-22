@@ -71,7 +71,7 @@ DataFrame.show_text = (
     )
 )
 DataFrame.show_json = (
-    lambda self, column="", field="data", limit=20, width=None: show_json(
+    lambda self, column="", field="json_data", limit=20, width=None: show_json(
         self,
         column,
         field,
@@ -104,6 +104,9 @@ def files(path):
     return resources.files("scaledp").joinpath(path).as_posix()
 
 
+SPARK_PDF_VERSION = "0.1.15"
+
+
 def aws_version():
     spark_hadoop_map = {
         "3.0": "2.7.4",
@@ -116,11 +119,22 @@ def aws_version():
     return spark_hadoop_map[pyspark.__version__[:3]]
 
 
+def spark_version() -> str:
+    return pyspark.__version__[:3].replace(".", "")
+
+
+def scala_version() -> str:
+    if int(spark_version()) >= 40:
+        return "2.13"
+    return "2.12"
+
+
 def ScaleDPSession(
     conf=None,
     master_url="local[*]",
     with_aws=False,
     with_pro=False,
+    with_spark_pdf: str | bool = False,
     logLevel="ERROR",
 ):
     """
@@ -150,6 +164,14 @@ def ScaleDPSession(
     if with_aws:
         jars_packages.append("org.apache.hadoop:hadoop-aws:" + aws_version())
 
+    if with_spark_pdf:
+        spark_pdf_version = SPARK_PDF_VERSION
+        if isinstance(with_spark_pdf, str):
+            spark_pdf_version = with_spark_pdf
+        jars_packages.append(
+            f"com.stabrise:spark-pdf-spark{spark_version()}_{scala_version()}:{spark_pdf_version}",
+        )
+
     if conf:
         if not isinstance(conf, dict):
             conf = dict(conf.getAll())
@@ -162,7 +184,8 @@ def ScaleDPSession(
             jars.append(extra_jars)
 
     builder = SparkSession.builder.master(master_url).appName(
-        "ScaleDP: v" + __version__,
+        f"ScaleDP: v{__version__}"
+        + (f" Spark PDF: v{spark_pdf_version}" if with_spark_pdf else ""),
     )
 
     for k, v in default_conf.items():

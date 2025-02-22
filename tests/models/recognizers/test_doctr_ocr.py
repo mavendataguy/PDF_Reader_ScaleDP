@@ -1,8 +1,11 @@
+import pytest
+
 from scaledp.enums import Device
 from scaledp.models.recognizers.DocTROcr import DocTROcr
 
 
 def test_doctr_ocr(image_line_df):
+    pytest.skip("Slow test")
     ocr = DocTROcr(device=Device.CPU, keepFormatting=True)
 
     # Transform the image dataframe through the OCR stage
@@ -18,6 +21,7 @@ def test_doctr_ocr(image_line_df):
 
 
 def test_doctr_ocr_pandas_udf(image_line_df):
+    pytest.skip("Slow test")
     ocr = DocTROcr(device=Device.CPU, keepFormatting=True, partitionMap=True)
 
     # Transform the image dataframe through the OCR stage

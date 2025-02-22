@@ -80,13 +80,16 @@ class BaseVisualExtractor(
             )
         return result[0]
 
+    def get_output_schema(self):
+        return ExtractorOutput.get_schema()
+
     def _transform(self, dataset):
         out_col = self.getOutputCol()
         in_col = self._validate(self.getInputCol(), dataset)
 
         result = dataset.withColumn(
             out_col,
-            udf(self.transform_udf, ExtractorOutput.get_schema())(
+            udf(self.transform_udf, self.get_output_schema())(
                 in_col,
                 lit(self.get_params()),
             ),

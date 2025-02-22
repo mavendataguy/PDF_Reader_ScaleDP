@@ -66,7 +66,7 @@ class DSPyExtractor(BaseExtractor, HasLLM, HasSchema):
             results.append(
                 ExtractorOutput(
                     path=document.path,
-                    data=data.json(),
+                    data=data.json_data(),
                     type="DSPyExtractor",
                     exception="",
                 ),

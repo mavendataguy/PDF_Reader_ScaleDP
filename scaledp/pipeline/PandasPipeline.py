@@ -113,3 +113,15 @@ class PandasPipeline:
         for stage in self.stages:
             data = stage._transform(data)
         return data
+
+    def fromPandas(self, data: pd.DataFrame) -> Any:
+        data = DatasetPd(data)
+        for stage in self.stages:
+            data = stage._transform(data)
+        return data
+
+    def fromDict(self, data: dict) -> Any:
+        data = DatasetPd(data)
+        for stage in self.stages:
+            data = stage._transform(data)
+        return data

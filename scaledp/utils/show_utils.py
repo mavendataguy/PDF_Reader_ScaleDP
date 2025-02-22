@@ -94,8 +94,8 @@ def show_text(
         if "value" in df.columns:
             column = "text"
             df = TextToDocument(inputCol="value").transform(df)
-        elif "text" in df.columns:
-            column = "text"
+        elif "document" in df.columns:
+            column = "document"
         elif "content" in df.columns:
             column = "text"
             df = DataToImage().transform(df)
@@ -124,7 +124,7 @@ def show_text(
 def show_json(
     df: DataFrame,
     column: str = "",
-    field: str = "data",
+    field: str = "json_data",
     limit: int = 5,
     width: int = 800,
 ) -> None:

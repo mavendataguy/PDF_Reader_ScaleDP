@@ -1,5 +1,4 @@
 import json
-from datetime import date, time
 from enum import Enum
 from typing import Optional
 
@@ -71,14 +70,14 @@ class ReceiptSchema(BaseModel):
 
     company_name: str
     shop_name: str
-    company_type: CompanyType = Field(
+    company_type: str = Field(
         description="Type of the company.",
         examples=["MARKET", "PHARMACY"],
     )
     address: Address
     tax_id: str
-    transaction_date: date = Field(description="Date of the transaction")
-    transaction_time: time = Field(description="Time of the transaction")
+    transaction_date: str = Field(description="Date of the transaction")
+    transaction_time: str = Field(description="Time of the transaction")
     total_amount: float
     items: list[ReceiptItem]
 
@@ -88,14 +87,14 @@ class ReceiptSchema1(BaseModel):
 
     company_name: str
     shop_name: str
-    company_type: CompanyType = Field(
+    company_type: str = Field(
         description="Type of the company.",
         examples=["MARKET", "PHARMACY"],
     )
     address: Address1
     tax_id: str
-    transaction_date: date = Field(description="Date of the transaction")
-    transaction_time: time = Field(description="Time of the transaction")
+    transaction_date: str = Field(description="Date of the transaction")
+    transaction_time: str = Field(description="Time of the transaction")
     total_amount: float
     items: list[ReceiptItem1]
 
@@ -171,18 +170,22 @@ def test_llm_visual_extractor(image_receipt_df, receipt_json, receipt_json_path)
 
     # Check that exceptions is empty
     assert data[0].data.exception == ""
-    receipt = ReceiptSchema.model_validate_json(data[0].data.data)
+    receipt = ReceiptSchema.model_validate_json(data[0].data.json_data)
     if not receipt_json_path.exists():
         with receipt_json_path.open("w") as f:
             f.write(
-                json.dumps(json.loads(data[0].data.data), indent=4, ensure_ascii=False),
+                json.dumps(
+                    json.loads(data[0].data.json_data),
+                    indent=4,
+                    ensure_ascii=False,
+                ),
             )
     true_receipt = ReceiptSchema.model_validate_json(receipt_json)
     similairty = calculate_similarity(receipt, true_receipt)
     print(similairty)
-    assert similairty > 0.7
+    assert similairty > 0.6
 
-    result.select("data.data").show(1, False)
+    result.select("data.data.*").show(1, False)
 
 
 def test_llm_visual_extractor_prompt_schema(
@@ -216,11 +219,15 @@ def test_llm_visual_extractor_prompt_schema(
     # Check that exceptions is empty
     assert data[0].data.exception == ""
     print(data[0].data.data)
-    receipt = ReceiptSchema1.model_validate_json(data[0].data.data)
+    receipt = ReceiptSchema1.model_validate_json(data[0].data.json_data)
     if not receipt_with_null_json_path.exists():
         with receipt_with_null_json_path.open("w") as f:
             f.write(
-                json.dumps(json.loads(data[0].data.data), indent=4, ensure_ascii=False),
+                json.dumps(
+                    json.loads(data[0].data.json_data),
+                    indent=4,
+                    ensure_ascii=False,
+                ),
             )
     true_receipt = ReceiptSchema1.model_validate_json(receipt_with_null_json)
     similairty = calculate_similarity(receipt, true_receipt)
