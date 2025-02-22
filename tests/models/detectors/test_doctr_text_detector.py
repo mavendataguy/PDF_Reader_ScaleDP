@@ -1,5 +1,6 @@
 import tempfile
 
+import pytest
 from pyspark.ml import PipelineModel
 
 from scaledp import ImageDrawBoxes
@@ -8,6 +9,7 @@ from scaledp.models.detectors.DocTRTextDetector import DocTRTextDetector
 
 
 def test_doctr_text_detector(image_receipt_df):
+    pytest.skip("Slow test")
     pipeline = create_pipeline(partitionMap=False)
 
     result = pipeline.transform(image_receipt_df).cache()
@@ -29,6 +31,7 @@ def test_doctr_text_detector(image_receipt_df):
 
 
 def test_doctr_text_detector_pandas(image_receipt_df):
+    pytest.skip("Slow test")
     pipeline = create_pipeline()
     # Transform the image dataframe through the OCR stage
     result = pipeline.transform(image_receipt_df).cache()

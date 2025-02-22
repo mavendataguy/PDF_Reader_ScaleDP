@@ -4,7 +4,9 @@ import logging
 from types import MappingProxyType
 from typing import Any
 
+from pydantic import BaseModel
 from pyspark import keyword_only
+from sparkdantic import create_spark_schema
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -13,7 +15,6 @@ from tenacity import (
 )
 
 from scaledp.params import HasLLM, HasPrompt, HasSchema
-from scaledp.schemas.ExtractorOutput import ExtractorOutput
 
 from .BaseVisualExtractor import BaseVisualExtractor
 
@@ -48,6 +49,20 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
         self._setDefault(**self.defaultParams)
         self._set(**kwargs)
         self.pipeline = None
+
+    def getOuptuClass(self):
+        class ExtractorOutputCustom(BaseModel):
+            path: str
+            json_data: str
+            type: str
+            exception: str = ""
+            processing_time: float = 0.0
+            data: self.getPaydanticSchema()
+
+        return ExtractorOutputCustom
+
+    def get_output_schema(self):
+        return create_spark_schema(self.getOuptuClass())
 
     def call_extractor(self, images, params):
         from openai import RateLimitError
@@ -113,11 +128,13 @@ class LLMVisualExtractor(BaseVisualExtractor, HasLLM, HasSchema, HasPrompt):
                 .replace("```", "")
             )
 
+            data = json.loads(result)
             results.append(
-                ExtractorOutput(
+                self.getOuptuClass()(
                     path=image.path,
-                    data=json.dumps(json.loads(result), indent=4, ensure_ascii=False),
+                    json_data=json.dumps(data, indent=4, ensure_ascii=False),
                     type="LLMVisualExtractor",
+                    data=data,
                     exception="",
                 ),
             )

@@ -42,7 +42,7 @@ class LLMNer(BaseNer, HasLLM, HasPrompt, HasPropagateExc):
             "scoreThreshold": 0.0,
             "pageCol": "page",
             "pathCol": "path",
-            "systemPrompt": "Please extract following NER Tags from the text as json: ",
+            "systemPrompt": "You are excellent NER tag extractor.",
             "prompt": """Please extract text from the image.""",
             "model": "gemini-1.5-flash-8b",
             "apiBase": "",
@@ -67,10 +67,7 @@ class LLMNer(BaseNer, HasLLM, HasPrompt, HasPropagateExc):
 
         class Entity(BaseModel):
             entity_group: str
-            score: float
             word: str
-            start: int
-            end: int
 
         class NerOutput(BaseModel):
             entities: List[Entity]
@@ -112,9 +109,17 @@ class LLMNer(BaseNer, HasLLM, HasPrompt, HasPropagateExc):
             model=params["model"],
             messages=[
                 {
+                    "role": "system",
+                    "content": [
+                        {"type": "text", "text": params["systemPrompt"]},
+                    ],
+                },
+                {
                     "role": "user",
                     "content": f'Pleas extract NER tags: {",".join(params["tags"])}'
-                    f" as json with schema: {schema}. From the text:" + document.text,
+                    f" as json with schema: {schema}. "
+                    f"Return only valid json without any other extra text. From the text:"
+                    + document.text,
                 },
             ],
             response_format={"type": "json_object"},
@@ -138,16 +143,16 @@ class LLMNer(BaseNer, HasLLM, HasPrompt, HasPropagateExc):
                 if any(
                     word.lower() in box.text.lower()
                     and (len(word) > 2 or abs(len(word) - len(box.text)) < 2)
-                    for word in word.split(" ")
+                    for word in word.replace(",", " ").replace("@", " ").split(" ")
                     if len(word) > 1
                 ):
                     boxes.append(box)
             t = Entity(
                 entity_group=tag["entity_group"],
-                score=float(tag["score"]),
+                score=0,  # float(tag["score"]),
                 word=tag["word"],
-                start=tag["start"],
-                end=tag["end"],
+                start=0,  # tag["start"],
+                end=0,  # tag["end"],
                 boxes=boxes,
             )
             entities.append(t)
