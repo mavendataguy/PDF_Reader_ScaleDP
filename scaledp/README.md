@@ -39,3 +39,14 @@
   poetry version patch
   poetry publish --build
 ```
+
+
+## Pre-commit
+
+To install pre-commit simply run inside the shell:
+```bash
+pre-commit install
+```
+
+pre-commit run --all-files
+
