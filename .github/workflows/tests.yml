@@ -112,7 +112,7 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root -E ml
+        run: poetry install --no-interaction -E ml
 
       #----------------------------------------------
       #              run test suite
