@@ -1,8 +1,7 @@
 import os
 import sys
-from importlib import resources
+from importlib import metadata, resources
 from importlib.util import find_spec
-from pathlib import Path
 
 import pyspark
 from pyspark.ml.pipeline import PipelineModel
@@ -91,9 +90,7 @@ DataFrame.visualize_ner = (
 
 
 def version():
-    version_file_path = Path(__file__).parent / "VERSION"
-    with version_file_path.open(encoding="utf-8") as version_file:
-        return version_file.read().strip()
+    return metadata.version("scaledp")
 
 
 __version__ = version()

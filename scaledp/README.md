@@ -48,5 +48,8 @@ To install pre-commit simply run inside the shell:
 pre-commit install
 ```
 
+To run pre-commit on all files:
+```bash
 pre-commit run --all-files
+```
 

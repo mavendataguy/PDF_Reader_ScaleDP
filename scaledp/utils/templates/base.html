@@ -3,7 +3,7 @@
         <div style="padding: 10px 0px 10px 20px;">
             <table>
                 {% for key, value in metadata.items() %}
-                    {% if value or key in ( 'Id', 'Image#') %}
+                    {% if key != 'Exception' and (value or key in ( 'Id', 'Image#')) %}
                         <tr style="background: #e5edf5;">
                             <td style="font-weight: 600; margin: 0;padding: 2px; ">{{ key }}:</td>
                             <td style="text-align: left;padding: 2px 5px 2px 10px;">{{value}}</td>
@@ -16,6 +16,10 @@
         <a href="https://stabrise.com/scaledp/"><img src="https://stabrise.com/media/filer_public_thumbnails/filer_public/92/6c/926cf44d-d412-4c47-b4d1-8ec62efb653a/scaledp.png__1000x300_subsampling-2.webp"
                 style="width: 200px; margin:10px 20px 0 0px;justify-self: end;"/></a>
     </div>
-        {% block body %}
-        {% endblock %}
+        {% if metadata.Exception %}
+            <p><pre style="border-radius: 8px;overflow:auto;background-color: rgb(255, 221, 221);padding: 1em;">{{metadata.Exception}}</pre></p>
+        {% else %}
+            {% block body %}
+            {% endblock %}
+        {% endif %}
 </div>
