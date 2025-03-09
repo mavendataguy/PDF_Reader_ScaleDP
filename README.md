@@ -324,7 +324,7 @@ result.show_image("image_with_boxes")
  - [PDF Redaction](https://pdf-redaction.com/) - Free AI-powered tool for redact PDF files (remove sensitive information) online.
 
 
-<img alt="pdf-redaction" src="https://media.licdn.com/dms/image/v2/D4D22AQGhRpexOnAbyA/feedshare-shrink_800/B4DZVmbKWPHIAg-/0/1741180153002?e=1744243200&v=beta&t=lRQXyJ5nHYvdU4uF6LJuq69oKs72yPBs1xts2IrJgxc"/>
+<a href="https://pdf-redaction.com/"><img alt="pdf-redaction" src="https://media.licdn.com/dms/image/v2/D4D22AQGhRpexOnAbyA/feedshare-shrink_800/B4DZVmbKWPHIAg-/0/1741180153002?e=1744243200&v=beta&t=lRQXyJ5nHYvdU4uF6LJuq69oKs72yPBs1xts2IrJgxc"/></a>
 
 
 ## Disclaimer
