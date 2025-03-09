@@ -319,6 +319,10 @@ result.show_image("image_with_boxes")
 | [DocTR](https://github.com/mindee/doctr)       | word        | yes         | yes                                |                                       |                          |
 
 
+## Projects based on the ScaleDP
+
+ - [PDF Redaction](https://pdf-redaction.com/) - Free AI based PDF redaction tool
+
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or connected to the Apache Software Foundation or Apache Spark.
