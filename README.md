@@ -42,6 +42,8 @@ Discover pre-trained models for your projects or play with the thousands of mode
 - Extraction text from PDF documents/Images
 - Extraction images from PDF documents
 - Zero-Shot extraction **structured data** from text/images using LLM and ML models
+- Possibility run as REST API service without Spark Session for have minimum processing latency
+
 
 ### LLM:
 
