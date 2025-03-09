@@ -38,12 +38,12 @@ Discover pre-trained models for your projects or play with the thousands of mode
 ## Key features
 
 ### Document processing:
-- Loading PDF documents/Images to the Spark DataFrame
-- Extraction text from PDF documents/Images
-- Extraction images from PDF documents
-- Zero-Shot extraction **structured data** from text/images using LLM and ML models
-- Possibility run as REST API service without Spark Session for have minimum processing latency
 
+- ✅ Loading PDF documents/Images to the Spark DataFrame (using [Spark PDF Datasource](https://github.com/stabrise/spark-pdf) and as `binaryFile`)
+- ✅ Extraction text/images from PDF documents/Images
+- ✅ Zero-Shot extraction **structured data** from text/images using LLM and ML models
+- ✅ Possibility run as REST API service without Spark Session for have minimum processing latency
+- ✅ Support Streaming mode for processing documents in real-time
 
 ### LLM:
 
