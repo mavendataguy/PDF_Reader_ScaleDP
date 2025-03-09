@@ -38,24 +38,10 @@ Discover pre-trained models for your projects or play with the thousands of mode
 ## Key features
 
 ### Document processing:
-- Load PDF documents/Images to the Spark DataFrame
-- Extract text from PDF documents/Images
-- Extract images from PDF documents
-- Extract **structured data** from text/images using LLM and ML models
-
-### OCR:
-
-Support various open-source OCR engines:
-
- - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) 
- - [Easy OCR](https://github.com/JaidedAI/EasyOCR)   
- - [Surya OCR](https://github.com/VikParuchuri/surya) 
- - [DocTR](https://github.com/mindee/doctr)
-
-### CV:
-- Object detection on images using YOLO models
-- Text detection on images
-
+- Loading PDF documents/Images to the Spark DataFrame
+- Extraction text from PDF documents/Images
+- Extraction images from PDF documents
+- Zero-Shot extraction **structured data** from text/images using LLM and ML models
 
 ### LLM:
 
@@ -66,9 +52,22 @@ Support OpenAI compatible API for call LLM/VLM models (GPT, Gemini, GROQ, etc.)
 - Extract data from the text/images using LLM models
 - Extract data using DSPy framework
 - Extract data from the text/images using NLP models from the Hugging Face Hub
+- NER using classical ML and LLM's
 - Visualize results
 
+### OCR:
 
+Support various open-source OCR engines:
+
+ - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) 
+ - [Easy OCR](https://github.com/JaidedAI/EasyOCR)   
+ - [Surya OCR](https://github.com/VikParuchuri/surya) 
+ - [DocTR](https://github.com/mindee/doctr)
+ - Vision LLM models
+
+### CV:
+- Object detection on images using YOLO models
+- Text detection on images
 
 
 ## Installation
@@ -78,7 +77,6 @@ Support OpenAI compatible API for call LLM/VLM models (GPT, Gemini, GROQ, etc.)
 - Python 3.10 or higher
 - Apache Spark 3.5 or higher
 - Java 8
-- Tesseract 4.0 or higher
 
 ### Installation using pip
 
@@ -128,6 +126,112 @@ df.show_image("content")
 Output:
 
 <img src="https://github.com/StabRise/ScaleDP/blob/master/images/ImageOutput.png?raw=true" width="400">
+
+
+## Zero-Shot data Extraction from the Image:
+
+```python
+from pydantic import BaseModel
+import json
+
+class Items(BaseModel):
+    date: str
+    item: str
+    note: str
+    debit: str
+
+class InvoiceSchema(BaseModel):
+    hospital: str
+    tax_id: str
+    address: str
+    email: str
+    phone: str
+    items: list[Items]
+    total: str
+    
+
+pipeline = PipelineModel(stages=[
+    DataToImage(
+        inputCol="content",
+        outputCol="image"
+    ),
+    LLMVisualExtractor(
+        inputCol="image",
+        outputCol="invoice",
+        model="gemini-1.5-flash",
+        apiKey="AIzaSyBB2GppJHCJqR2V_0LDES9Nadsbes5b0cw",
+        apiBase="https://generativelanguage.googleapis.com/v1beta/",
+        schema=json.dumps(InvoiceSchema.model_json_schema())
+    )
+])
+
+result = pipeline.transform(df).cache()
+```
+
+Show the extracted json:
+
+```python
+result.show_json("invoice")
+```
+![](./images/LLMVisualExtractorJson.png)
+
+Let's show Invoice as Structured Data in Data Frame
+
+```python
+result.select("invoice.data.*").show()
+```
+
+Output:
+
+```text
++-------------------+---------+--------------------+--------------------+--------------+--------------------+-------+
+|           hospital|   tax_id|             address|               email|         phone|               items|  total|
++-------------------+---------+--------------------+--------------------+--------------+--------------------+-------+
+|Hope Haven Hospital|26-123123|855 Howard Street...|hopedutton@hopeha...|(123) 456-1238|[{10/21/2022, App...|1024.50|
++-------------------+---------+--------------------+--------------------+--------------+--------------------+-------+
+```
+
+Schema:
+
+```python
+result.printSchema()
+```
+
+```text
+root
+ |-- path: string (nullable = true)
+ |-- modificationTime: timestamp (nullable = true)
+ |-- length: long (nullable = true)
+ |-- image: struct (nullable = true)
+ |    |-- path: string (nullable = false)
+ |    |-- resolution: integer (nullable = false)
+ |    |-- data: binary (nullable = false)
+ |    |-- imageType: string (nullable = false)
+ |    |-- exception: string (nullable = false)
+ |    |-- height: integer (nullable = false)
+ |    |-- width: integer (nullable = false)
+ |-- invoice: struct (nullable = true)
+ |    |-- path: string (nullable = false)
+ |    |-- json_data: string (nullable = true)
+ |    |-- type: string (nullable = false)
+ |    |-- exception: string (nullable = false)
+ |    |-- processing_time: double (nullable = false)
+ |    |-- data: struct (nullable = true)
+ |    |    |-- hospital: string (nullable = false)
+ |    |    |-- tax_id: string (nullable = false)
+ |    |    |-- address: string (nullable = false)
+ |    |    |-- email: string (nullable = false)
+ |    |    |-- phone: string (nullable = false)
+ |    |    |-- items: array (nullable = false)
+ |    |    |    |-- element: struct (containsNull = false)
+ |    |    |    |    |-- date: string (nullable = false)
+ |    |    |    |    |-- item: string (nullable = false)
+ |    |    |    |    |-- note: string (nullable = false)
+ |    |    |    |    |-- debit: string (nullable = false)
+ |    |    |-- total: string (nullable = false)
+```
+
+## NER using model from the HuggingFace models Hub
 
 Define pipeline for extract text from the image and run NER:
 
