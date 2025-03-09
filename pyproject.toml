@@ -32,7 +32,7 @@ torch =  [
     {version = ">=2.4.1", source = "pytorch_cpu", optional = true}
 ]
 dspy = {version = "2.5.43", optional = true}
-levenshtein = "^0.26.1"
+levenshtein = "^0.27.1"
 pydantic = ">=1.8.0"
 huggingface-hub = "^0.28.1"
 tenacity = "^9.0.0"
