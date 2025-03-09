@@ -51,9 +51,13 @@ Support OpenAI compatible API for call LLM/VLM models (GPT, Gemini, GROQ, etc.)
 - Extract data from the image using Vision LLM models
 - Extract data from the text/images using LLM models
 - Extract data using DSPy framework
-- Extract data from the text/images using NLP models from the Hugging Face Hub
-- NER using classical ML and LLM's
+- NER using LLM's
 - Visualize results
+
+### NLP:
+
+- Extract data from the text/images using NLP models from the Hugging Face Hub
+- NER using classical ML models
 
 ### OCR:
 
