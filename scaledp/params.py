@@ -1,4 +1,5 @@
 import json
+import os
 from enum import Enum
 from typing import Any, List
 
@@ -691,7 +692,8 @@ class HasLLM(Params):
         """OpenAI client."""
         if self.openAiClient:
             return self.openAiClient
-        return self.getClient(self.getApiKey(), self.getApiBase())
+        self.openAiClient = self.getClient(self.getApiKey(), self.getApiBase())
+        return self.openAiClient
 
     @classmethod
     def getClient(cls, apiKey: str, apiBase: str) -> Any:
@@ -703,6 +705,10 @@ class HasLLM(Params):
             kwargs["api_key"] = apiKey
         if apiBase:
             kwargs["base_url"] = apiBase
+        if not apiKey and not os.environ.get("OPENAI_API_KEY"):
+            raise ValueError(
+                "One of `apiKey` param or environment variable `OPENAI_API_KEY` must be provided.",
+            )
         return OpenAI(**kwargs)
 
     def getDelay(self) -> int:

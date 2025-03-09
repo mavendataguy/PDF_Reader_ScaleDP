@@ -1,10 +1,13 @@
 import json
 import logging
 import traceback
+from typing import Optional
 
+from pydantic import BaseModel
 from pyspark.ml import Transformer
 from pyspark.ml.util import DefaultParamsReadable, DefaultParamsWritable
 from pyspark.sql.functions import lit, udf
+from sparkdantic import create_spark_schema
 
 from scaledp.params import (
     HasColumnValidator,
@@ -16,8 +19,8 @@ from scaledp.params import (
     HasPageCol,
     HasPathCol,
     HasPropagateExc,
+    HasSchema,
 )
-from scaledp.schemas.ExtractorOutput import ExtractorOutput
 from scaledp.schemas.Image import Image
 
 
@@ -38,6 +41,7 @@ class BaseVisualExtractor(
     HasColumnValidator,
     HasDefaultEnum,
     HasPropagateExc,
+    HasSchema,
 ):
 
     def get_params(self):
@@ -55,9 +59,8 @@ class BaseVisualExtractor(
         if not isinstance(image, Image):
             image = Image(**image.asDict())
         if image.exception != "":
-            return ExtractorOutput(
+            return self.getOutputClass()(
                 path=image.path,
-                data="",
                 type="extractor",
                 exception=image.exception,
             )
@@ -72,16 +75,26 @@ class BaseVisualExtractor(
             logging.warning(f"{self.uid}: Error in data extraction.")
             if self.getPropagateError():
                 raise VisualExtractorError from e
-            return ExtractorOutput(
+            return self.getOutputClass()(
                 path=image.path,
-                data="",
                 type="detector",
                 exception=exception,
             )
         return result[0]
 
+    def getOutputClass(self):
+        class ExtractorOutputCustom(BaseModel):
+            path: str
+            json_data: Optional[str] = ""
+            type: str
+            exception: str = ""
+            processing_time: float = 0.0
+            data: Optional[self.getPaydanticSchema()] = None
+
+        return ExtractorOutputCustom
+
     def get_output_schema(self):
-        return ExtractorOutput.get_schema()
+        return create_spark_schema(self.getOutputClass())
 
     def _transform(self, dataset):
         out_col = self.getOutputCol()
