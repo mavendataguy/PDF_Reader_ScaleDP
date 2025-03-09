@@ -159,7 +159,7 @@ pipeline = PipelineModel(stages=[
         inputCol="image",
         outputCol="invoice",
         model="gemini-1.5-flash",
-        apiKey="AIzaSyBB2GppJHCJqR2V_0LDES9Nadsbes5b0cw",
+        apiKey="",
         apiBase="https://generativelanguage.googleapis.com/v1beta/",
         schema=json.dumps(InvoiceSchema.model_json_schema())
     )
@@ -173,7 +173,8 @@ Show the extracted json:
 ```python
 result.show_json("invoice")
 ```
-![](./images/LLMVisualExtractorJson.png)
+
+<img src="https://github.com/StabRise/ScaleDP/blob/master/images/LLMVisualExtractorJson.png?raw=true" width="400">
 
 Let's show Invoice as Structured Data in Data Frame
 
