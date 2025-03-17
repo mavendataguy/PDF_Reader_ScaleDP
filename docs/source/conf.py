@@ -23,7 +23,7 @@ html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 
 html_favicon = "_static/favicon.ico"
-html_logo = "https://stabrise.com/media/filer_public_thumbnails/filer_public/4a/7d/4a7d97c2-50d7-4b7a-9902-af2df9b574da/scaledplogo.png__1000x300_subsampling-2.webp"
+html_logo = "https://raw.githubusercontent.com/StabRise/ScaleDP/refs/heads/master/images/scaledp.webp"
 
 html_sidebars = {"reference/blog/*": ["navbar-logo.html", "search-field.html"]}
 
