@@ -69,7 +69,7 @@ class EasyOcr(BaseOcr, HasDevice, HasBatchSize):
             result = reader.readtext(image)
             boxes = [
                 EasyOcr.points_to_box(box, text, float(score))
-                .toString()
+                .to_string()
                 .scale(1 / scale_factor)
                 for box, text, score in result
             ]
