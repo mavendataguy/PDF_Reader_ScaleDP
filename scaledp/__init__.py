@@ -61,7 +61,7 @@ DataFrame.show_ner = lambda self, column="ner", limit=20, truncate=True: show_ne
     truncate,
 )
 DataFrame.show_text = (
-    lambda self, column="", field="text", limit=20, width=None: show_text(
+    lambda self, column="text", field="text", limit=20, width=None: show_text(
         self,
         column,
         field,
@@ -131,7 +131,7 @@ def ScaleDPSession(
     master_url="local[*]",
     with_aws=False,
     with_pro=False,
-    with_spark_pdf: str | bool = False,
+    with_spark_pdf: str | bool = True,
     logLevel="ERROR",
 ):
     """
